@@ -1,0 +1,31 @@
+{% extends 'courses/dashboard_base.html' %}
+
+{% block title %}Test{% endblock %}
+
+{% block dashboard_main %}
+<section class="content-card">
+    <h1>Test ke kurzu</h1>
+    <p><strong>Kurz:</strong> {{ course.title }}</p>
+</section>
+
+<section class="content-card">
+    <form method="post">
+        {% csrf_token %}
+
+        {% for question in questions %}
+        <div style="margin-bottom: 24px;">
+            <p><strong>{{ forloop.counter }}. {{ question.text }}</strong></p>
+
+            {% for choice in question.choice_set.all %}
+            <label style="display:block; margin: 8px 0;">
+                <input type="radio" name="{{ question.id }}" value="{{ choice.id }}">
+                {{ choice.text }}
+            </label>
+            {% endfor %}
+        </div>
+        {% endfor %}
+
+        <button type="submit" class="primary-button">Odeslat test</button>
+    </form>
+</section>
+{% endblock %}

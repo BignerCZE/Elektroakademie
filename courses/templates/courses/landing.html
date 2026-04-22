@@ -1,0 +1,41 @@
+{% extends 'courses/base.html' %}
+{% load static %}
+
+{% block title %}Ukázková landing page | Elektroakademie{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'courses/css/landing.css' %}?v=3">
+{% endblock %}
+
+{% block content %}
+<div class="landing-page">
+    <main class="page-scroll">
+        <section class="page-section intro-section">
+            <section class="hero-section">
+                <div class="container hero-grid">
+                    <div class="hero-content">
+                        <p class="hero-eyebrow">Ukázka stylu portálu</p>
+                        <h1>Moderní výukový portál pro online kurzy</h1>
+                        <p class="hero-description">
+                            Tato stránka slouží jako alternativní landing page postavená na stejné společné šabloně.
+                        </p>
+                        <div class="hero-actions">
+                            <a href="{% url 'index' %}#courses" class="primary-button">Přejít na kurzy</a>
+                        </div>
+                    </div>
+
+                    <div class="hero-visual">
+                        <div class="shape shape-yellow"></div>
+                        <div class="shape shape-blue"></div>
+                        <div class="shape shape-green"></div>
+                        <div class="shape shape-pink"></div>
+                        <div class="hero-image-wrap">
+                            <img src="{% static 'courses/img/tmave_pozadi_cropped.svg' %}" alt="Elektroakademie" class="video-thumbnail">
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </section>
+    </main>
+</div>
+{% endblock %}

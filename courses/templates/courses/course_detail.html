@@ -1,0 +1,52 @@
+{% extends 'courses/dashboard_base.html' %}
+
+{% block title %}{{ course.title }} | Elektroakademie{% endblock %}
+
+{% block dashboard_main %}
+<section class="content-card">
+    <div class="page-header">
+        <p class="page-eyebrow">Detail kurzu</p>
+        <h1 class="page-title">{{ course.title }}</h1>
+        <p class="page-subtitle">{{ course.description }}</p>
+    </div>
+
+    <div class="info-grid">
+        <div class="info-item">
+            <span class="info-label">Přístup</span>
+            <div class="info-value">
+                {% if user.is_authenticated %}
+                Přihlášen jako {{ user.username }}
+                {% else %}
+                Pro vstup do kurzu je potřeba přihlášení
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="info-item">
+            <span class="info-label">Stav platby</span>
+            <div class="info-value">
+                {% if user.is_authenticated and user.is_paid %}
+                Aktivní přístup
+                {% elif user.is_authenticated %}
+                Kurz zatím není zakoupen
+                {% else %}
+                Nepřihlášený uživatel
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="button-row">
+        {% if user.is_authenticated %}
+        {% if user.is_paid %}
+        <a href="{% url 'video_detail' course.id %}" class="button-primary">Přejít na video kurzu</a>
+        {% else %}
+        <a href="{% url 'buy_course' course.id %}" class="button-primary">Koupit kurz</a>
+        {% endif %}
+        {% else %}
+        <a href="{% url 'login' %}" class="button-primary">Přihlásit se</a>
+        <a href="{% url 'register' %}" class="button-secondary">Vytvořit účet</a>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

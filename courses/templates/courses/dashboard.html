@@ -1,0 +1,36 @@
+{% extends 'courses/dashboard_base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block dashboard_main %}
+<section class="content-card">
+    <p class="dashboard-eyebrow">Uživatelský dashboard</p>
+    <h1>Vítej, {{ user.first_name|default:user.username }}</h1>
+    <p>
+        Tady najdeš přehled svého studia a rychlé odkazy na důležité části portálu.
+    </p>
+</section>
+
+<section class="content-card">
+    <h2>Moje kurzy</h2>
+
+    {% if purchased_courses %}
+    <div class="dashboard-list">
+        {% for course in purchased_courses %}
+        <a href="{% url 'course_detail' course.id %}" class="dashboard-list-item">
+            <div>
+                <h3>{{ course.title }}</h3>
+                <p>{{ course.description|truncatechars:120 }}</p>
+            </div>
+            <span class="dashboard-link-arrow">→</span>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <p>Zatím nemáš žádný kurz.</p>
+        <a href="{% url 'index' %}#courses" class="primary-button">Přejít na kurzy</a>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

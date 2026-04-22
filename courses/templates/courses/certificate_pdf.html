@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <meta charset="utf-8">
+        <title>Certifikát</title>
+        <style>
+            @page {
+                size: a4 landscape;
+                margin: 1.2cm;
+
+                @frame content_frame {
+                    left: 1.2cm;
+                    top: 1.2cm;
+                    width: 27.3cm;
+                    height: 17.6cm;
+                }
+            }
+
+            body {
+                font-family: Helvetica, Arial, sans-serif;
+                text-align: center;
+                font-size: 14px;
+                margin: 0;
+                padding: 0;
+            }
+
+            .certificate-box {
+                border: 2px solid black;
+                padding: 22px;
+            }
+
+            .title {
+                font-size: 26px;
+                margin-bottom: 18px;
+            }
+
+            .subtitle {
+                font-size: 16px;
+                margin-bottom: 10px;
+            }
+
+            .name {
+                font-size: 24px;
+                margin: 14px 0;
+            }
+
+            .course {
+                font-size: 20px;
+                margin: 14px 0;
+            }
+
+            .date {
+                margin-top: 24px;
+                font-size: 14px;
+            }
+
+            p {
+                margin: 6px 0;
+            }
+
+            h1,
+            h2,
+            h3,
+            div {
+                -pdf-outline: false;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="certificate-box">
+            <div class="title">Certifikát o dokončení</div>
+
+            <p class="subtitle">Tímto se potvrzuje, že</p>
+
+            <div class="name">{{ user.username }}</div>
+
+            <p class="subtitle">úspěšně dokončil kurz</p>
+
+            <div class="course">{{ course.title }}</div>
+
+            <div class="date">Datum dokončení: {{ completion_date }}</div>
+        </div>
+    </body>
+
+</html>

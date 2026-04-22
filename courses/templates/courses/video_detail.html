@@ -1,0 +1,15 @@
+{% extends 'courses/dashboard_base.html' %}
+
+{% block title %}Video{% endblock %}
+
+{% block dashboard_main %}
+<section class="content-card">
+    <h1>Video lekce</h1>
+    <p><strong>Kurz:</strong> {{ course.title }}</p>
+    <p>Zde bude vložené video nebo přehrávač.</p>
+
+    <p>
+        <a href="{% url 'quiz' course.id %}" class="primary-button">Pokračovat na test</a>
+    </p>
+</section>
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends 'courses/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'courses/css/dashboard_shell.css' %}?v=2">
+{% block dashboard_extra_css %}{% endblock %}
+{% endblock %}
+
+{% block content %}
+<main class="page-content dashboard-shell-page">
+    <div class="container">
+        <section class="dashboard-shell">
+            <aside class="dashboard-shell-sidebar">
+                <div class="dashboard-sidebar-panel">
+                    <section class="sidebar-section">
+                        <h2 class="sidebar-title">Účet</h2>
+                        <p><strong>Email:</strong> {{ user.email|default:"Neuveden" }}</p>
+                    </section>
+
+                    <hr class="sidebar-divider">
+
+                    <section class="sidebar-section">
+                        <h2 class="sidebar-title">Platba</h2>
+
+                        {% if has_paid %}
+                        <p><strong>Platba:</strong> Uhrazeno</p>
+                        {% else %}
+                        <p><strong>Platba:</strong> Neuhrazeno</p>
+
+                        {% if course_for_payment %}
+                        <p class="sidebar-action">
+                            <a href="{% url 'buy_course' course_for_payment.id %}">Přejít k platbě</a>
+                        </p>
+                        {% endif %}
+                        {% endif %}
+                    </section>
+
+                    <hr class="sidebar-divider">
+
+                    <nav class="sidebar-nav">
+                        <a href="{% url 'profile' %}">Můj profil</a>
+
+                        {% if active_course %}
+                        <a href="{% url 'course_detail' active_course.id %}">Detail kurzu</a>
+
+                        {% if has_paid %}
+                        <a href="{% url 'video_detail' active_course.id %}">Video</a>
+                        <a href="{% url 'quiz' active_course.id %}">Test</a>
+
+                        {% if user.passed_quiz %}
+                        <a href="{% url 'certificate_success' active_course.id %}">Certifikát</a>
+                        {% else %}
+                        <span class="disabled-link">Certifikát</span>
+                        {% endif %}
+                        {% else %}
+                        <span class="disabled-link">Video</span>
+                        <span class="disabled-link">Test</span>
+                        <span class="disabled-link">Certifikát</span>
+                        {% endif %}
+                        {% else %}
+                        <span class="disabled-link">Detail kurzu</span>
+                        <span class="disabled-link">Video</span>
+                        <span class="disabled-link">Test</span>
+                        <span class="disabled-link">Certifikát</span>
+                        {% endif %}
+                    </nav>
+
+                    {% block sidebar_extra %}{% endblock %}
+                </div>
+            </aside>
+
+            <div class="dashboard-shell-main">
+                {% block dashboard_main %}{% endblock %}
+            </div>
+        </section>
+    </div>
+</main>
+{% endblock %}

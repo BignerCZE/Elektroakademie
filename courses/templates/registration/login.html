@@ -1,0 +1,28 @@
+{% extends 'courses/base.html' %}
+
+{% block title %}Přihlášení | Elektroakademie{% endblock %}
+
+{% block content %}
+<main class="page-shell page-shell--centered">
+    <div class="container">
+        <div class="content-card form-card">
+            <div class="page-header">
+                <p class="page-eyebrow">Uživatelský účet</p>
+                <h1 class="page-title">Přihlášení</h1>
+                <p class="page-subtitle">Přihlaste se ke svému účtu a pokračujte v kurzu.</p>
+            </div>
+
+            <form method="post" class="form-layout">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="button-primary">Přihlásit</button>
+            </form>
+
+            <div class="button-row">
+                <a href="{% url 'register' %}" class="button-secondary">Nemáte účet? Registrujte se</a>
+                <a href="{% url 'index' %}" class="button-link">Zpět na hlavní stránku</a>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}

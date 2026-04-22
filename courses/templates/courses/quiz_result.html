@@ -1,0 +1,21 @@
+{% extends 'courses/dashboard_base.html' %}
+
+{% block title %}Výsledek testu{% endblock %}
+
+{% block dashboard_main %}
+<section class="content-card">
+    <h1>Výsledek testu</h1>
+    <p><strong>Kurz:</strong> {{ course.title }}</p>
+    <p><strong>Správně:</strong> {{ correct_answers }} / {{ total_questions }}</p>
+    <p><strong>Úspěšnost:</strong> {{ score_percent|floatformat:0 }} %</p>
+    <p><strong>Minimum pro splnění:</strong> {{ pass_percentage }} %</p>
+
+    {% if passed %}
+    <p><strong>Test byl úspěšně splněn.</strong></p>
+    <a href="{% url 'certificate_success' course.id %}" class="primary-button">Pokračovat na certifikát</a>
+    {% else %}
+    <p><strong>Test nebyl splněn.</strong></p>
+    <a href="{% url 'quiz' course.id %}" class="primary-button">Zkusit znovu</a>
+    {% endif %}
+</section>
+{% endblock %}

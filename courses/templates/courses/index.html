@@ -1,0 +1,235 @@
+{% extends 'courses/base.html' %}
+{% load static %}
+
+{% block title %}Elektroakademie{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'courses/css/landing.css' %}?v=2">
+{% endblock %}
+
+{% block content %}
+<div class="landing-page">
+    <main class="page-scroll">
+        <section class="page-section intro-section">
+            <section class="hero-section">
+                <div class="container hero-grid">
+                    <div class="hero-content">
+                        <p class="hero-eyebrow">§20 poučená osoba zvládneš ľavou zadnou</p>
+
+                        <h1>Elektriku zmákneme spolu !</h1>
+
+                        <p class="hero-description">
+                            Máš chuť sa sám niečo dozvedieť, si profík vo svojej oblasti alebo si zamestnanec a
+                            chýba ti už len preškoliť na §20 vyhl. 508/2009, tak si tu správne. Osvedčenie čaká
+                            na teba!
+                        </p>
+
+                        <div class="hero-actions">
+                            <a href="#courses" class="primary-button">Videokurz</a>
+                        </div>
+                    </div>
+
+                    <div class="hero-visual">
+                        <div class="shape shape-yellow"></div>
+                        <div class="shape shape-blue"></div>
+                        <div class="shape shape-green"></div>
+                        <div class="shape shape-pink"></div>
+
+                        <div class="hero-image-wrap">
+                            <button class="video-trigger" id="open-video-modal" type="button"
+                                aria-label="Přehrát video">
+                                <img src="https://i.ytimg.com/vi/LDU_Txk06tM/hqdefault.jpg" alt="Náhled videa"
+                                    class="video-thumbnail">
+                                <span class="video-play-button">▶</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="benefits-section">
+                <div class="container">
+                    <div class="benefits-grid">
+                        <article class="benefit-card">
+                            <div class="benefit-icon">§4</div>
+                            <h3>Bezplatný vstup do kurzu</h3>
+                            <p>
+                                Vstup do kurzu je vždy zdarma a nikdy nezavazuje k nákupu.
+                            </p>
+                        </article>
+
+                        <article class="benefit-card">
+                            <div class="benefit-icon">§5</div>
+                            <h3>Lekce ZDARMA</h3>
+                            <p>
+                                Každý kurz obsahuje několik lekcí zdarma. Ujistíte se, že vám
+                                vyhovuje osobnost lektora a styl výuky, a teprve pak se rozhodnete,
+                                zda pokračovat i do placené části.
+                            </p>
+                        </article>
+
+                        <article class="benefit-card">
+                            <div class="benefit-icon">§6</div>
+                            <h3>Kurz vždy po ruce</h3>
+                            <p>
+                                Naše kurzy můžete přehrávat na PC, mobilu i tabletu. Vzdělávejte se
+                                cestou do práce nebo využijte volný čas na dovolené.
+                            </p>
+                        </article>
+
+                        <article class="benefit-card">
+                            <div class="benefit-icon">§7</div>
+                            <h3>Garance vrácení peněz</h3>
+                            <p>
+                                U zakoupeného kurzu máte v případě nespokojenosti 100% záruku
+                                vrácení peněz.
+                            </p>
+                        </article>
+                    </div>
+                </div>
+            </section>
+        </section>
+
+        <section class="page-section courses-section" id="courses">
+            <div class="container courses-inner">
+                <div class="section-header">
+                    <p class="section-eyebrow">Videokurzy</p>
+                    <h2>Dostupné kurzy</h2>
+                </div>
+
+                {% if courses %}
+                <div class="course-grid">
+                    {% for course in courses %}
+                    <article class="course-card">
+                        <h3>{{ course.title }}</h3>
+                        <p>{{ course.description }}</p>
+                        <a href="{% url 'course_detail' course.id %}" class="course-link">
+                            Zobrazit detail kurzu
+                        </a>
+                    </article>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <p>Žádné kurzy zatím nejsou k dispozici.</p>
+                </div>
+                {% endif %}
+            </div>
+        </section>
+    </main>
+</div>
+
+<div class="video-modal" id="video-modal" aria-hidden="true">
+    <div class="video-modal-backdrop" id="close-video-modal"></div>
+
+    <div class="video-modal-content" role="dialog" aria-modal="true" aria-label="Přehrávání videa">
+        <button class="video-modal-close" id="video-modal-close" type="button" aria-label="Zavřít video">
+            ×
+        </button>
+
+        <div class="video-modal-frame" id="video-modal-frame"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const root = document.documentElement;
+        const topbar = document.querySelector('.topbar');
+        const pageScroll = document.querySelector('.page-scroll');
+
+        const homeLink = document.getElementById('home-link');
+        const coursesSection = document.getElementById('courses');
+        const introSection = document.querySelector('.intro-section');
+
+        const openVideoModalButton = document.getElementById('open-video-modal');
+        const videoModal = document.getElementById('video-modal');
+        const closeVideoModalBackdrop = document.getElementById('close-video-modal');
+        const closeVideoModalButton = document.getElementById('video-modal-close');
+        const videoModalFrame = document.getElementById('video-modal-frame');
+
+        function setHeaderHeight() {
+            if (topbar) {
+                const headerHeight = topbar.offsetHeight;
+                root.style.setProperty('--header-height', `${headerHeight}px`);
+            }
+        }
+
+        function scrollToSection(target) {
+            if (!pageScroll || !target) return;
+
+            const targetTop =
+                target.getBoundingClientRect().top
+                - pageScroll.getBoundingClientRect().top
+                + pageScroll.scrollTop;
+
+            pageScroll.scrollTo({
+                top: targetTop,
+                behavior: 'smooth'
+            });
+        }
+
+        function openVideoModal() {
+            if (!videoModal || !videoModalFrame) return;
+
+            videoModal.classList.add('is-open');
+            videoModal.setAttribute('aria-hidden', 'false');
+
+            videoModalFrame.innerHTML = `
+                <iframe
+                    src="https://www.youtube.com/embed/LDU_Txk06tM?autoplay=1&rel=0&modestbranding=1"
+                    title="YouTube video player"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerpolicy="strict-origin-when-cross-origin"
+                    allowfullscreen>
+                </iframe>
+            `;
+        }
+
+        function closeVideoModal() {
+            if (!videoModal || !videoModalFrame) return;
+
+            videoModal.classList.remove('is-open');
+            videoModal.setAttribute('aria-hidden', 'true');
+            videoModalFrame.innerHTML = '';
+        }
+
+        setHeaderHeight();
+        window.addEventListener('resize', setHeaderHeight);
+
+        document.querySelectorAll('a[href="#courses"]').forEach(link => {
+            link.addEventListener('click', function (e) {
+                if (!coursesSection) return;
+                e.preventDefault();
+                scrollToSection(coursesSection);
+            });
+        });
+
+        if (homeLink && introSection) {
+            homeLink.addEventListener('click', function (e) {
+                e.preventDefault();
+                scrollToSection(introSection);
+            });
+        }
+
+        if (openVideoModalButton) {
+            openVideoModalButton.addEventListener('click', openVideoModal);
+        }
+
+        if (closeVideoModalBackdrop) {
+            closeVideoModalBackdrop.addEventListener('click', closeVideoModal);
+        }
+
+        if (closeVideoModalButton) {
+            closeVideoModalButton.addEventListener('click', closeVideoModal);
+        }
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                closeVideoModal();
+            }
+        });
+    });
+</script>
+{% endblock %}

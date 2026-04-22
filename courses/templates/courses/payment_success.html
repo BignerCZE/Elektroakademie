@@ -1,0 +1,14 @@
+{% extends 'courses/dashboard_base.html' %}
+
+{% block title %}Platba proběhla{% endblock %}
+
+{% block dashboard_main %}
+<section class="content-card">
+    <h1>Platba proběhla úspěšně</h1>
+    <p>Kurz <strong>{{ course.title }}</strong> byl uhrazen.</p>
+
+    <p>
+        <a href="{% url 'video_detail' course.id %}" class="primary-button">Pokračovat na video</a>
+    </p>
+</section>
+{% endblock %}

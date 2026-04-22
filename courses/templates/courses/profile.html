@@ -1,0 +1,44 @@
+{% extends 'courses/dashboard_base.html' %}
+
+{% block title %}Můj profil | Elektroakademie{% endblock %}
+
+{% block dashboard_main %}
+<section class="content-card">
+    <div class="page-header">
+        <p class="page-eyebrow">Uživatelský účet</p>
+        <h1 class="page-title">Profil uživatele</h1>
+        <p class="page-subtitle">Zde vidíte základní informace o svém účtu a postupu v kurzu.</p>
+    </div>
+
+    <div class="info-grid">
+        <div class="info-item">
+            <span class="info-label">Uživatelské jméno</span>
+            <div class="info-value">{{ user.username }}</div>
+        </div>
+        <div class="info-item">
+            <span class="info-label">E-mail</span>
+            <div class="info-value">{{ user.email|default:'Neuveden' }}</div>
+        </div>
+        <div class="info-item">
+            <span class="info-label">Platba</span>
+            <div class="info-value">
+                {% if user.is_paid %}
+                <span class="status-badge status-badge--success">Kurz uhrazen</span>
+                {% else %}
+                <span class="status-badge status-badge--warning">Kurz není uhrazen</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="info-item">
+            <span class="info-label">Test</span>
+            <div class="info-value">
+                {% if user.passed_quiz %}
+                <span class="status-badge status-badge--success">Úspěšně splněn</span>
+                {% else %}
+                <span class="status-badge status-badge--neutral">Zatím nesplněn</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

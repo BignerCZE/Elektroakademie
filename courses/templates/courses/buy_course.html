@@ -1,0 +1,16 @@
+{% extends 'courses/dashboard_base.html' %}
+
+{% block title %}Platba kurzu{% endblock %}
+
+{% block dashboard_main %}
+<section class="content-card">
+    <h1>Platba kurzu</h1>
+    <p><strong>Kurz:</strong> {{ course.title }}</p>
+    <p>Po potvrzení se kurz označí jako uhrazený.</p>
+
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="primary-button">Potvrdit platbu</button>
+    </form>
+</section>
+{% endblock %}

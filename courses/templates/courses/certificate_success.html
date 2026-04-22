@@ -1,0 +1,15 @@
+{% extends 'courses/dashboard_base.html' %}
+
+{% block title %}Certifikát{% endblock %}
+
+{% block dashboard_main %}
+<section class="content-card">
+    <h1>Certifikát</h1>
+    <p><strong>Kurz:</strong> {{ course.title }}</p>
+    <p><strong>Datum dokončení:</strong> {{ completion_date }}</p>
+
+    <a href="{% url 'certificate_pdf' course.id %}" class="primary-button">
+        Otevřít PDF certifikát
+    </a>
+</section>
+{% endblock %}
