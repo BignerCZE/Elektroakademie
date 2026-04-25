@@ -4,28 +4,43 @@
 {% block title %}Elektroakademie{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'courses/css/landing.css' %}?v=2">
+<link rel="stylesheet" href="{% static 'courses/css/landing.css' %}?v=6">
 {% endblock %}
 
 {% block content %}
 <div class="landing-page">
+
+    <nav class="landing-nav" aria-label="Navigace úvodní stránky">
+        <a href="#intro" class="landing-nav-link is-active" data-target="intro">Úvod</a>
+        <a href="#courses" class="landing-nav-link" data-target="courses">Školení</a>
+        <a href="#faq" class="landing-nav-link" data-target="faq">FAQ</a>
+        <a href="#contact" class="landing-nav-link" data-target="contact">Kontakt</a>
+    </nav>
+
     <main class="page-scroll">
-        <section class="page-section intro-section">
+        <section class="page-section intro-section" id="intro">
             <section class="hero-section">
                 <div class="container hero-grid">
                     <div class="hero-content">
                         <p class="hero-eyebrow">§20 poučená osoba zvládneš ľavou zadnou</p>
 
-                        <h1>Elektriku zmákneme spolu !</h1>
+                        <h1>Elektriku zmákneme spolu!</h1>
 
                         <p class="hero-description">
-                            Máš chuť sa sám niečo dozvedieť, si profík vo svojej oblasti alebo si zamestnanec a
-                            chýba ti už len preškoliť na §20 vyhl. 508/2009, tak si tu správne. Osvedčenie čaká
-                            na teba!
+                            Máš chuť sa sám niečo dozvedieť, si profík vo svojej oblasti nebo si zaměstnanec
+                            a chýba ti už len preškoliť na §20 vyhl. 508/2009? Tak si tu správně.
+                            Osvedčenie čaká na teba!
                         </p>
 
-                        <div class="hero-actions">
-                            <a href="#courses" class="primary-button">Videokurz</a>
+                        <div class="price-box">
+                            <span class="price-label">Akční cena</span>
+                            <div class="price-old">1990 Kč</div>
+                            <div class="price-new">990 Kč</div>
+                        </div>
+
+                        <div class="cta-buttons">
+                            <a href="#" class="cta-button primary">Mám zájem</a>
+                            <a href="#courses" class="cta-button secondary">Více informací</a>
                         </div>
                     </div>
 
@@ -53,37 +68,26 @@
                         <article class="benefit-card">
                             <div class="benefit-icon">§4</div>
                             <h3>Bezplatný vstup do kurzu</h3>
-                            <p>
-                                Vstup do kurzu je vždy zdarma a nikdy nezavazuje k nákupu.
-                            </p>
+                            <p>Vstup do kurzu je vždy zdarma a nikdy nezavazuje k nákupu.</p>
                         </article>
 
                         <article class="benefit-card">
                             <div class="benefit-icon">§5</div>
-                            <h3>Lekce ZDARMA</h3>
-                            <p>
-                                Každý kurz obsahuje několik lekcí zdarma. Ujistíte se, že vám
-                                vyhovuje osobnost lektora a styl výuky, a teprve pak se rozhodnete,
-                                zda pokračovat i do placené části.
-                            </p>
+                            <h3>Lekce zdarma</h3>
+                            <p>Vyzkoušíte si styl výuky i osobnost lektora a teprve potom se rozhodnete, zda pokračovat
+                                dál.</p>
                         </article>
 
                         <article class="benefit-card">
                             <div class="benefit-icon">§6</div>
                             <h3>Kurz vždy po ruce</h3>
-                            <p>
-                                Naše kurzy můžete přehrávat na PC, mobilu i tabletu. Vzdělávejte se
-                                cestou do práce nebo využijte volný čas na dovolené.
-                            </p>
+                            <p>Kurzy můžete sledovat na počítači, mobilu i tabletu, kdykoliv vám to vyhovuje.</p>
                         </article>
 
                         <article class="benefit-card">
                             <div class="benefit-icon">§7</div>
                             <h3>Garance vrácení peněz</h3>
-                            <p>
-                                U zakoupeného kurzu máte v případě nespokojenosti 100% záruku
-                                vrácení peněz.
-                            </p>
+                            <p>U zakoupeného kurzu máte v případě nespokojenosti 100% záruku vrácení peněz.</p>
                         </article>
                     </div>
                 </div>
@@ -92,28 +96,165 @@
 
         <section class="page-section courses-section" id="courses">
             <div class="container courses-inner">
-                <div class="section-header">
-                    <p class="section-eyebrow">Videokurzy</p>
-                    <h2>Dostupné kurzy</h2>
-                </div>
+                <div class="guide-section">
+                    <div class="guide-grid">
+                        <article class="guide-card">
+                            <h3>Co vás čeká</h3>
+                            <p>
+                                Online školení §4 je určeno pro osoby bez elektrotechnického vzdělání.
+                                Kurz vás provede základními pravidly bezpečné práce a připraví na ověření znalostí.
+                            </p>
+                        </article>
 
-                {% if courses %}
-                <div class="course-grid">
-                    {% for course in courses %}
-                    <article class="course-card">
-                        <h3>{{ course.title }}</h3>
-                        <p>{{ course.description }}</p>
-                        <a href="{% url 'course_detail' course.id %}" class="course-link">
-                            Zobrazit detail kurzu
-                        </a>
-                    </article>
-                    {% endfor %}
+                        <article class="guide-card">
+                            <h3>Studium online</h3>
+                            <p>
+                                Učíte se přes počítač z pohodlí domova. Sami si určíte, kdy budete studovat,
+                                kolik času přípravě věnujete a jakým tempem budete postupovat.
+                            </p>
+                        </article>
+
+                        <article class="guide-card">
+                            <h3>Testy bez stresu</h3>
+                            <p>
+                                Testy si můžete vyzkoušet, hned zobrazit výsledek a v případě potřeby se k látce
+                                vrátit. Přístup do e-learningu máte po dobu 60 dnů.
+                            </p>
+                        </article>
+
+                        <article class="guide-card">
+                            <h3>Rozsah činností</h3>
+                            <p>
+                                Osoba poučená může vykonávat pouze činnosti, ke kterým byla proškolena
+                                a u kterých byly ověřeny její znalosti podle platných předpisů.
+                            </p>
+                        </article>
+
+                        <article class="guide-card">
+                            <h3>Jak kurz probíhá</h3>
+                            <p>
+                                Objednáte školení, uhradíte zálohovou fakturu, zašlete požadovaný doklad
+                                a následně obdržíte přístupové údaje do online studijního prostředí.
+                            </p>
+                        </article>
+
+                        <article class="guide-card">
+                            <h3>Co získáte</h3>
+                            <p>
+                                Součástí ceny je organizace školení, přístup do e-learningu na 60 dnů
+                                a vystavení zápisu o provedení poučení dle zákona č. 250/2021 Sb. a NV č. 194/2022 Sb.
+                            </p>
+                        </article>
+                    </div>
+
+                    {% if courses %}
+                    <div class="guide-actions">
+                        {% for course in courses %}
+                        {% if forloop.first %}
+                        <a href="{% url 'course_detail' course.id %}" class="cta-button primary">Mám zájem</a>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
                 </div>
-                {% else %}
-                <div class="empty-state">
-                    <p>Žádné kurzy zatím nejsou k dispozici.</p>
+            </div>
+        </section>
+
+        <section class="page-section faq-section" id="faq">
+            <div class="container faq-inner">
+                <h2 class="faq-title">Často kladené otázky</h2>
+
+                <div class="faq-list">
+                    <div class="faq-item">
+                        <h3>Jak dlouho mám přístup ke kurzu?</h3>
+                        <p>
+                            Přístup do e-learningu získáte okamžitě po zaplacení a je aktivní po dobu 60 dnů.
+                            Během této doby si můžete obsah procházet neomezeně.
+                        </p>
+                    </div>
+
+                    <div class="faq-item">
+                        <h3>Musím mít elektrotechnické vzdělání?</h3>
+                        <p>
+                            Nemusíte. Kurz je navržen i pro úplné začátečníky bez předchozí zkušenosti
+                            s elektrotechnikou.
+                        </p>
+                    </div>
+
+                    <div class="faq-item">
+                        <h3>Jak probíhá závěrečný test?</h3>
+                        <p>
+                            Test probíhá online a můžete ho opakovat. Po každém pokusu ihned vidíte výsledek
+                            a můžete se vrátit ke studiu.
+                        </p>
+                    </div>
+
+                    <div class="faq-item">
+                        <h3>Kdy mohu začít studovat?</h3>
+                        <p>
+                            Okamžitě po obdržení přístupových údajů. Studium není časově omezené během dne,
+                            je čistě na vás, kdy se mu budete věnovat.
+                        </p>
+                    </div>
+
+                    <div class="faq-item">
+                        <h3>Dostanu po absolvování certifikát?</h3>
+                        <p>
+                            Ano, po splnění podmínek získáte zápis o provedení poučení dle platné legislativy.
+                        </p>
+                    </div>
+
+                    <div class="faq-item">
+                        <h3>Co když test neudělám napoprvé?</h3>
+                        <p>
+                            Nic se neděje. Test můžete opakovat a mezi pokusy si doplnit znalosti.
+                        </p>
+                    </div>
                 </div>
-                {% endif %}
+            </div>
+        </section>
+
+        <section class="page-section contact-section" id="contact">
+            <div class="container contact-inner">
+                <div class="contact-card">
+                    <div class="contact-info">
+                        <p class="contact-eyebrow">Kontakt</p>
+                        <h2>Máte dotaz ke školení?</h2>
+
+                        <p>
+                            Napište nám a ozveme se vám s podrobnostmi k online školení,
+                            průběhu testu i vystavení potvrzení.
+                        </p>
+
+                        <div class="contact-details">
+                            <p><strong>Elektroakademie s.r.o.</strong></p>
+                            <p>Masarykova 125, 602 00 Brno</p>
+                            <p>E-mail: info@elektroakademie.cz</p>
+                            <p>Telefon: +420 777 123 456</p>
+                        </div>
+                    </div>
+
+                    <form class="contact-form" action="#" method="post">
+                        <label>
+                            Jméno
+                            <input type="text" name="name" placeholder="Vaše jméno">
+                        </label>
+
+                        <label>
+                            E-mail
+                            <input type="email" name="email" placeholder="vas@email.cz">
+                        </label>
+
+                        <label>
+                            Zpráva
+                            <textarea name="message" rows="5" placeholder="Napište nám zprávu"></textarea>
+                        </label>
+
+                        <button type="button" class="cta-button primary">
+                            Odeslat
+                        </button>
+                    </form>
+                </div>
             </div>
         </section>
     </main>
@@ -123,10 +264,7 @@
     <div class="video-modal-backdrop" id="close-video-modal"></div>
 
     <div class="video-modal-content" role="dialog" aria-modal="true" aria-label="Přehrávání videa">
-        <button class="video-modal-close" id="video-modal-close" type="button" aria-label="Zavřít video">
-            ×
-        </button>
-
+        <button class="video-modal-close" id="video-modal-close" type="button" aria-label="Zavřít video">×</button>
         <div class="video-modal-frame" id="video-modal-frame"></div>
     </div>
 </div>
@@ -139,9 +277,11 @@
         const topbar = document.querySelector('.topbar');
         const pageScroll = document.querySelector('.page-scroll');
 
+        const landingNavLinks = document.querySelectorAll('.landing-nav-link');
+        const sections = document.querySelectorAll('.page-section[id]');
+
         const homeLink = document.getElementById('home-link');
-        const coursesSection = document.getElementById('courses');
-        const introSection = document.querySelector('.intro-section');
+        const introSection = document.getElementById('intro');
 
         const openVideoModalButton = document.getElementById('open-video-modal');
         const videoModal = document.getElementById('video-modal');
@@ -151,8 +291,7 @@
 
         function setHeaderHeight() {
             if (topbar) {
-                const headerHeight = topbar.offsetHeight;
-                root.style.setProperty('--header-height', `${headerHeight}px`);
+                root.style.setProperty('--header-height', `${topbar.offsetHeight}px`);
             }
         }
 
@@ -168,6 +307,27 @@
                 top: targetTop,
                 behavior: 'smooth'
             });
+        }
+
+        function setActiveLandingNav(sectionId) {
+            landingNavLinks.forEach(link => {
+                link.classList.toggle('is-active', link.dataset.target === sectionId);
+            });
+        }
+
+        function updateActiveSection() {
+            if (!pageScroll || !sections.length) return;
+
+            let activeSectionId = sections[0].id;
+            const scrollMiddle = pageScroll.scrollTop + pageScroll.clientHeight / 2;
+
+            sections.forEach(section => {
+                if (section.offsetTop <= scrollMiddle) {
+                    activeSectionId = section.id;
+                }
+            });
+
+            setActiveLandingNav(activeSectionId);
         }
 
         function openVideoModal() {
@@ -196,39 +356,59 @@
         }
 
         setHeaderHeight();
-        window.addEventListener('resize', setHeaderHeight);
+        updateActiveSection();
 
-        document.querySelectorAll('a[href="#courses"]').forEach(link => {
+        window.addEventListener('resize', function () {
+            setHeaderHeight();
+            updateActiveSection();
+        });
+
+        landingNavLinks.forEach(link => {
             link.addEventListener('click', function (e) {
-                if (!coursesSection) return;
                 e.preventDefault();
-                scrollToSection(coursesSection);
+
+                const targetId = link.dataset.target;
+                const target = document.getElementById(targetId);
+
+                if (!target) return;
+
+                scrollToSection(target);
+                setActiveLandingNav(targetId);
             });
         });
+
+        document.querySelectorAll('.cta-button.secondary[href^="#"]').forEach(link => {
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                const targetId = link.getAttribute('href').replace('#', '');
+                const target = document.getElementById(targetId);
+
+                if (!target) return;
+
+                scrollToSection(target);
+                setActiveLandingNav(targetId);
+            });
+        });
+
+        if (pageScroll) {
+            pageScroll.addEventListener('scroll', updateActiveSection);
+        }
 
         if (homeLink && introSection) {
             homeLink.addEventListener('click', function (e) {
                 e.preventDefault();
                 scrollToSection(introSection);
+                setActiveLandingNav('intro');
             });
         }
 
-        if (openVideoModalButton) {
-            openVideoModalButton.addEventListener('click', openVideoModal);
-        }
-
-        if (closeVideoModalBackdrop) {
-            closeVideoModalBackdrop.addEventListener('click', closeVideoModal);
-        }
-
-        if (closeVideoModalButton) {
-            closeVideoModalButton.addEventListener('click', closeVideoModal);
-        }
+        if (openVideoModalButton) openVideoModalButton.addEventListener('click', openVideoModal);
+        if (closeVideoModalBackdrop) closeVideoModalBackdrop.addEventListener('click', closeVideoModal);
+        if (closeVideoModalButton) closeVideoModalButton.addEventListener('click', closeVideoModal);
 
         document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape') {
-                closeVideoModal();
-            }
+            if (e.key === 'Escape') closeVideoModal();
         });
     });
 </script>

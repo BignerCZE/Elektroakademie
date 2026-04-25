@@ -14,7 +14,7 @@
     --color-card-bg: rgba(255, 255, 255, 0.92);
     --color-light-surface: #f7f1f8;
 
-    --header-height: 120px;
+    --header-height: 102px;
 }
 
 /* Reset */
@@ -38,6 +38,7 @@ body {
     font-family: Arial, sans-serif;
     color: var(--color-text);
     background: #ffffff;
+    padding-top: var(--header-height);
 }
 
 a {
@@ -67,8 +68,12 @@ img {
 /* Header */
 
 .topbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: var(--header-height);
     z-index: 1000;
-    padding: 16px 0;
     background:
         radial-gradient(circle at 20% 25%, rgba(0, 150, 255, 0.25) 0, rgba(0, 150, 255, 0.25) 1px, transparent 1px),
         linear-gradient(90deg, var(--color-bg-start) 0%, var(--color-bg-mid) 55%, var(--color-bg-end) 100%);
@@ -79,6 +84,7 @@ img {
     align-items: center;
     justify-content: space-between;
     gap: 24px;
+    height: 100%;
 }
 
 .logo {
