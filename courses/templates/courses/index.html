@@ -4,7 +4,7 @@
 {% block title %}Elektroakademie{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'courses/css/landing.css' %}?v=10">
+<link rel="stylesheet" href="{% static 'courses/css/landing.css' %}?v=11">
 {% endblock %}
 
 {% block content %}
@@ -34,12 +34,13 @@
                             Osvedčenie čaká na teba!
                         </p>
 
-                        <div class="price-box">
-                            <div class="price-new">Cena od 990 Kč</div>
-                        </div>
+
 
                         <div class="cta-buttons">
-                            <a href="{{ register_url }}" class="cta-button primary">Mám zájem</a>
+                            <a href="{% url 'register' %}" class="price-box price-link">
+                                <div class="price-new">Cena od 990 Kč</div>
+                            </a>
+
                             <a href="#courses" class="cta-button secondary">Více informací</a>
                         </div>
                     </div>
@@ -149,9 +150,7 @@
                         </article>
                     </div>
 
-                    <div class="guide-actions">
-                        <a href="{{ register_url }}" class="cta-button primary">Mám zájem</a>
-                    </div>
+
                 </div>
             </div>
         </section>
