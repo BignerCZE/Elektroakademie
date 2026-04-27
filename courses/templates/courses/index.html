@@ -8,6 +8,8 @@
 {% endblock %}
 
 {% block content %}
+{% url 'register' as register_url %}
+
 <div class="landing-page">
 
     <nav class="landing-nav" aria-label="Navigace úvodní stránky">
@@ -37,7 +39,7 @@
                         </div>
 
                         <div class="cta-buttons">
-                            <a href="#" class="cta-button primary">Mám zájem</a>
+                            <a href="{{ register_url }}" class="cta-button primary">Mám zájem</a>
                             <a href="#courses" class="cta-button secondary">Více informací</a>
                         </div>
                     </div>
@@ -147,18 +149,14 @@
                         </article>
                     </div>
 
-                    {% if courses %}
                     <div class="guide-actions">
-                        {% for course in courses %}
-                        {% if forloop.first %}
-                        <a href="{% url 'course_detail' course.id %}" class="cta-button primary">Mám zájem</a>
-                        {% endif %}
-                        {% endfor %}
+                        <a href="{{ register_url }}" class="cta-button primary">Mám zájem</a>
                     </div>
-                    {% endif %}
                 </div>
             </div>
         </section>
+
+        <!-- Zbytek FAQ, Kontakt, modal a JS nech beze změny -->
 
         <section class="page-section faq-section" id="faq">
             <div class="container faq-inner">
