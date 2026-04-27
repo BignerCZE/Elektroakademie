@@ -4,7 +4,7 @@
 {% block title %}Elektroakademie{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'courses/css/landing.css' %}?v=7">
+<link rel="stylesheet" href="{% static 'courses/css/landing.css' %}?v=10">
 {% endblock %}
 
 {% block content %}
@@ -95,6 +95,8 @@
         <section class="page-section courses-section" id="courses">
             <div class="container courses-inner">
                 <div class="guide-section">
+                    <h2 class="section-title">Jak probíhá školení</h2>
+
                     <div class="guide-grid">
                         <article class="guide-card">
                             <h3>Co vás čeká</h3>
@@ -160,7 +162,7 @@
 
         <section class="page-section faq-section" id="faq">
             <div class="container faq-inner">
-                <h2 class="faq-title">Často kladené otázky</h2>
+                <h2 class="section-title">Často kladené otázky</h2>
 
                 <div class="faq-list">
                     <div class="faq-item">
@@ -214,10 +216,38 @@
 
         <section class="page-section contact-section" id="contact">
             <div class="container contact-inner">
-                <div class="contact-card">
-                    <div class="contact-info">
-                        <p class="contact-eyebrow">Kontakt</p>
-                        <h2>Máte dotaz ke školení?</h2>
+                <h2 class="section-title">Kontakt</h2>
+
+                <div class="contact-wrapper">
+
+                    <div class="contact-box contact-form-box">
+                        <form class="contact-form" action="#" method="post">
+                            <label>
+                                Jméno
+                                <input type="text" name="name" placeholder="Vaše jméno">
+                            </label>
+
+                            <label>
+                                E-mail
+                                <input type="email" name="email" placeholder="vas@email.cz">
+                            </label>
+
+                            <label>
+                                Zpráva
+                                <textarea name="message" rows="5" placeholder="Napište nám zprávu"></textarea>
+                            </label>
+
+                            <button type="button" class="cta-button primary">
+                                Odeslat
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="contact-box contact-info-box">
+
+                        <h2 class="section-title section-title--dark">
+                            Máte dotaz ke školení?
+                        </h2>
 
                         <p>
                             Napište nám a ozveme se vám s podrobnostmi k online školení,
@@ -232,26 +262,6 @@
                         </div>
                     </div>
 
-                    <form class="contact-form" action="#" method="post">
-                        <label>
-                            Jméno
-                            <input type="text" name="name" placeholder="Vaše jméno">
-                        </label>
-
-                        <label>
-                            E-mail
-                            <input type="email" name="email" placeholder="vas@email.cz">
-                        </label>
-
-                        <label>
-                            Zpráva
-                            <textarea name="message" rows="5" placeholder="Napište nám zprávu"></textarea>
-                        </label>
-
-                        <button type="button" class="cta-button primary">
-                            Odeslat
-                        </button>
-                    </form>
                 </div>
             </div>
         </section>
@@ -296,13 +306,16 @@
         function scrollToSection(target) {
             if (!pageScroll || !target) return;
 
+            const isMobile = window.innerWidth <= 768;
+            const offset = isMobile ? 40 : 0;
+
             const targetTop =
                 target.getBoundingClientRect().top
                 - pageScroll.getBoundingClientRect().top
                 + pageScroll.scrollTop;
 
             pageScroll.scrollTo({
-                top: targetTop,
+                top: targetTop - offset,
                 behavior: 'smooth'
             });
         }
