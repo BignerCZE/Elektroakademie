@@ -141,34 +141,25 @@ img {
 
 /* Header navigation */
 
-/* sjednocení stylu hamburger menu s landing nav */
-
 .top-navigation a {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-
     min-height: 42px;
     padding: 0 22px;
-
     border: 1px solid rgba(255, 255, 255, 0.38);
     border-radius: 999px;
-
     background: rgba(255, 255, 255, 0.08);
     color: #ffffff;
-
     font-size: 15px;
     font-weight: 700;
     text-decoration: none;
-
     transition: 0.2s ease;
 }
 
 .top-navigation a:hover {
     background: rgba(255, 255, 255, 0.16);
 }
-
-
 
 .login-link {
     color: #ffffff;
@@ -193,6 +184,30 @@ img {
     font-weight: 700;
     white-space: nowrap;
     cursor: pointer;
+}
+
+/* Topbar CTA */
+
+.topbar-actions .cta-button.primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    padding: 0 28px;
+    border-radius: 999px;
+    background: var(--color-green);
+    color: #ffffff;
+    font-size: 17px;
+    font-weight: 400;
+    line-height: 1;
+    white-space: nowrap;
+    text-decoration: none;
+    box-shadow: 0 10px 25px rgba(0, 200, 83, 0.25);
+    transition: 0.2s ease;
+}
+
+.topbar-actions .cta-button.primary:hover {
+    background: #00b248;
 }
 
 /* Common page wrapper */
@@ -329,13 +344,4 @@ img {
     .hamburger-icon span {
         width: 16px;
     }
-}
-
-.topbar-actions .cta-button.primary {
-    min-height: 42px;
-    padding-top: 0;
-    padding-bottom: 0;
-    font-size: 17px;
-    font-weight: 700;
-
 }
