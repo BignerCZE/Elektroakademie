@@ -4,7 +4,7 @@
 {% block title %}Elektroakademie{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'courses/css/landing.css' %}?v=11">
+<link rel="stylesheet" href="{% static 'courses/css/landing.css' %}?v=12">
 {% endblock %}
 
 {% block content %}
@@ -66,30 +66,61 @@
             <section class="benefits-section">
                 <div class="container">
                     <div class="benefits-grid">
-                        <article class="benefit-card">
+                        <a href="{% url 'register' %}" class="benefit-card benefit-card-link">
                             <div class="benefit-icon">§4</div>
+
                             <h3>Bezplatný vstup do kurzu</h3>
-                            <p>Vstup do kurzu je vždy zdarma a nikdy nezavazuje k nákupu.</p>
-                        </article>
 
-                        <article class="benefit-card">
+                            <p>
+                                Vstup do kurzu je vždy zdarma a nikdy nezavazuje k nákupu.
+                            </p>
+
+                            <div class="price-box benefit-price-box">
+                                <div class="price-new">Cena 990 Kč</div>
+                            </div>
+                        </a>
+
+                        <a href="{% url 'register' %}" class="benefit-card benefit-card-link">
                             <div class="benefit-icon">§6</div>
-                            <h3>Lekce zdarma</h3>
-                            <p>Vyzkoušíte si styl výuky i osobnost lektora a teprve potom se rozhodnete, zda pokračovat
-                                dál.</p>
-                        </article>
 
-                        <article class="benefit-card">
+                            <h3>Bezplatný vstup do kurzu</h3>
+
+                            <p>
+                                Vstup do kurzu je vždy zdarma a nikdy nezavazuje k nákupu.
+                            </p>
+
+                            <div class="price-box benefit-price-box">
+                                <div class="price-new">Cena 1 990 Kč</div>
+                            </div>
+                        </a>
+
+                        <a href="{% url 'register' %}" class="benefit-card benefit-card-link">
                             <div class="benefit-icon">§7</div>
-                            <h3>Kurz vždy po ruce</h3>
-                            <p>Kurzy můžete sledovat na počítači, mobilu i tabletu, kdykoliv vám to vyhovuje.</p>
-                        </article>
 
-                        <article class="benefit-card">
-                            <div class="benefit-icon">A dál?</div>
-                            <h3>Garance vrácení peněz</h3>
-                            <p>U zakoupeného kurzu máte v případě nespokojenosti 100% záruku vrácení peněz.</p>
-                        </article>
+                            <h3>Bezplatný vstup do kurzu</h3>
+
+                            <p>
+                                Vstup do kurzu je vždy zdarma a nikdy nezavazuje k nákupu.
+                            </p>
+
+                            <div class="price-box benefit-price-box">
+                                <div class="price-new">Cena 2 990 Kč</div>
+                            </div>
+                        </a>
+
+                        <a href="{% url 'register' %}" class="benefit-card benefit-card-link">
+                            <div class="benefit-icon"></div>
+
+                            <h3>Bezplatný vstup do kurzu</h3>
+
+                            <p>
+                                Vstup do kurzu je vždy zdarma a nikdy nezavazuje k nákupu.
+                            </p>
+
+                            <div class="price-box benefit-price-box">
+                                <div class="price-new">Více info</div>
+                            </div>
+                        </a>
                     </div>
                 </div>
             </section>
