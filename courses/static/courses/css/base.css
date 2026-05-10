@@ -15,6 +15,10 @@
     --color-light-surface: #f7f1f8;
 
     --header-height: 102px;
+
+    --page-blue-bg:
+        radial-gradient(circle at 20% 25%, rgba(0, 150, 255, 0.25) 0, rgba(0, 150, 255, 0.25) 1px, transparent 1px),
+        linear-gradient(90deg, var(--color-bg-start) 0%, var(--color-bg-mid) 55%, var(--color-bg-end) 100%);
 }
 
 /* Reset */

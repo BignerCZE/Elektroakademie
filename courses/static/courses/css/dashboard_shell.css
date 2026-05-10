@@ -1,9 +1,10 @@
 .dashboard-shell-page {
     height: 100%;
     margin: 0;
-    padding: 0;
-    background: #f5f7fb;
+    padding: 32px 0 48px;
     color: var(--color-dark-text);
+
+    background: var(--page-blue-bg);
     overflow: hidden;
     box-sizing: border-box;
 }

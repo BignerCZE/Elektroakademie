@@ -1,17 +1,64 @@
 from django.urls import path
+from django.contrib.auth import views as auth_views
+
 from . import views
 
 urlpatterns = [
-    path('', views.index, name='index'),
-    path('register/', views.register, name='register'),
-    path('profile/', views.profile, name='profile'),
+    # domovská stránka
+    path("", views.index, name="index"),
 
-    path('course/<int:course_id>/', views.course_detail, name='course_detail'),
-    path('course/<int:course_id>/buy/', views.buy_course, name='buy_course'),
-    path('course/<int:course_id>/payment-success/', views.payment_success, name='payment_success'),
-    path('course/<int:course_id>/video/', views.video_detail, name='video_detail'),
-    path('course/<int:course_id>/quiz/', views.quiz_view, name='quiz'),
-    path('course/<int:course_id>/certificate/', views.certificate_success, name='certificate_success'),
-    path('course/<int:course_id>/certificate-pdf/', views.certificate_pdf, name='certificate_pdf'),
+    # kurzy
+    path("kurzy/", views.index, name="courses"),
+    path("kurz/<int:course_id>/", views.course_detail, name="course_detail"),
+
+    # registrace (bez hesla)
+    path("registrace/", views.register, name="register"),
+    path("registrace/odeslano/", views.password_setup_sent, name="password_setup_sent"),
+
+    # nastavení hesla přes e-mail
+    path(
+        "heslo/nastavit/<uidb64>/<token>/",
+        auth_views.PasswordResetConfirmView.as_view(
+            template_name="registration/password_setup_confirm.html",
+            success_url="/heslo/hotovo/",
+        ),
+        name="password_reset_confirm",
+    ),
+    path(
+        "heslo/hotovo/",
+        auth_views.PasswordResetCompleteView.as_view(
+            template_name="registration/password_setup_complete.html",
+        ),
+        name="password_reset_complete",
+    ),
+
+    # přihlášení / odhlášení
+    path(
+        "prihlaseni/",
+        auth_views.LoginView.as_view(
+            template_name="registration/login.html"
+        ),
+        name="login",
+    ),
+    path(
+        "odhlaseni/",
+        auth_views.LogoutView.as_view(next_page="index"),
+        name="logout",
+    ),
+
+    # uživatelská sekce
     path("dashboard/", views.dashboard, name="dashboard"),
+    path("profil/", views.profile, name="profile"),
+
+    # nákup
+    path("kurz/<int:course_id>/koupit/", views.buy_course, name="buy_course"),
+    path("kurz/<int:course_id>/zaplaceno/", views.payment_success, name="payment_success"),
+
+    # obsah kurzu
+    path("kurz/<int:course_id>/video/", views.video_detail, name="video_detail"),
+    path("kurz/<int:course_id>/test/", views.quiz_view, name="quiz"),
+
+    # certifikát
+    path("kurz/<int:course_id>/certifikat/", views.certificate_success, name="certificate_success"),
+    path("kurz/<int:course_id>/certifikat/pdf/", views.certificate_pdf, name="certificate_pdf"),
 ]

@@ -3,26 +3,354 @@
 {% block title %}Registrace | Elektroakademie{% endblock %}
 
 {% block content %}
-<main class="page-shell page-shell--centered">
+<main class="page-shell register-page">
     <div class="container">
-        <div class="content-card form-card">
-            <div class="page-header">
-                <p class="page-eyebrow">Nový účet</p>
-                <h1 class="page-title">Registrace</h1>
-                <p class="page-subtitle">Vytvořte si účet a získejte přístup ke kurzu i závěrečnému testu.</p>
-            </div>
+        <section class="register-card">
+            <div class="register-checkout-shell">
 
-            <form method="post" class="form-layout">
-                {% csrf_token %}
-                {{ form.as_p }}
-                <button type="submit" class="button-primary">Registrovat</button>
-            </form>
+                <div class="checkout-steps">
+                    <div class="checkout-steps-left">
+                        <button type="button" class="checkout-step checkout-step--active" data-step-button="1">
+                            <span>1</span>
+                            Košík
+                        </button>
 
-            <div class="button-row">
-                <a href="{% url 'login' %}" class="button-secondary">Již máte účet? Přihlaste se</a>
-                <a href="{% url 'index' %}" class="button-link">Zpět na hlavní stránku</a>
+                        <button type="button" class="checkout-step" data-step-button="2">
+                            <span>2</span>
+                            Údaje a platba
+                        </button>
+                    </div>
+
+                    <button type="button" class="checkout-back-button" id="checkout-back-button" hidden>
+                        Zpět
+                    </button>
+                </div>
+
+                <div class="checkout-layout">
+
+                    <form method="post" class="register-form" id="registration-form">
+                        {% csrf_token %}
+
+                        {{ participant_formset.management_form }}
+
+                        <section class="checkout-step-panel" data-step-panel="1">
+
+                            <div class="register-summary">
+                                <div>
+                                    <h1>Zkouška odborné způsobilosti v elektrotechnice dle NV č. 194/2022 Sb. - §6, §7
+                                    </h1>
+                                    <p><strong>19.5. Online</strong>, Varianta: § 6</p>
+                                </div>
+
+                                <div class="register-price">
+                                    <strong>1× 1 800 Kč</strong>
+                                </div>
+                            </div>
+
+                            <div id="participants-wrapper">
+                                {% for form in participant_formset %}
+                                <section class="participant-card participant-item">
+                                    <div class="participant-header">
+                                        <h2>Účastník {{ forloop.counter }}</h2>
+
+                                        <button type="button" class="remove-participant-button" hidden>
+                                            ×
+                                        </button>
+                                    </div>
+
+                                    <div class="benefit-row">
+                                        <button type="button" class="benefit-button">
+                                            Uplatnit Benefit / slevový kód
+                                        </button>
+
+                                        <p>
+                                            Využitím svého kódu prodloužíte jeho platnost a uplatníte slevu
+                                        </p>
+
+                                        <span class="benefit-help">?</span>
+                                    </div>
+
+                                    <div class="register-grid">
+                                        <div class="register-field">
+                                            {{ form.first_name }}
+                                            {{ form.first_name.errors }}
+                                        </div>
+
+                                        <div class="register-field">
+                                            {{ form.last_name }}
+                                            {{ form.last_name.errors }}
+                                        </div>
+
+                                        <div class="register-field">
+                                            {{ form.title }}
+                                            {{ form.title.errors }}
+                                        </div>
+
+                                        <div class="register-field register-field--wide">
+                                            {{ form.email }}
+                                            {{ form.email.errors }}
+                                        </div>
+
+                                        <div class="register-field register-field--prefix">
+                                            {{ form.phone_prefix }}
+                                            {{ form.phone_prefix.errors }}
+                                        </div>
+
+                                        <div class="register-field">
+                                            {{ form.phone }}
+                                            {{ form.phone.errors }}
+                                        </div>
+                                    </div>
+                                </section>
+                                {% endfor %}
+                            </div>
+
+                            <div class="register-actions">
+                                <button type="button" class="add-person-button" id="add-participant-button">
+                                    Přidat další osobu
+                                </button>
+
+                                <button type="button" class="button-primary" id="next-step-button">
+                                    Dále
+                                </button>
+                            </div>
+                        </section>
+
+                        <section class="checkout-step-panel" data-step-panel="2" hidden>
+                            <div class="billing-card">
+                                <h2>Fakturační údaje</h2>
+                                <p>Po odeslání objednávky nejde fakturační údaje měnit</p>
+
+                                <div class="billing-grid">
+                                    <div class="register-field">
+                                        {{ billing_form.ico }}
+                                        {{ billing_form.ico.errors }}
+                                    </div>
+
+                                    <div class="register-field">
+                                        {{ billing_form.dic }}
+                                        {{ billing_form.dic.errors }}
+                                    </div>
+
+                                    <div>
+                                        <button type="button" class="add-person-button">
+                                            Načíst data z ARES
+                                        </button>
+                                    </div>
+
+                                    <div></div>
+
+                                    <div class="register-field">
+                                        {{ billing_form.company_name }}
+                                        {{ billing_form.company_name.errors }}
+                                    </div>
+
+                                    <div class="register-field">
+                                        {{ billing_form.street }}
+                                        {{ billing_form.street.errors }}
+                                    </div>
+
+                                    <div class="register-field">
+                                        {{ billing_form.city }}
+                                        {{ billing_form.city.errors }}
+                                    </div>
+
+                                    <div class="register-field">
+                                        {{ billing_form.zip_code }}
+                                        {{ billing_form.zip_code.errors }}
+                                    </div>
+
+                                    <div class="register-field">
+                                        {{ billing_form.country }}
+                                        {{ billing_form.country.errors }}
+                                    </div>
+
+                                    <label class="billing-checkbox">
+                                        {{ billing_form.contact_person }}
+                                        <span>Chci vyplnit kontaktní osobu</span>
+                                    </label>
+
+                                    <div class="register-field billing-note">
+                                        {{ billing_form.note }}
+                                        {{ billing_form.note.errors }}
+                                    </div>
+                                </div>
+
+                                <div class="register-actions">
+                                    <button type="button" class="add-person-button" id="previous-step-button">
+                                        Zpět
+                                    </button>
+                                </div>
+                            </div>
+                        </section>
+                    </form>
+
+                    <aside class="order-summary-card" id="order-summary-card">
+                        <h2>Shrnutí objednávky</h2>
+
+
+
+                        <div class="summary-product">
+                            <div>
+                                <strong>1×</strong>
+                                <span>
+                                    Zkouška odborné způsobilosti v elektrotechnice dle NV č. 194/2022 Sb. - §6, §7
+                                </span>
+                            </div>
+
+                            <div class="summary-product-meta">
+                                <span>19.5. online</span>
+                                <strong>1 800 Kč</strong>
+                            </div>
+                        </div>
+
+                        <div class="summary-total-row">
+                            <span>Celkem s DPH</span>
+                            <strong>1 800 Kč</strong>
+                        </div>
+
+                        <div class="summary-total-row summary-total-row--muted">
+                            <span>Celkem bez DPH</span>
+                            <span>1 487,60 Kč</span>
+                        </div>
+
+                        <label class="summary-consent" form="registration-form">
+                            <input type="checkbox" name="terms_agreement" required form="registration-form">
+                            <span>
+                                Souhlasím s obchodními podmínkami a zásadami ochrany osobních údajů *
+                            </span>
+                        </label>
+
+                        <button type="submit" class="summary-submit-button" form="registration-form">
+                            Objednat
+                        </button>
+                    </aside>
+
+                </div>
             </div>
-        </div>
+        </section>
     </div>
 </main>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const addButton = document.getElementById("add-participant-button");
+        const wrapper = document.getElementById("participants-wrapper");
+        const totalFormsInput = document.getElementById("id_participants-TOTAL_FORMS");
+
+        const nextButton = document.getElementById("next-step-button");
+        const previousButton = document.getElementById("previous-step-button");
+        const summaryBackButton = document.getElementById("summary-back-button");
+        const checkoutBackButton = document.getElementById("checkout-back-button");
+
+        const stepButtons = document.querySelectorAll("[data-step-button]");
+        const stepPanels = document.querySelectorAll("[data-step-panel]");
+
+        const initialParticipants = wrapper.querySelectorAll(".participant-item");
+
+        if (initialParticipants.length > 1) {
+            initialParticipants.forEach(function (participant, index) {
+                if (index > 0) {
+                    participant.remove();
+                }
+            });
+
+            totalFormsInput.value = 1;
+        }
+
+        function showStep(step) {
+            stepPanels.forEach(function (panel) {
+                panel.hidden = panel.dataset.stepPanel !== String(step);
+            });
+
+            stepButtons.forEach(function (button) {
+                button.classList.toggle(
+                    "checkout-step--active",
+                    button.dataset.stepButton === String(step)
+                );
+            });
+
+            checkoutBackButton.hidden = step === 1;
+        }
+
+        function refreshParticipants() {
+            const participants = wrapper.querySelectorAll(".participant-item");
+
+            participants.forEach(function (participant, index) {
+                participant.querySelector("h2").textContent = "Účastník " + (index + 1);
+
+                const removeButton = participant.querySelector(".remove-participant-button");
+                removeButton.hidden = participants.length === 1;
+            });
+
+            totalFormsInput.value = participants.length;
+        }
+
+        addButton.addEventListener("click", function () {
+            const formCount = Number(totalFormsInput.value);
+            const firstParticipant = wrapper.querySelector(".participant-item");
+            const newParticipant = firstParticipant.cloneNode(true);
+
+            newParticipant.querySelectorAll("input").forEach(function (input) {
+                input.name = input.name.replace(/participants-\d+-/, "participants-" + formCount + "-");
+                input.id = input.id.replace(/participants-\d+-/, "participants-" + formCount + "-");
+
+                if (input.name.endsWith("phone_prefix")) {
+                    input.value = "+420";
+                } else {
+                    input.value = "";
+                }
+            });
+
+            newParticipant.querySelectorAll(".errorlist").forEach(function (errorList) {
+                errorList.remove();
+            });
+
+            wrapper.appendChild(newParticipant);
+            totalFormsInput.value = formCount + 1;
+
+            refreshParticipants();
+        });
+
+        stepButtons.forEach(function (button) {
+            button.addEventListener("click", function () {
+                const step = Number(button.dataset.stepButton);
+                showStep(step);
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            });
+        });
+
+        checkoutBackButton.addEventListener("click", function () {
+            showStep(1);
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+
+        wrapper.addEventListener("click", function (event) {
+            if (!event.target.classList.contains("remove-participant-button")) {
+                return;
+            }
+
+            event.target.closest(".participant-item").remove();
+            refreshParticipants();
+        });
+
+        nextButton.addEventListener("click", function () {
+            showStep(2);
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+
+        previousButton.addEventListener("click", function () {
+            showStep(1);
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+
+        summaryBackButton.addEventListener("click", function () {
+            showStep(1);
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+
+        refreshParticipants();
+        showStep(1);
+    });
+</script>
 {% endblock %}

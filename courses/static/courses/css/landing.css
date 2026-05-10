@@ -528,6 +528,12 @@
     gap: 16px;
 }
 
+.contact-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
 .contact-form label {
     color: var(--color-card-text);
     font-size: 15px;
@@ -535,6 +541,7 @@
 }
 
 .contact-form input,
+.contact-form select,
 .contact-form textarea {
     width: 100%;
     margin-top: 8px;
@@ -546,14 +553,30 @@
     font: inherit;
 }
 
+.contact-form select {
+    cursor: pointer;
+}
+
 .contact-form textarea {
     resize: vertical;
+    min-height: 180px;
+}
+
+.contact-message-field {
+    display: block;
+    width: 100%;
+}
+
+.contact-form-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 4px;
 }
 
 .contact-form .cta-button {
-    align-self: flex-start;
     border: none;
     cursor: pointer;
+    min-width: 220px;
 }
 
 /* Video modal */
@@ -756,7 +779,16 @@
         padding: 24px;
     }
 
+    .contact-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .contact-form-actions {
+        justify-content: center;
+    }
+
     .contact-form .cta-button {
         width: 100%;
+        min-width: unset;
     }
 }

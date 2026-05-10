@@ -37,9 +37,9 @@
 
 
                         <div class="cta-buttons">
-                            <a href="{% url 'register' %}" class="price-box price-link">
-                                <div class="price-new">Cena od 990 Kč</div>
-                            </a>
+                            <!-- <a href="{% url 'register' %}" class="price-box price-link">
+                                <div class="price-new">Cena 990 Kč</div>
+                            </a> -->
 
                             <a href="#courses" class="cta-button secondary">Více informací</a>
                         </div>
@@ -73,20 +73,20 @@
                         </article>
 
                         <article class="benefit-card">
-                            <div class="benefit-icon">§5</div>
+                            <div class="benefit-icon">§6</div>
                             <h3>Lekce zdarma</h3>
                             <p>Vyzkoušíte si styl výuky i osobnost lektora a teprve potom se rozhodnete, zda pokračovat
                                 dál.</p>
                         </article>
 
                         <article class="benefit-card">
-                            <div class="benefit-icon">§6</div>
+                            <div class="benefit-icon">§7</div>
                             <h3>Kurz vždy po ruce</h3>
                             <p>Kurzy můžete sledovat na počítači, mobilu i tabletu, kdykoliv vám to vyhovuje.</p>
                         </article>
 
                         <article class="benefit-card">
-                            <div class="benefit-icon">§7</div>
+                            <div class="benefit-icon">A dál?</div>
                             <h3>Garance vrácení peněz</h3>
                             <p>U zakoupeného kurzu máte v případě nespokojenosti 100% záruku vrácení peněz.</p>
                         </article>
@@ -219,24 +219,43 @@
 
                     <div class="contact-box contact-form-box">
                         <form class="contact-form" action="#" method="post">
-                            <label>
-                                Jméno
-                                <input type="text" name="name" placeholder="Vaše jméno">
-                            </label>
+                            <div class="contact-form-grid">
+                                <label>
+                                    Jméno
+                                    <input type="text" name="name" placeholder="Vaše jméno">
+                                </label>
 
-                            <label>
-                                E-mail
-                                <input type="email" name="email" placeholder="vas@email.cz">
-                            </label>
+                                <label>
+                                    E-mail
+                                    <input type="email" name="email" placeholder="vas@email.cz">
+                                </label>
 
-                            <label>
+                                <label>
+                                    Telefon
+                                    <input type="tel" name="phone" placeholder="+420 123 456 789">
+                                </label>
+
+                                <label>
+                                    Týká se
+                                    <select name="topic">
+                                        <option value="obecny-dotaz">Obecný dotaz</option>
+                                        <option value="paragraf-4">§4</option>
+                                        <option value="paragraf-6">§6</option>
+                                        <option value="paragraf-7">§7</option>
+                                    </select>
+                                </label>
+                            </div>
+
+                            <label class="contact-message-field">
                                 Zpráva
                                 <textarea name="message" rows="5" placeholder="Napište nám zprávu"></textarea>
                             </label>
 
-                            <button type="button" class="cta-button primary">
-                                Odeslat
-                            </button>
+                            <div class="contact-form-actions">
+                                <button type="button" class="cta-button primary">
+                                    Odeslat
+                                </button>
+                            </div>
                         </form>
                     </div>
 
@@ -252,10 +271,10 @@
                         </p>
 
                         <div class="contact-details">
-                            <p><strong>Elektroakademie s.r.o.</strong></p>
-                            <p>Masarykova 125, 602 00 Brno</p>
+                            <p><strong>Revitec elektro s.r.o.</strong></p>
+                            <p>Zenklova 24/25, 180 00, Praha 8</p>
                             <p>E-mail: info@elektroakademie.cz</p>
-                            <p>Telefon: +420 777 123 456</p>
+                            <p>IČO: 249 44 769</p>
                         </div>
                     </div>
 
