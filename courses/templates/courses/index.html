@@ -4,7 +4,7 @@
 {% block title %}Elektroakademie{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'courses/css/landing.css' %}?v=12">
+<link rel="stylesheet" href="{% static 'courses/css/landing.css' %}?v=13">
 {% endblock %}
 
 {% block content %}
@@ -14,7 +14,8 @@
 
     <nav class="landing-nav" aria-label="Navigace úvodní stránky">
         <a href="#intro" class="landing-nav-link is-active" data-target="intro">Úvod</a>
-        <a href="#courses" class="landing-nav-link" data-target="courses">Školení</a>
+        <a href="#programs" class="landing-nav-link" data-target="programs">Kurzy</a>
+        <a href="#courses" class="landing-nav-link" data-target="courses">Průběh</a>
         <a href="#faq" class="landing-nav-link" data-target="faq">FAQ</a>
         <a href="#contact" class="landing-nav-link" data-target="contact">Kontakt</a>
     </nav>
@@ -24,14 +25,15 @@
             <section class="hero-section">
                 <div class="container hero-grid">
                     <div class="hero-content">
-                        <p class="hero-eyebrow">§20 poučená osoba zvládneš ľavou zadnou</p>
+                        <p class="hero-eyebrow"> </p>
 
-                        <h1>Elektriku zmákneme spolu!</h1>
+                        <h1>Připravíme vás na odbornou způsobilost dle NV 194/2022 Sb.</h1>
 
                         <p class="hero-description">
-                            Máš chuť sa sám niečo dozvedieť, si profík vo svojej oblasti nebo si zaměstnanec
-                            a chýba ti už len preškoliť na §20 vyhl. 508/2009? Tak si tu správně.
-                            Osvedčenie čaká na teba!
+                            §4 jednoduše online. §6 a §7 profesionálně kombinovaně.
+
+
+                            Připravíme vás na odbornou způsobilost dle NV 194/2022 Sb.
                         </p>
 
 
@@ -41,7 +43,7 @@
                                 <div class="price-new">Cena 990 Kč</div>
                             </a> -->
 
-                            <a href="#courses" class="cta-button secondary">Více informací</a>
+                            <a href="#courses" class="cta-button secondary">Jak probíhá školení</a>
                         </div>
                     </div>
 
@@ -66,64 +68,332 @@
             <section class="benefits-section">
                 <div class="container">
                     <div class="benefits-grid">
-                        <a href="{% url 'register' %}" class="benefit-card benefit-card-link">
+                        <article class="benefit-card">
                             <div class="benefit-icon">§4</div>
 
-                            <h3>Bezplatný vstup do kurzu</h3>
+                            <h3>Osoba poučená</h3>
 
                             <p>
-                                Vstup do kurzu je vždy zdarma a nikdy nezavazuje k nákupu.
+                                Online kurz pro osoby bez elektrotechnické kvalifikace
                             </p>
 
-                            <div class="price-box benefit-price-box">
-                                <div class="price-new">Cena 990 Kč</div>
-                            </div>
-                        </a>
+                            <div class="benefit-actions">
 
-                        <a href="{% url 'register' %}" class="benefit-card benefit-card-link">
+                                <a href="{% url 'register' %}?course=4" class="benefit-button benefit-button-primary">
+                                    Cena 990 Kč
+                                </a>
+                                <a href="#programs" class="benefit-button benefit-button-secondary"
+                                    data-program-link="program-4">
+                                    Více info
+                                </a>
+
+
+                            </div>
+                        </article>
+
+                        <article class="benefit-card">
                             <div class="benefit-icon">§6</div>
 
-                            <h3>Bezplatný vstup do kurzu</h3>
+                            <h3>Osoba znalá - elektrotechnik</h3>
 
                             <p>
-                                Vstup do kurzu je vždy zdarma a nikdy nezavazuje k nákupu.
+                                Kombinované školení pro osoby s elektrotechnickým vzděláním
                             </p>
 
-                            <div class="price-box benefit-price-box">
-                                <div class="price-new">Cena 1 990 Kč</div>
-                            </div>
-                        </a>
+                            <div class="benefit-actions">
 
-                        <a href="{% url 'register' %}" class="benefit-card benefit-card-link">
+                                <a href="{% url 'register' %}?course=6" class="benefit-button benefit-button-primary">
+                                    Cena 2 990 Kč
+                                </a>
+                                <a href="#programs" class="benefit-button benefit-button-secondary"
+                                    data-program-link="program-6">
+                                    Více info
+                                </a>
+
+
+                            </div>
+                        </article>
+
+                        <article class="benefit-card">
                             <div class="benefit-icon">§7</div>
 
-                            <h3>Bezplatný vstup do kurzu</h3>
+                            <h3>Vedoucí elektrotechnik</h3>
 
                             <p>
-                                Vstup do kurzu je vždy zdarma a nikdy nezavazuje k nákupu.
+                                Kombinované školení pro osoby s elektrotechnickým vzděláním
                             </p>
 
-                            <div class="price-box benefit-price-box">
-                                <div class="price-new">Cena 2 990 Kč</div>
+                            <div class="benefit-actions">
+
+                                <a href="{% url 'register' %}?course=7" class="benefit-button benefit-button-primary">
+                                    Cena 3 490 Kč
+                                </a>
+                                <a href="#programs" class="benefit-button benefit-button-secondary"
+                                    data-program-link="program-7">
+                                    Více info
+                                </a>
+
+
                             </div>
-                        </a>
+                        </article>
 
-                        <a href="{% url 'register' %}" class="benefit-card benefit-card-link">
-                            <div class="benefit-icon"></div>
+                        <article class="benefit-card">
+                            <div class="benefit-icon">ⓘ</div>
 
-                            <h3>Bezplatný vstup do kurzu</h3>
+                            <h3>Individuální školení</h3>
 
                             <p>
-                                Vstup do kurzu je vždy zdarma a nikdy nezavazuje k nákupu.
+                                Školení na míru pro firmy i jednotlivce
                             </p>
 
-                            <div class="price-box benefit-price-box">
-                                <div class="price-new">Více info</div>
+                            <div class="benefit-actions">
+
+
+                                <a href="#contact" class="benefit-button benefit-button-primary">
+                                    Poptat školení
+                                </a>
+                                <a href="#programs" class="benefit-button benefit-button-secondary"
+                                    data-program-link="program-individual">
+                                    Více info
+                                </a>
+
                             </div>
-                        </a>
+                        </article>
                     </div>
                 </div>
             </section>
+        </section>
+        <section class="page-section programs-section" id="programs">
+            <div class="container programs-inner">
+                <!-- <div class="programs-header">
+                    <h2 class="section-title">Zkoušky odborné způsobilosti</h2>
+                    <p>
+                        Připravujeme školení a přezkoušení dle zákona č. 250/2021 Sb. a NV 194/2022 Sb.
+                        Vyberte si kurz podle požadované kvalifikace.
+                    </p>
+                </div> -->
+
+                <div class="programs-tabs">
+                    <div class="programs-menu" role="tablist" aria-label="Výběr školení">
+                        <button class="program-tab is-active" type="button" data-program="program-4" role="tab"
+                            aria-selected="true" aria-controls="program-4">
+                            <span>§4</span>
+                            Osoba poučená
+                        </button>
+
+                        <button class="program-tab" type="button" data-program="program-6" role="tab"
+                            aria-selected="false" aria-controls="program-6">
+                            <span>§6</span>
+                            Osoba znalá
+                        </button>
+
+                        <button class="program-tab" type="button" data-program="program-7" role="tab"
+                            aria-selected="false" aria-controls="program-7">
+                            <span>§7</span>
+                            Vedoucí elektrotechnik
+                        </button>
+
+                        <button class="program-tab" type="button" data-program="program-individual" role="tab"
+                            aria-selected="false" aria-controls="program-individual">
+                            <span>Individuálně</span>
+                            Firemní školení
+                        </button>
+                    </div>
+
+                    <div class="programs-content">
+                        <article class="program-panel is-active" id="program-4" role="tabpanel">
+                            <h3>Zkouška odborné způsobilosti §4 – osoba poučená</h3>
+
+                            <p>
+                                Kurz je určen pro osoby bez elektrotechnického vzdělání, které pracují s elektrickými
+                                zařízeními a potřebují získat odbornou způsobilost „osoba poučená“ podle §4 NV 194/2022
+                                Sb.
+                            </p>
+
+                            <div class="program-text-grid">
+                                <div>
+                                    <h4>Kdo kurz nejčastěji využije</h4>
+                                    <ul>
+                                        <li>obsluha výrobních strojů a linek</li>
+                                        <li>pracovníci údržby budov</li>
+                                        <li>zaměstnanci skladů a provozů</li>
+                                        <li>uklízeči pracující s elektrickými stroji</li>
+                                        <li>administrativní pracovníci obsluhující elektrická zařízení</li>
+                                    </ul>
+                                </div>
+
+                                <div>
+                                    <h4>Forma školení</h4>
+                                    <p>
+                                        Školení probíhá kompletně online formou e-learningu. Součástí jsou studijní
+                                        materiály i závěrečné testy s přístupem po dobu 60 dnů.
+                                    </p>
+
+                                    <p>
+                                        Po úspěšném absolvování získá účastník Zápis o provedení poučení a ověření
+                                        znalostí
+                                        dle §19 zákona č. 250/2021 Sb. a §4 NV 194/2022 Sb. Platnost je 3 roky.
+                                    </p>
+                                </div>
+                            </div>
+                        </article>
+
+                        <article class="program-panel" id="program-6" role="tabpanel">
+                            <h3>Zkouška odborné způsobilosti §6 – osoba znalá pro samostatnou činnost</h3>
+
+                            <p>
+                                Kurz je určen pro osoby s elektrotechnickým vzděláním, které vykonávají samostatnou
+                                práci
+                                na elektrických zařízeních a potřebují získat nebo obnovit odbornou způsobilost dle §6
+                                NV 194/2022 Sb.
+                            </p>
+
+                            <p>
+                                Oprávnění §6 je určeno pro elektrotechniky, kteří pracují bez neustálého dohledu
+                                a samostatně provádějí montáže, opravy, údržbu nebo servis elektrických zařízení.
+                            </p>
+
+                            <div class="program-text-grid">
+                                <div>
+                                    <h4>Kdo kurz nejčastěji využije</h4>
+                                    <ul>
+                                        <li>elektrotechnici ve výrobě a průmyslu</li>
+                                        <li>pracovníci elektro údržby</li>
+                                        <li>servisní technici elektrických zařízení</li>
+                                        <li>montážní technici a elektrikáři</li>
+                                        <li>osoby provádějící opravy a servis elektroinstalací</li>
+                                    </ul>
+                                </div>
+
+                                <div>
+                                    <h4>Forma školení</h4>
+                                    <p>
+                                        Školení probíhá kombinovanou formou. Studijní materiály a testy jsou dostupné
+                                        online formou e-learningu. Ústní část zkoušky probíhá prezenčně buď přímo
+                                        ve vaší firmě, nebo v našich školících prostorách.
+                                    </p>
+
+                                    <h4>Možná rozšíření</h4>
+                                    <ul>
+                                        <li>hromosvody (LPS)</li>
+                                        <li>vysoké napětí do 35 kV</li>
+                                        <li>prostory s nebezpečím výbuchu (Ex)</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <p class="program-note">
+                                Po úspěšném absolvování získá účastník Doklad o složení zkoušky z odborné způsobilosti
+                                k výkonu činností v elektrotechnice. Platnost osvědčení je 3 roky.
+                            </p>
+                        </article>
+
+                        <article class="program-panel" id="program-7" role="tabpanel">
+                            <h3>Zkouška odborné způsobilosti §7 – vedoucí elektrotechnik</h3>
+
+                            <p>
+                                Kurz je určen pro osoby s elektrotechnickým vzděláním, které vykonávají řídicí
+                                a kontrolní činnost v elektrotechnice a potřebují získat nebo obnovit odbornou
+                                způsobilost dle §7 NV 194/2022 Sb.
+                            </p>
+
+                            <p>
+                                Oprávnění §7 je určeno pro vedoucí elektrotechniky odpovědné za organizaci, řízení
+                                a kontrolu prací na elektrických zařízeních. Tato kvalifikace nahrazuje dřívější
+                                §8 a §10 vyhlášky 50/1978 Sb.
+                            </p>
+
+                            <div class="program-text-grid">
+                                <div>
+                                    <h4>Kdo kurz nejčastěji využije</h4>
+                                    <ul>
+                                        <li>vedoucí pracovníci elektro provozů</li>
+                                        <li>osoby řídící montáže a údržbu elektrických zařízení</li>
+                                        <li>projektanti vyhrazených elektrických zařízení</li>
+                                        <li>osoby vykonávající odborný dohled nad pracovníky</li>
+                                        <li>zkušení elektrotechnici odpovědní za bezpečný provoz</li>
+                                    </ul>
+                                </div>
+
+                                <div>
+                                    <h4>Požadavky pro získání §7</h4>
+                                    <ul>
+                                        <li>odborné elektrotechnické vzdělání</li>
+                                        <li>požadovaná odborná praxe</li>
+                                        <li>úspěšné složení zkoušky odborné způsobilosti</li>
+                                    </ul>
+
+                                    <h4>Možná rozšíření</h4>
+                                    <ul>
+                                        <li>hromosvody (LPS)</li>
+                                        <li>vysoké napětí do 35 kV</li>
+                                        <li>prostory s nebezpečím výbuchu (Ex)</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <p class="program-note">
+                                Po úspěšném absolvování získá účastník Doklad o složení zkoušky z odborné způsobilosti
+                                k výkonu činností v elektrotechnice. Platnost osvědčení je 3 roky.
+                            </p>
+                        </article>
+
+                        <article class="program-panel" id="program-individual" role="tabpanel">
+                            <h3>Individuální školení a přezkoušení</h3>
+
+                            <p>
+                                Nabízíme školení a odbornou přípravu v elektrotechnice dle požadavků vaší firmy,
+                                provozu nebo konkrétní pracovní pozice.
+                            </p>
+
+                            <div class="program-text-grid">
+                                <div>
+                                    <h4>Školení lze realizovat</h4>
+                                    <ul>
+                                        <li>přímo ve vaší firmě</li>
+                                        <li>v našich školících prostorách</li>
+                                        <li>online formou e-learningu</li>
+                                        <li>kombinovanou formou</li>
+                                    </ul>
+
+                                    <h4>Pro koho je služba vhodná</h4>
+                                    <ul>
+                                        <li>výrobní firmy</li>
+                                        <li>průmyslové provozy</li>
+                                        <li>školy a výzkumná pracoviště</li>
+                                        <li>servisní organizace</li>
+                                        <li>montážní firmy</li>
+                                        <li>jednotlivci potřebující individuální termín</li>
+                                    </ul>
+                                </div>
+
+                                <div>
+                                    <h4>Co může být součástí</h4>
+                                    <ul>
+                                        <li>§4 – osoba poučená</li>
+                                        <li>§6 – elektrotechnik</li>
+                                        <li>§7 – vedoucí elektrotechnik</li>
+                                        <li>hromosvody (LPS)</li>
+                                        <li>vysoké napětí do 35 kV</li>
+                                        <li>Ex prostory</li>
+                                        <li>školení BOZP v elektrotechnice</li>
+                                        <li>školení obsluhy elektrických zařízení</li>
+                                    </ul>
+
+                                    <h4>Hlavní výhody</h4>
+                                    <ul>
+                                        <li>termín dle dohody</li>
+                                        <li>školení přímo u zákazníka</li>
+                                        <li>možnost přizpůsobení obsahu</li>
+                                        <li>úspora času zaměstnanců</li>
+                                        <li>kombinace online a prezenční výuky</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+            </div>
         </section>
 
         <section class="page-section courses-section" id="courses">
@@ -344,6 +614,10 @@
         const closeVideoModalButton = document.getElementById('video-modal-close');
         const videoModalFrame = document.getElementById('video-modal-frame');
 
+        const programTabs = document.querySelectorAll('.program-tab');
+        const programPanels = document.querySelectorAll('.program-panel');
+        const programLinks = document.querySelectorAll('[data-program-link]');
+
         function setHeaderHeight() {
             if (topbar) {
                 root.style.setProperty('--header-height', `${topbar.offsetHeight}px`);
@@ -388,6 +662,26 @@
             setActiveLandingNav(activeSectionId);
         }
 
+        function activateProgram(targetId) {
+            const targetPanel = document.getElementById(targetId);
+            const targetTab = document.querySelector(`.program-tab[data-program="${targetId}"]`);
+
+            if (!targetPanel || !targetTab) return;
+
+            programTabs.forEach(tab => {
+                tab.classList.remove('is-active');
+                tab.setAttribute('aria-selected', 'false');
+            });
+
+            programPanels.forEach(panel => {
+                panel.classList.remove('is-active');
+            });
+
+            targetTab.classList.add('is-active');
+            targetTab.setAttribute('aria-selected', 'true');
+            targetPanel.classList.add('is-active');
+        }
+
         function openVideoModal() {
             if (!videoModal || !videoModalFrame) return;
 
@@ -413,6 +707,28 @@
             videoModalFrame.innerHTML = '';
         }
 
+        programTabs.forEach(tab => {
+            tab.addEventListener('click', function () {
+                activateProgram(tab.dataset.program);
+            });
+        });
+
+        programLinks.forEach(link => {
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                const targetProgram = link.dataset.programLink;
+                const targetSection = document.getElementById('programs');
+
+                activateProgram(targetProgram);
+
+                if (targetSection) {
+                    scrollToSection(targetSection);
+                    setActiveLandingNav('programs');
+                }
+            });
+        });
+
         setHeaderHeight();
         updateActiveSection();
 
@@ -435,7 +751,7 @@
             });
         });
 
-        document.querySelectorAll('.cta-button.secondary[href^="#"]').forEach(link => {
+        document.querySelectorAll('a[href^="#"]').forEach(link => {
             link.addEventListener('click', function (e) {
                 e.preventDefault();
 

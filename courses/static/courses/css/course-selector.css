@@ -1,0 +1,142 @@
+/* Course selector */
+
+.course-choice-header {
+    max-width: 820px;
+    margin: 0 auto 28px;
+    text-align: center;
+}
+
+.course-choice-header h1 {
+    margin-bottom: 12px;
+    color: var(--color-bg-end);
+    font-size: 38px;
+    line-height: 1.15;
+    font-weight: 700;
+}
+
+.course-choice-header p {
+    color: var(--color-card-muted);
+    font-size: 17px;
+    line-height: 1.6;
+}
+
+.selector-grid {
+    display: flex;
+    gap: 18px;
+    align-items: stretch;
+}
+
+.selector-card {
+    flex: 1;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+
+    min-height: 260px;
+    padding: 24px 20px;
+
+    border: 2px solid #d8deea;
+    border-radius: 28px;
+
+    background: #ffffff;
+    color: var(--color-card-text);
+
+    text-align: center;
+    text-decoration: none;
+    font: inherit;
+    cursor: pointer;
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        border-color 0.2s ease,
+        background 0.2s ease;
+}
+
+.selector-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--color-primary);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.12);
+}
+
+.selector-card.is-selected {
+    border-color: var(--color-bg-mid);
+    box-shadow: 0 18px 42px rgba(8, 32, 77, 0.18);
+}
+
+.selector-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 76px;
+    height: 76px;
+    margin-bottom: 18px;
+
+    border-radius: 50%;
+    background: #eef4ff;
+    color: var(--color-bg-mid);
+
+    font-size: 32px;
+    font-weight: 700;
+}
+
+.selector-card h2 {
+    margin-bottom: 12px;
+    color: var(--color-bg-mid);
+    font-size: 21px;
+    line-height: 1.25;
+    font-weight: 700;
+}
+
+.selector-card p {
+    flex: 1;
+    margin-bottom: 20px;
+    color: var(--color-card-muted);
+    font-size: 15px;
+    line-height: 1.55;
+}
+
+.selector-price {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 100%;
+    min-height: 50px;
+    padding: 0 18px;
+
+    border-radius: 999px;
+    background: var(--color-bg-mid);
+    color: #ffffff;
+
+    font-size: 16px;
+    font-weight: 700;
+}
+
+@media (max-width: 1200px) {
+    .selector-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .course-choice-header h1 {
+        font-size: 30px;
+    }
+
+    .course-choice-header p {
+        font-size: 15px;
+    }
+
+    .selector-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .selector-card {
+        min-height: auto;
+    }
+}

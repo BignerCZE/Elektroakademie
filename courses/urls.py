@@ -53,6 +53,7 @@ urlpatterns = [
     # nákup
     path("kurz/<int:course_id>/koupit/", views.buy_course, name="buy_course"),
     path("kurz/<int:course_id>/zaplaceno/", views.payment_success, name="payment_success"),
+    path("vyber-kurzu/", views.course_selector, name="course_selector"),
 
     # obsah kurzu
     path("kurz/<int:course_id>/video/", views.video_detail, name="video_detail"),

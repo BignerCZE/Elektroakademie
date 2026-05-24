@@ -40,8 +40,9 @@
                     </form>
                     {% else %}
                     <a href="{% url 'login' %}" class="login-link">Přihlásit se</a>
-                    <a href="{% url 'register' %}" class="cta-button primary">Mám zájem</a>
-                    {% endif %}
+                    <a href="{% url 'register' %}" class="cta-button primary">
+                        Mám zájem
+                    </a> {% endif %}
                 </div>
 
                 <nav class="top-navigation" id="top-navigation" aria-label="Hlavní navigace">

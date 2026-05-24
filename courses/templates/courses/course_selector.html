@@ -1,0 +1,81 @@
+{% extends "courses/base.html" %}
+{% load static %}
+
+{% block title %}Výběr kurzu{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'courses/css/course-selector.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="selector-page">
+    <div class="container selector-container">
+        <div class="selector-header">
+            <h1>Vyberte typ školení</h1>
+
+            <p>
+                Zvolte odbornou způsobilost, o kterou máte zájem.
+                V dalším kroku budete pokračovat na konkrétní objednávku kurzu.
+            </p>
+        </div>
+
+        <div class="selector-grid">
+            <a href="{% url 'register' %}?course=4" class="selector-card">
+                <div class="selector-icon">§4</div>
+
+                <h2>Osoba poučená</h2>
+
+                <p>
+                    Online kurz pro osoby bez elektrotechnické kvalifikace.
+                </p>
+
+                <div class="selector-price">
+                    Cena 990 Kč
+                </div>
+            </a>
+
+            <a href="{% url 'register' %}?course=6" class="selector-card">
+                <div class="selector-icon">§6</div>
+
+                <h2>Osoba znalá</h2>
+
+                <p>
+                    Kombinované školení pro osoby s elektrotechnickým vzděláním.
+                </p>
+
+                <div class="selector-price">
+                    Cena 2 990 Kč
+                </div>
+            </a>
+
+            <a href="{% url 'register' %}?course=7" class="selector-card">
+                <div class="selector-icon">§7</div>
+
+                <h2>Vedoucí elektrotechnik</h2>
+
+                <p>
+                    Rozšířená odborná způsobilost pro vedoucí pracovníky.
+                </p>
+
+                <div class="selector-price">
+                    Cena 3 490 Kč
+                </div>
+            </a>
+
+            <a href="{% url 'register' %}?course=individual" class="selector-card">
+                <div class="selector-icon">ⓘ</div>
+
+                <h2>Individuální školení</h2>
+
+                <p>
+                    Školení na míru pro firmy i jednotlivce.
+                </p>
+
+                <div class="selector-price">
+                    Nezávazná poptávka
+                </div>
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}

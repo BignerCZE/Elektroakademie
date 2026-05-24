@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<!-- saved from url=(0048)https://kurzy.lpe.cz/local/user/edit_profile.php -->
+<html dir="ltr" lang="cs" xml:lang="cs" class="yui3-js-enabled"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><style>body {transition: opacity ease-in 0.2s; } 
+body[unresolved] {opacity: 0; display: block; overflow: hidden; position: relative; } 
+</style>
+    <title>L.P.Elektro e-learningový systém: Upravit profil | L.P.Elektro e-learningový systém</title>
+    <link rel="shortcut icon" href="https://kurzy.lpe.cz/pluginfile.php/1/theme_boost_union/favicon/64x64/1772457974/lpe_fav.png">
+    <style type="text/css">.admin_settingspage_tabs_with_tertiary .dropdown-toggle { font-size: 1.875rem !important; }
+h2:has(+ .admin_settingspage_tabs_with_tertiary) { display: none; }</style>
+<meta name="keywords" content="moodle, L.P.Elektro e-learningový systém: Upravit profil | L.P.Elektro e-learningový systém">
+<link rel="stylesheet" type="text/css" href="./udaje_ucastnika_files/combo"><script id="firstthemesheet" type="text/css">/** Required in order to fix style inclusion problems in IE with YUI **/</script><link rel="stylesheet" type="text/css" href="./udaje_ucastnika_files/styles.php">
+<script>
+//<![CDATA[
+var M = {}; M.yui = {};
+M.pageloadstarttime = new Date();
+M.cfg = {"wwwroot":"https:\/\/kurzy.lpe.cz","apibase":"https:\/\/kurzy.lpe.cz\/r.php\/api","homeurl":{},"sesskey":"wiuzwujP1e","sessiontimeout":"7200","sessiontimeoutwarning":1200,"themerev":"1772457974","slasharguments":1,"theme":"boost_union","iconsystemmodule":"core\/icon_system_fontawesome","jsrev":"1772457974","admin":"admin","svgicons":true,"usertimezone":"Evropa\/Praha","language":"cs","courseId":1,"courseContextId":6,"contextid":30739,"contextInstanceId":24395,"langrev":1778638808,"templaterev":"1772457974","siteId":1,"userId":24395};var yui1ConfigFn = function(me) {if(/-skin|reset|fonts|grids|base/.test(me.name)){me.type='css';me.path=me.path.replace(/\.js/,'.css');me.path=me.path.replace(/\/yui2-skin/,'/assets/skins/sam/yui2-skin')}};
+var yui2ConfigFn = function(me) {var parts=me.name.replace(/^moodle-/,'').split('-'),component=parts.shift(),module=parts[0],min='-min';if(/-(skin|core)$/.test(me.name)){parts.pop();me.type='css';min=''}
+if(module){var filename=parts.join('-');me.path=component+'/'+module+'/'+filename+min+'.'+me.type}else{me.path=component+'/'+component+'.'+me.type}};
+YUI_config = {"debug":false,"base":"https:\/\/kurzy.lpe.cz\/lib\/yuilib\/3.18.1\/","comboBase":"https:\/\/kurzy.lpe.cz\/theme\/yui_combo.php?","combine":true,"filter":null,"insertBefore":"firstthemesheet","groups":{"yui2":{"base":"https:\/\/kurzy.lpe.cz\/lib\/yuilib\/2in3\/2.9.0\/build\/","comboBase":"https:\/\/kurzy.lpe.cz\/theme\/yui_combo.php?","combine":true,"ext":false,"root":"2in3\/2.9.0\/build\/","patterns":{"yui2-":{"group":"yui2","configFn":yui1ConfigFn}}},"moodle":{"name":"moodle","base":"https:\/\/kurzy.lpe.cz\/theme\/yui_combo.php?m\/1772457974\/","combine":true,"comboBase":"https:\/\/kurzy.lpe.cz\/theme\/yui_combo.php?","ext":false,"root":"m\/1772457974\/","patterns":{"moodle-":{"group":"moodle","configFn":yui2ConfigFn}},"filter":null,"modules":{"moodle-core-chooserdialogue":{"requires":["base","panel","moodle-core-notification"]},"moodle-core-notification":{"requires":["moodle-core-notification-dialogue","moodle-core-notification-alert","moodle-core-notification-confirm","moodle-core-notification-exception","moodle-core-notification-ajaxexception"]},"moodle-core-notification-dialogue":{"requires":["base","node","panel","escape","event-key","dd-plugin","moodle-core-widget-focusafterclose","moodle-core-lockscroll"]},"moodle-core-notification-alert":{"requires":["moodle-core-notification-dialogue"]},"moodle-core-notification-confirm":{"requires":["moodle-core-notification-dialogue"]},"moodle-core-notification-exception":{"requires":["moodle-core-notification-dialogue"]},"moodle-core-notification-ajaxexception":{"requires":["moodle-core-notification-dialogue"]},"moodle-core-lockscroll":{"requires":["plugin","base-build"]},"moodle-core-actionmenu":{"requires":["base","event","node-event-simulate"]},"moodle-core-dragdrop":{"requires":["base","node","io","dom","dd","event-key","event-focus","moodle-core-notification"]},"moodle-core-maintenancemodetimer":{"requires":["base","node"]},"moodle-core-handlebars":{"condition":{"trigger":"handlebars","when":"after"}},"moodle-core-event":{"requires":["event-custom"]},"moodle-core-blocks":{"requires":["base","node","io","dom","dd","dd-scroll","moodle-core-dragdrop","moodle-core-notification"]},"moodle-core_availability-form":{"requires":["base","node","event","event-delegate","panel","moodle-core-notification-dialogue","json"]},"moodle-course-categoryexpander":{"requires":["node","event-key"]},"moodle-course-management":{"requires":["base","node","io-base","moodle-core-notification-exception","json-parse","dd-constrain","dd-proxy","dd-drop","dd-delegate","node-event-delegate"]},"moodle-course-util":{"requires":["node"],"use":["moodle-course-util-base"],"submodules":{"moodle-course-util-base":{},"moodle-course-util-section":{"requires":["node","moodle-course-util-base"]},"moodle-course-util-cm":{"requires":["node","moodle-course-util-base"]}}},"moodle-course-dragdrop":{"requires":["base","node","io","dom","dd","dd-scroll","moodle-core-dragdrop","moodle-core-notification","moodle-course-coursebase","moodle-course-util"]},"moodle-form-dateselector":{"requires":["base","node","overlay","calendar"]},"moodle-form-shortforms":{"requires":["node","base","selector-css3","moodle-core-event"]},"moodle-question-searchform":{"requires":["base","node"]},"moodle-question-chooser":{"requires":["moodle-core-chooserdialogue"]},"moodle-availability_completion-form":{"requires":["base","node","event","moodle-core_availability-form"]},"moodle-availability_coursecompleted-form":{"requires":["base","node","event","moodle-core_availability-form"]},"moodle-availability_date-form":{"requires":["base","node","event","io","moodle-core_availability-form"]},"moodle-availability_grade-form":{"requires":["base","node","event","moodle-core_availability-form"]},"moodle-availability_group-form":{"requires":["base","node","event","moodle-core_availability-form"]},"moodle-availability_grouping-form":{"requires":["base","node","event","moodle-core_availability-form"]},"moodle-availability_profile-form":{"requires":["base","node","event","moodle-core_availability-form"]},"moodle-availability_relativedate-form":{"requires":["base","node","event","moodle-core_availability-form"]},"moodle-mod_assign-history":{"requires":["node","transition"]},"moodle-mod_customcert-rearrange":{"requires":["dd-delegate","dd-drag"]},"moodle-mod_quiz-quizbase":{"requires":["base","node"]},"moodle-mod_quiz-util":{"requires":["node","moodle-core-actionmenu"],"use":["moodle-mod_quiz-util-base"],"submodules":{"moodle-mod_quiz-util-base":{},"moodle-mod_quiz-util-slot":{"requires":["node","moodle-mod_quiz-util-base"]},"moodle-mod_quiz-util-page":{"requires":["node","moodle-mod_quiz-util-base"]}}},"moodle-mod_quiz-dragdrop":{"requires":["base","node","io","dom","dd","dd-scroll","moodle-core-dragdrop","moodle-core-notification","moodle-mod_quiz-quizbase","moodle-mod_quiz-util-base","moodle-mod_quiz-util-page","moodle-mod_quiz-util-slot","moodle-course-util"]},"moodle-mod_quiz-modform":{"requires":["base","node","event"]},"moodle-mod_quiz-autosave":{"requires":["base","node","event","event-valuechange","node-event-delegate","io-form","datatype-date-format"]},"moodle-mod_quiz-toolboxes":{"requires":["base","node","event","event-key","io","moodle-mod_quiz-quizbase","moodle-mod_quiz-util-slot","moodle-core-notification-ajaxexception"]},"moodle-mod_quiz-questionchooser":{"requires":["moodle-core-chooserdialogue","moodle-mod_quiz-util","querystring-parse"]},"moodle-message_airnotifier-toolboxes":{"requires":["base","node","io"]},"moodle-editor_atto-editor":{"requires":["node","transition","io","overlay","escape","event","event-simulate","event-custom","node-event-html5","node-event-simulate","yui-throttle","moodle-core-notification-dialogue","moodle-editor_atto-rangy","handlebars","timers","querystring-stringify"]},"moodle-editor_atto-plugin":{"requires":["node","base","escape","event","event-outside","handlebars","event-custom","timers","moodle-editor_atto-menu"]},"moodle-editor_atto-menu":{"requires":["moodle-core-notification-dialogue","node","event","event-custom"]},"moodle-editor_atto-rangy":{"requires":[]},"moodle-report_eventlist-eventfilter":{"requires":["base","event","node","node-event-delegate","datatable","autocomplete","autocomplete-filters"]},"moodle-report_loglive-fetchlogs":{"requires":["base","event","node","io","node-event-delegate"]},"moodle-gradereport_history-userselector":{"requires":["escape","event-delegate","event-key","handlebars","io-base","json-parse","moodle-core-notification-dialogue"]},"moodle-qbank_editquestion-chooser":{"requires":["moodle-core-chooserdialogue"]},"moodle-tool_lp-dragdrop-reorder":{"requires":["moodle-core-dragdrop"]},"moodle-assignfeedback_editpdf-editor":{"requires":["base","event","node","io","graphics","json","event-move","event-resize","transition","querystring-stringify-simple","moodle-core-notification-dialog","moodle-core-notification-alert","moodle-core-notification-warning","moodle-core-notification-exception","moodle-core-notification-ajaxexception"]},"moodle-atto_accessibilitychecker-button":{"requires":["color-base","moodle-editor_atto-plugin"]},"moodle-atto_accessibilityhelper-button":{"requires":["moodle-editor_atto-plugin"]},"moodle-atto_align-button":{"requires":["moodle-editor_atto-plugin"]},"moodle-atto_bold-button":{"requires":["moodle-editor_atto-plugin"]},"moodle-atto_charmap-button":{"requires":["moodle-editor_atto-plugin"]},"moodle-atto_clear-button":{"requires":["moodle-editor_atto-plugin"]},"moodle-atto_collapse-button":{"requires":["moodle-editor_atto-plugin"]},"moodle-atto_emojipicker-button":{"requires":["moodle-editor_atto-plugin"]},"moodle-atto_emoticon-button":{"requires":["moodle-editor_atto-plugin"]},"moodle-atto_equation-button":{"requires":["moodle-editor_atto-plugin","moodle-core-event","io","event-valuechange","tabview","array-extras"]},"moodle-atto_h5p-button":{"requires":["moodle-editor_atto-plugin"]},"moodle-atto_html-codemirror":{"requires":["moodle-atto_html-codemirror-skin"]},"moodle-atto_html-button":{"requires":["promise","moodle-editor_atto-plugin","moodle-atto_html-beautify","moodle-atto_html-codemirror","event-valuechange"]},"moodle-atto_html-beautify":{},"moodle-atto_image-button":{"requires":["moodle-editor_atto-plugin"]},"moodle-atto_indent-button":{"requires":["moodle-editor_atto-plugin"]},"moodle-atto_italic-button":{"requires":["moodle-editor_atto-plugin"]},"moodle-atto_link-button":{"requires":["moodle-editor_atto-plugin"]},"moodle-atto_managefiles-button":{"requires":["moodle-editor_atto-plugin"]},"moodle-atto_managefiles-usedfiles":{"requires":["node","escape"]},"moodle-atto_media-button":{"requires":["moodle-editor_atto-plugin","moodle-form-shortforms"]},"moodle-atto_noautolink-button":{"requires":["moodle-editor_atto-plugin"]},"moodle-atto_orderedlist-button":{"requires":["moodle-editor_atto-plugin"]},"moodle-atto_recordrtc-button":{"requires":["moodle-editor_atto-plugin","moodle-atto_recordrtc-recording"]},"moodle-atto_recordrtc-recording":{"requires":["moodle-atto_recordrtc-button"]},"moodle-atto_rtl-button":{"requires":["moodle-editor_atto-plugin"]},"moodle-atto_strike-button":{"requires":["moodle-editor_atto-plugin"]},"moodle-atto_subscript-button":{"requires":["moodle-editor_atto-plugin"]},"moodle-atto_superscript-button":{"requires":["moodle-editor_atto-plugin"]},"moodle-atto_table-button":{"requires":["moodle-editor_atto-plugin","moodle-editor_atto-menu","event","event-valuechange"]},"moodle-atto_title-button":{"requires":["moodle-editor_atto-plugin"]},"moodle-atto_underline-button":{"requires":["moodle-editor_atto-plugin"]},"moodle-atto_undo-button":{"requires":["moodle-editor_atto-plugin"]},"moodle-atto_unorderedlist-button":{"requires":["moodle-editor_atto-plugin"]}}},"gallery":{"name":"gallery","base":"https:\/\/kurzy.lpe.cz\/lib\/yuilib\/gallery\/","combine":true,"comboBase":"https:\/\/kurzy.lpe.cz\/theme\/yui_combo.php?","ext":false,"root":"gallery\/1772457974\/","patterns":{"gallery-":{"group":"gallery"}}}},"modules":{"core_filepicker":{"name":"core_filepicker","fullpath":"https:\/\/kurzy.lpe.cz\/lib\/javascript.php\/1772457974\/repository\/filepicker.js","requires":["base","node","node-event-simulate","json","async-queue","io-base","io-upload-iframe","io-form","yui2-treeview","panel","cookie","datatable","datatable-sort","resize-plugin","dd-plugin","escape","moodle-core_filepicker","moodle-core-notification-dialogue"]},"core_comment":{"name":"core_comment","fullpath":"https:\/\/kurzy.lpe.cz\/lib\/javascript.php\/1772457974\/comment\/comment.js","requires":["base","io-base","node","json","yui2-animation","overlay","escape"]}},"logInclude":[],"logExclude":[],"logLevel":null};
+M.yui.loader = {modules: {}};
+
+//]]>
+</script>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="core/first" src="./udaje_ucastnika_files/requirejs.php"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="jqueryprivate" src="./udaje_ucastnika_files/javascript.php"></script><script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="jquery" src="./udaje_ucastnika_files/javascript(1).php"></script><script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+    config: ["Accessible.js", "Safe.js"],
+    errorSettings: { message: ["!"] },
+    skipStartupTypeset: true,
+    messageStyle: "none"
+});
+</script></head>
+<body id="page-local-user-edit_profile" class="format-site path-local path-local-user chrome dir-ltr lang-cs yui-skin-sam yui3-skin-sam kurzy-lpe-cz pagelayout-admin course-1 context-30739 theme uses-drawers drawer-open-index nocourseindexcmicons theme_boost-union-footerbuttondesktop jsenabled" data-new-gr-c-s-check-loaded="14.1291.0" data-gr-ext-installed="">
+<div class="toast-wrapper mx-auto py-0 fixed-top" role="status" aria-live="polite"></div>
+<div id="page-wrapper" class="d-print-block">
+
+    <div>
+    <a class="sr-only sr-only-focusable" href="https://kurzy.lpe.cz/local/user/edit_profile.php#maincontent">Přejít k hlavnímu obsahu</a>
+</div><script src="./udaje_ucastnika_files/javascript(2).php"></script>
+<script src="./udaje_ucastnika_files/combo(1)"></script><script src="./udaje_ucastnika_files/javascript(3).php"></script>
+<script>
+//<![CDATA[
+document.body.className += ' jsenabled';
+//]]>
+</script>
+
+
+
+    
+    <nav class="navbar fixed-top navbar-light bg-white navbar-expand " aria-label="Navigace stránek">
+        <div class="container-fluid">
+            <button class="navbar-toggler aabtn d-block d-md-none px-1 my-1 border-0" data-toggler="drawers" data-action="toggle" data-target="theme_boost-drawers-primary" data-disabled-toggle="undefined" data-toggle="undefined" data-original-title="" title="">
+                <span class="navbar-toggler-icon"></span>
+                <span class="sr-only">Boční panel</span>
+            </button>
+    
+            <a href="https://kurzy.lpe.cz/my/courses.php" class="navbar-brand align-items-center m-0 me-4 p-0 aabtn   d-none d-md-flex  ">
+    
+                    <img src="./udaje_ucastnika_files/logo LPE černé písmo.svg" class="logo me-1" alt="L.P.Elektro e-learningový systém">
+            </a>
+                <div class="primary-navigation">
+                    <nav class="moremenu navigation observed">
+                        <ul id="moremenu-6a049fd63b93d-navbar-nav" role="menubar" class="nav more-nav navbar-nav">
+                                        <li data-key="home" class="nav-item " role="none" data-forceintomoremenu="false">
+                                                    <a role="menuitem" class="nav-link  active " href="https://kurzy.lpe.cz/?redirect=0" aria-current="true" data-disableactive="true">
+                                                        Titulní stránka
+                                                    </a>
+                                        </li>
+                                        <li data-key="mycourses" class="nav-item " role="none" data-forceintomoremenu="false">
+                                                    <a role="menuitem" class="nav-link   " href="https://kurzy.lpe.cz/my/courses.php" data-disableactive="true" tabindex="-1">
+                                                        Moje kurzy
+                                                    </a>
+                                        </li>
+                                <li role="none" class="nav-item dropdown dropdownmoremenu d-none" data-region="morebutton">
+                                    <a class="dropdown-toggle nav-link " href="https://kurzy.lpe.cz/local/user/edit_profile.php#" id="moremenu-dropdown-6a049fd63b93d" role="menuitem" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" tabindex="-1">
+                                        Další
+                                    </a>
+                                    <ul class="dropdown-menu dropdown-menu-left" data-region="moredropdown" aria-labelledby="moremenu-dropdown-6a049fd63b93d" role="menu">
+                                    </ul>
+                                </li>
+                        </ul>
+                    </nav>
+                </div>
+    
+    
+            <div id="usernavigation" class="navbar-nav ms-auto h-100">
+                    <div id="searchinput-navbar-6a049fd64146b6a049fd63e2583" class="simplesearchform">
+    <div class="collapse" id="searchform-navbar">
+        <form autocomplete="off" action="https://kurzy.lpe.cz/search/index.php" method="get" accept-charset="utf-8" class="mform d-flex flex-wrap align-items-center searchform-navbar">
+                <input type="hidden" name="context" value="30739">
+            <div class="input-group" role="group" aria-labelledby="searchgrouplabel-6a049fd64146b6a049fd63e2583">
+                    <span id="searchgrouplabel-6a049fd64146b6a049fd63e2583" class="sr-only">Vyhledávání na celém webu</span>
+                <label for="searchinput-6a049fd64146b6a049fd63e2583">
+                    <span class="sr-only">Hledat</span>
+                </label>
+                    <input type="text" id="searchinput-6a049fd64146b6a049fd63e2583" class="form-control withclear" placeholder="Hledat" aria-label="Hledat" name="q" data-region="input" autocomplete="off">
+                    <a class="btn btn-close" data-action="closesearch" data-toggle="collapse" href="https://kurzy.lpe.cz/local/user/edit_profile.php#searchform-navbar" role="button" title="Zavřít">
+                        <i class="icon fa fa-xmark fa-fw " aria-hidden="true"></i>
+                        <span class="sr-only">Zavřít</span>
+                    </a>
+                <div class="input-group-append">
+                    <button type="submit" class="btn btn-submit" data-action="submit" title="Provést vyhledávání">
+                        <i class="icon fa fa-magnifying-glass fa-fw " aria-hidden="true"></i>
+                        <span class="sr-only">Provést vyhledávání</span>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <a class="btn btn-open rounded-0 nav-link" data-toggle="collapse" data-action="opensearch" href="https://kurzy.lpe.cz/local/user/edit_profile.php#searchform-navbar" role="button" aria-expanded="false" aria-controls="searchform-navbar" title="Přepnout vyhledávání">
+        <i class="icon fa fa-magnifying-glass fa-fw " aria-hidden="true"></i>
+        <span class="sr-only">Přepnout vyhledávání</span>
+    </a>
+</div>
+                    <div class="divider border-start h-75 align-self-center mx-1"></div>
+                <div class="popover-region collapsed popover-region-notifications" id="nav-notification-popover-container" data-userid="24395" data-region="popover-region">
+    <div class="popover-region-toggle nav-link icon-no-margin" data-region="popover-region-toggle" aria-controls="popover-region-container-6a049fd642c266a049fd63e2584" aria-haspopup="true" aria-expanded="false" aria-label=" Zobrazit okno oznámení  bez nových oznámení   " title=" Zobrazit okno oznámení  bez nových oznámení   " tabindex="0" role="button">
+                <i class="icon fa fa-bell fa-fw " aria-hidden="true"></i>
+        <div class="count-container hidden" data-region="count-container" aria-hidden="true">
+            0
+        </div>
+
+    </div>
+    <div aria-modal="true" tabindex="-1" id="popover-region-container-6a049fd642c266a049fd63e2584" class="popover-region-container" data-region="popover-region-container" aria-hidden="true" aria-label="Okno oznámení" role="dialog">
+        <div class="popover-region-header-container">
+            <h3 class="popover-region-header-text" data-region="popover-region-header-text">Oznámení</h3>
+            <div class="popover-region-header-actions" data-region="popover-region-header-actions">        <a class="mark-all-read-button btn btn-sm btn-link m-0 py-0 icon-no-margin" href="https://kurzy.lpe.cz/local/user/edit_profile.php#" title="Označit vše jako přečtené" data-action="mark-all-read" role="button" aria-label="Označit vše jako přečtené">
+            <span class="normal-icon"><i class="icon fa fa-check fa-fw " aria-hidden="true"></i></span>
+            <span class="loading-icon icon-no-margin"><i class="icon fa fa-spinner fa-spin fa-fw " title="Nahrávání" role="img" aria-label="Nahrávání"></i></span>
+            <span aria-live="polite" class="sr-only" data-region="notification-read-feedback"></span>
+        </a>
+            <a href="https://kurzy.lpe.cz/message/notificationpreferences.php" title="Nastavení oznámení" aria-label="Nastavení oznámení" class="btn btn-sm btn-link m-0 py-0 icon-no-margin">
+                <i class="icon fa fa-gear fa-fw " aria-hidden="true"></i></a>
+        <button type="button" class="btn btn-sm btn-link m-0 py-0 icon-no-margin" aria-label="Zavřít" title="Zavřít" data-action="close-notification-popover">
+            <i class="icon fa fa-xmark fa-fw " aria-hidden="true"></i>
+        </button>
+</div>
+        </div>
+        <div class="popover-region-content-container" data-region="popover-region-content-container">
+            <div class="popover-region-content" data-region="popover-region-content">
+                        <div class="all-notifications" data-region="all-notifications" role="log" aria-busy="false" aria-atomic="false" aria-relevant="additions"></div>
+        <div class="empty-message" tabindex="0" data-region="empty-message">Nemáte žádná oznámení</div>
+
+            </div>
+            <span class="loading-icon icon-no-margin"><i class="icon fa fa-spinner fa-spin fa-fw " title="Nahrávání" role="img" aria-label="Nahrávání"></i></span>
+        </div>
+                <a class="see-all-link" href="https://kurzy.lpe.cz/message/output/popup/notifications.php">
+                    <div class="popover-region-footer-container">
+                        <div class="popover-region-seeall-text">Zobrazit vše</div>
+                    </div>
+                </a>
+    </div>
+</div>
+                <div class="d-flex align-items-stretch usermenu-container" data-region="usermenu">
+                        <div class="usermenu">
+                                <div class="dropdown show">
+                                    <a href="https://kurzy.lpe.cz/local/user/edit_profile.php#" role="button" id="user-menu-toggle" data-toggle="dropdown" aria-label="Uživatelské menu" aria-haspopup="true" aria-controls="user-action-menu" class="btn dropdown-toggle">
+                                        <span class="userbutton">
+                                            <span class="avatars">
+                                                    <span class="avatar current">
+                                                        <span class="userinitials size-35" title="Michal Schlesinger" aria-label="Michal Schlesinger" role="img">MS</span>
+                                                    </span>
+                                            </span>
+                                        </span>
+                                    </a>
+                                    <div id="user-action-menu" class="dropdown-menu dropdown-menu-right">
+                                        <div id="usermenu-carousel" class="carousel slide" data-touch="false" data-interval="false" data-keyboard="false">
+                                            <div class="carousel-inner">
+                                                <div id="carousel-item-main" class="carousel-item active" role="menu" tabindex="-1" aria-label="Uživatel">
+                                                            <a href="https://kurzy.lpe.cz/user/profile.php" class="dropdown-item " role="menuitem" tabindex="-1">
+                                                                    
+                                                                Profil
+                                                            </a>
+                                                        
+                                                        <div class="dropdown-divider"></div>
+                                                            <a href="https://kurzy.lpe.cz/user/preferences.php" class="dropdown-item " role="menuitem" tabindex="-1">
+                                                                    
+                                                                Předvolby
+                                                            </a>
+                                                        <div class="dropdown-divider"></div>
+                                                            <a href="https://kurzy.lpe.cz/login/logout.php?sesskey=wiuzwujP1e" class="dropdown-item " role="menuitem" tabindex="-1">
+                                                                    
+                                                                Odhlásit se
+                                                            </a>
+                                                        
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                        </div>
+                </div>
+                
+    
+            </div>
+        </div>
+    </nav>
+    
+<div class="drawer drawer-left drawer-primary d-print-none" data-region="fixed-drawer" id="theme_boost-drawers-primary" data-preference="" data-state="show-drawer-primary" data-forceopen="0" data-close-on-resize="1" aria-hidden="true">
+    <div class="drawerheader">
+        <button class="btn drawertoggle icon-no-margin hidden" data-toggler="drawers" data-action="closedrawer" data-target="theme_boost-drawers-primary" data-placement="right" title="" data-aria-hidden-tab-index="" tabindex="-1" data-disabled-toggle="tooltip" data-toggle="tooltip" data-original-title="Zavřít lištu">
+            <i class="icon fa fa-xmark fa-fw " aria-hidden="true"></i>
+        </button>
+                <a href="https://kurzy.lpe.cz/my/courses.php" title="L.P.Elektro e-learningový systém" data-region="site-home-link" class="aabtn text-reset d-flex align-items-center py-1 h-100" data-aria-hidden-tab-index="" tabindex="-1">
+                <img src="./udaje_ucastnika_files/logo LPE černé písmo.svg" class="logo py-1 h-100" alt="L.P.Elektro e-learningový systém">
+        </a>
+
+        <div class="drawerheadercontent hidden">
+            
+        </div>
+    </div>
+    <div class="drawercontent drag-container" data-usertour="scroller">
+                <div class="list-group">
+                <a href="https://kurzy.lpe.cz/?redirect=0" class=" list-group-item list-group-item-action active " aria-current="true" data-aria-hidden-tab-index="" tabindex="-1">
+                    Titulní stránka
+                </a>
+                <a href="https://kurzy.lpe.cz/my/courses.php" class=" list-group-item list-group-item-action  " data-aria-hidden-tab-index="" tabindex="-1">
+                    Moje kurzy
+                </a>
+        </div>
+
+    </div>
+</div>
+
+
+    <div id="page" data-region="mainpage" data-usertour="scroller" class="drawers drag-container" style="overflow: visible;">
+
+
+
+        <div class="main-inner-wrapper main-inner-outside-none main-inner-outside-nextmaincontent">
+
+        <div id="topofscroll" class="main-inner">
+            <div class="drawer-toggles d-flex">
+            </div>
+            
+            
+            <header id="page-header" class="header-maxwidth d-print-none">
+    <div class="w-100">
+        <div class="d-flex flex-wrap">
+            <div id="page-navbar">
+                <nav aria-label="Drobečková navigace">
+    <ol class="breadcrumb"></ol>
+</nav>
+            </div>
+            <div class="ms-auto d-flex">
+                
+            </div>
+            <div id="course-header">
+                
+            </div>
+        </div>
+                <div class="d-flex align-items-center">
+                    <div class="me-auto d-flex flex-column">
+                        <div>
+                            <div class="page-context-header d-flex flex-wrap align-items-center mb-2">
+    <div class="page-header-image">
+        <a href="https://kurzy.lpe.cz/user/profile.php?id=24395" class="d-inline-block aabtn"><span class="userinitials size-100" title="Michal Schlesinger" aria-label="Michal Schlesinger" role="img">MS</span></a>
+    </div>
+    <div class="page-header-headings">
+        <h1 class="h2 mb-0">Michal Schlesinger</h1>
+    </div>
+</div>
+                        </div>
+                        <div>
+                        </div>
+                    </div>
+                    <div class="header-actions-container ms-auto" data-region="header-actions-container">
+                    </div>
+                </div>
+    </div>
+</header>
+            <span class="notifications" id="user-notifications"></span>
+            <div id="page-content" class="pb-3 d-print-block">
+                <div id="region-main-box">
+                    <div id="region-main">
+
+                        
+                        
+                        <div role="main"><span id="maincontent"></span>
+<form autocomplete="off" action="https://kurzy.lpe.cz/local/user/edit_profile.php" method="post" accept-charset="utf-8" id="mform1_1E8VurgURIfYlGD" class="mform" data-boost-form-errors-enhanced="1">
+	<div style="display: none;"><input type="hidden" name="course" value="1">
+<input type="hidden" name="id" value="24395">
+<input type="hidden" name="returnto" value="">
+<input name="id" type="hidden" value="24395">
+<input name="course" type="hidden" value="1">
+<input name="sesskey" type="hidden" value="wiuzwujP1e">
+<input name="_qf__user_edit_form" type="hidden" value="1">
+</div>
+
+<div id="fitem_id_firstname" class="mb-3 row  fitem    ">
+    <div class="col-md-3 col-form-label d-flex pb-0 pe-md-0">
+        
+                <label id="id_firstname_label" class="d-inline word-break " for="id_firstname">
+                    Křestní jméno
+                </label>
+        
+        <div class="form-label-addon d-flex align-items-center align-self-start">
+                <div class="text-danger" title="Vyžadováno" aria-hidden="true">
+                    <i class="icon fa fa-circle-exclamation text-danger fa-fw " aria-hidden="true"></i>
+                </div>
+            
+        </div>
+    </div>
+    <div class="col-md-9 d-flex flex-wrap align-items-start felement" data-fieldtype="text">
+        <input type="text" class="form-control " name="firstname" id="id_firstname" value="Michal" size="30" aria-required="true" maxlength="100">
+        <div class="form-control-feedback invalid-feedback" id="id_error_firstname">
+            
+        </div>
+    </div>
+</div><div id="fitem_id_lastname" class="mb-3 row  fitem    ">
+    <div class="col-md-3 col-form-label d-flex pb-0 pe-md-0">
+        
+                <label id="id_lastname_label" class="d-inline word-break " for="id_lastname">
+                    Příjmení
+                </label>
+        
+        <div class="form-label-addon d-flex align-items-center align-self-start">
+                <div class="text-danger" title="Vyžadováno" aria-hidden="true">
+                    <i class="icon fa fa-circle-exclamation text-danger fa-fw " aria-hidden="true"></i>
+                </div>
+            
+        </div>
+    </div>
+    <div class="col-md-9 d-flex flex-wrap align-items-start felement" data-fieldtype="text">
+        <input type="text" class="form-control " name="lastname" id="id_lastname" value="Schlesinger" size="30" aria-required="true" maxlength="100">
+        <div class="form-control-feedback invalid-feedback" id="id_error_lastname">
+            
+        </div>
+    </div>
+</div><div id="fitem_id_profile_field_Titul" class="mb-3 row  fitem    ">
+    <div class="col-md-3 col-form-label d-flex pb-0 pe-md-0">
+        
+                <label id="id_profile_field_Titul_label" class="d-inline word-break " for="id_profile_field_Titul">
+                    Titul
+                </label>
+        
+        <div class="form-label-addon d-flex align-items-center align-self-start">
+            
+        </div>
+    </div>
+    <div class="col-md-9 d-flex flex-wrap align-items-start felement" data-fieldtype="text">
+        <input type="text" class="form-control " name="profile_field_Titul" id="id_profile_field_Titul" value="" size="15" maxlength="15">
+        <div class="form-control-feedback invalid-feedback" id="id_error_profile_field_Titul">
+            
+        </div>
+    </div>
+</div><div id="fitem_id_profile_field_datumnar" class="mb-3 row  fitem    ">
+    <div class="col-md-3 col-form-label d-flex pb-0 pe-md-0">
+        
+                <label id="id_profile_field_datumnar_label" class="d-inline word-break " for="id_profile_field_datumnar">
+                    Datum narození
+                </label>
+        
+        <div class="form-label-addon d-flex align-items-center align-self-start">
+            
+        </div>
+    </div>
+    <div class="col-md-9 d-flex flex-wrap align-items-start felement" data-fieldtype="text">
+        <input type="text" class="form-control " name="profile_field_datumnar" id="id_profile_field_datumnar" value="dd.mm.rrrr" size="10" maxlength="10">
+        <div class="form-control-feedback invalid-feedback" id="id_error_profile_field_datumnar">
+            
+        </div>
+    </div>
+</div><div id="fitem_id_profile_field_mistonar" class="mb-3 row  fitem    ">
+    <div class="col-md-3 col-form-label d-flex pb-0 pe-md-0">
+        
+                <label id="id_profile_field_mistonar_label" class="d-inline word-break " for="id_profile_field_mistonar">
+                    Místo narození
+                </label>
+        
+        <div class="form-label-addon d-flex align-items-center align-self-start">
+            
+        </div>
+    </div>
+    <div class="col-md-9 d-flex flex-wrap align-items-start felement" data-fieldtype="text">
+        <input type="text" class="form-control " name="profile_field_mistonar" id="id_profile_field_mistonar" value="" size="30" maxlength="30">
+        <div class="form-control-feedback invalid-feedback" id="id_error_profile_field_mistonar">
+            
+        </div>
+    </div>
+</div><div id="fitem_id_profile_field_bydliste" class="mb-3 row  fitem    ">
+    <div class="col-md-3 col-form-label d-flex pb-0 pe-md-0">
+        
+                <label id="id_profile_field_bydliste_label" class="d-inline word-break " for="id_profile_field_bydliste">
+                    Adresa bydliště
+                </label>
+        
+        <div class="form-label-addon d-flex align-items-center align-self-start">
+            
+        </div>
+    </div>
+    <div class="col-md-9 d-flex flex-wrap align-items-start felement" data-fieldtype="text">
+        <input type="text" class="form-control " name="profile_field_bydliste" id="id_profile_field_bydliste" value="" size="255" maxlength="255">
+        <div class="form-control-feedback invalid-feedback" id="id_error_profile_field_bydliste">
+            
+        </div>
+    </div>
+</div><div id="fitem_id_profile_field_zamestnavatel" class="mb-3 row  fitem    ">
+    <div class="col-md-3 col-form-label d-flex pb-0 pe-md-0">
+        
+                <label id="id_profile_field_zamestnavatel_label" class="d-inline word-break " for="id_profile_field_zamestnavatel">
+                    Zaměstnavatel
+                </label>
+        
+        <div class="form-label-addon d-flex align-items-center align-self-start">
+            
+        </div>
+    </div>
+    <div class="col-md-9 d-flex flex-wrap align-items-start felement" data-fieldtype="text">
+        <input type="text" class="form-control " name="profile_field_zamestnavatel" id="id_profile_field_zamestnavatel" value="" size="50" maxlength="50">
+        <div class="form-control-feedback invalid-feedback" id="id_error_profile_field_zamestnavatel">
+            
+        </div>
+    </div>
+</div><div id="fitem_id_profile_field_oddeleni" class="mb-3 row  fitem    ">
+    <div class="col-md-3 col-form-label d-flex pb-0 pe-md-0">
+        
+                <label id="id_profile_field_oddeleni_label" class="d-inline word-break " for="id_profile_field_oddeleni">
+                    Oddělení
+                </label>
+        
+        <div class="form-label-addon d-flex align-items-center align-self-start">
+            
+        </div>
+    </div>
+    <div class="col-md-9 d-flex flex-wrap align-items-start felement" data-fieldtype="text">
+        <input type="text" class="form-control " name="profile_field_oddeleni" id="id_profile_field_oddeleni" value="" size="80" maxlength="250">
+        <div class="form-control-feedback invalid-feedback" id="id_error_profile_field_oddeleni">
+            
+        </div>
+    </div>
+</div><div id="fitem_id_profile_field_pracovnipozice" class="mb-3 row  fitem    ">
+    <div class="col-md-3 col-form-label d-flex pb-0 pe-md-0">
+        
+                <label id="id_profile_field_pracovnipozice_label" class="d-inline word-break " for="id_profile_field_pracovnipozice">
+                    Pracovní pozice
+                </label>
+        
+        <div class="form-label-addon d-flex align-items-center align-self-start">
+            
+        </div>
+    </div>
+    <div class="col-md-9 d-flex flex-wrap align-items-start felement" data-fieldtype="text">
+        <input type="text" class="form-control " name="profile_field_pracovnipozice" id="id_profile_field_pracovnipozice" value="" size="80" maxlength="250">
+        <div class="form-control-feedback invalid-feedback" id="id_error_profile_field_pracovnipozice">
+            
+        </div>
+    </div>
+</div><div id="fitem_id_profile_field_adrzam" class="mb-3 row  fitem    ">
+    <div class="col-md-3 col-form-label d-flex pb-0 pe-md-0">
+        
+                <label id="id_profile_field_adrzam_label" class="d-inline word-break " for="id_profile_field_adrzam">
+                    Adresa zaměstnavatele
+                </label>
+        
+        <div class="form-label-addon d-flex align-items-center align-self-start">
+            
+        </div>
+    </div>
+    <div class="col-md-9 d-flex flex-wrap align-items-start felement" data-fieldtype="text">
+        <input type="text" class="form-control " name="profile_field_adrzam" id="id_profile_field_adrzam" value="" size="50" maxlength="50">
+        <div class="form-control-feedback invalid-feedback" id="id_error_profile_field_adrzam">
+            
+        </div>
+    </div>
+</div><div id="fitem_id_profile_field_ICO" class="mb-3 row  fitem    ">
+    <div class="col-md-3 col-form-label d-flex pb-0 pe-md-0">
+        
+                <label id="id_profile_field_ICO_label" class="d-inline word-break " for="id_profile_field_ICO">
+                    IČ zaměstnavatele
+                </label>
+        
+        <div class="form-label-addon d-flex align-items-center align-self-start">
+            
+        </div>
+    </div>
+    <div class="col-md-9 d-flex flex-wrap align-items-start felement" data-fieldtype="text">
+        <input type="text" class="form-control " name="profile_field_ICO" id="id_profile_field_ICO" value="" size="10" maxlength="10">
+        <div class="form-control-feedback invalid-feedback" id="id_error_profile_field_ICO">
+            
+        </div>
+    </div>
+</div><div id="fitem_id_profile_field_vzdelani" class="mb-3 row  fitem    ">
+    <div class="col-md-3 col-form-label d-flex pb-0 pe-md-0">
+        
+                <label id="id_profile_field_vzdelani_label" class="d-inline word-break " for="id_profile_field_vzdelani">
+                    Název školy/autorizované osoby
+                </label>
+        
+        <div class="form-label-addon d-flex align-items-center align-self-start">
+            
+        </div>
+    </div>
+    <div class="col-md-9 d-flex flex-wrap align-items-start felement" data-fieldtype="text">
+        <input type="text" class="form-control " name="profile_field_vzdelani" id="id_profile_field_vzdelani" value="" size="30" maxlength="50">
+        <div class="form-control-feedback invalid-feedback" id="id_error_profile_field_vzdelani">
+            
+        </div>
+    </div>
+</div><div id="fitem_id_profile_field_obor" class="mb-3 row  fitem    ">
+    <div class="col-md-3 col-form-label d-flex pb-0 pe-md-0">
+        
+                <label id="id_profile_field_obor_label" class="d-inline word-break " for="id_profile_field_obor">
+                    Kód, studijní obor/profesní kvalifikace (např. 26-51-H/01Elektrikář)
+                </label>
+        
+        <div class="form-label-addon d-flex align-items-center align-self-start">
+            
+        </div>
+    </div>
+    <div class="col-md-9 d-flex flex-wrap align-items-start felement" data-fieldtype="text">
+        <input type="text" class="form-control " name="profile_field_obor" id="id_profile_field_obor" value="" size="30" maxlength="30">
+        <div class="form-control-feedback invalid-feedback" id="id_error_profile_field_obor">
+            
+        </div>
+    </div>
+</div><div id="fitem_id_profile_field_KATEGORIE" class="mb-3 row  fitem    ">
+    <div class="col-md-3 col-form-label d-flex pb-0 pe-md-0">
+        
+                <span class="d-inline-block ">
+                    Vymezení rozsahu odborné způsobilosti
+                </span>
+        
+        <div class="form-label-addon d-flex align-items-center align-self-start">
+            
+        </div>
+    </div>
+    <div class="col-md-9 d-flex flex-wrap align-items-start felement" data-fieldtype="select">
+                    
+        <div class="form-control-feedback invalid-feedback" id="id_error_profile_field_KATEGORIE">
+            
+        </div>
+    </div>
+</div><div id="fitem_id_profile_field_Praxe" class="mb-3 row  fitem    ">
+    <div class="col-md-3 col-form-label d-flex pb-0 pe-md-0">
+        
+                <label id="id_profile_field_Praxe_label" class="d-inline word-break " for="id_profile_field_Praxe">
+                    Délka odborné praxe celkem (roků)
+                </label>
+        
+        <div class="form-label-addon d-flex align-items-center align-self-start">
+            
+        </div>
+    </div>
+    <div class="col-md-9 d-flex flex-wrap align-items-start felement" data-fieldtype="text">
+        <input type="text" class="form-control " name="profile_field_Praxe" id="id_profile_field_Praxe" value="" size="10" maxlength="10">
+        <div class="form-control-feedback invalid-feedback" id="id_error_profile_field_Praxe">
+            
+        </div>
+    </div>
+</div><div id="fitem_id_profile_field_PraxeA" class="mb-3 row  fitem    ">
+    <div class="col-md-3 col-form-label d-flex pb-0 pe-md-0">
+        
+                <label id="id_profile_field_PraxeA_label" class="d-inline word-break " for="id_profile_field_PraxeA">
+                    Délka odborné praxe na hromosvodech – LPS (počet roků nebo -)
+                </label>
+        
+        <div class="form-label-addon d-flex align-items-center align-self-start">
+            
+        </div>
+    </div>
+    <div class="col-md-9 d-flex flex-wrap align-items-start felement" data-fieldtype="text">
+        <input type="text" class="form-control " name="profile_field_PraxeA" id="id_profile_field_PraxeA" value="-" size="10" maxlength="10">
+        <div class="form-control-feedback invalid-feedback" id="id_error_profile_field_PraxeA">
+            
+        </div>
+    </div>
+</div><div id="fitem_id_profile_field_PraxeB" class="mb-3 row  fitem    ">
+    <div class="col-md-3 col-form-label d-flex pb-0 pe-md-0">
+        
+                <label id="id_profile_field_PraxeB_label" class="d-inline word-break " for="id_profile_field_PraxeB">
+                    Délka odborné praxe v prostorech s nebezpečí výbuchu B (počet roků nebo -)
+                </label>
+        
+        <div class="form-label-addon d-flex align-items-center align-self-start">
+            
+        </div>
+    </div>
+    <div class="col-md-9 d-flex flex-wrap align-items-start felement" data-fieldtype="text">
+        <input type="text" class="form-control " name="profile_field_PraxeB" id="id_profile_field_PraxeB" value="-" size="10" maxlength="10">
+        <div class="form-control-feedback invalid-feedback" id="id_error_profile_field_PraxeB">
+            
+        </div>
+    </div>
+</div><div id="fitem_id_profile_field_PraxeVN" class="mb-3 row  fitem    ">
+    <div class="col-md-3 col-form-label d-flex pb-0 pe-md-0">
+        
+                <label id="id_profile_field_PraxeVN_label" class="d-inline word-break " for="id_profile_field_PraxeVN">
+                    Délka odborné praxe na elektrickém zařízení nad 1 kV AC/ 1,5 kV DC (počet roků nebo -)
+                </label>
+        
+        <div class="form-label-addon d-flex align-items-center align-self-start">
+            
+        </div>
+    </div>
+    <div class="col-md-9 d-flex flex-wrap align-items-start felement" data-fieldtype="text">
+        <input type="text" class="form-control " name="profile_field_PraxeVN" id="id_profile_field_PraxeVN" value="-" size="10" maxlength="10">
+        <div class="form-control-feedback invalid-feedback" id="id_error_profile_field_PraxeVN">
+            
+        </div>
+    </div>
+</div><div id="fitem_id_profile_field_Rozsahcin" class="mb-3 row  fitem    ">
+    <div class="col-md-3 col-form-label d-flex pb-0 pe-md-0">
+        
+                <label id="id_profile_field_Rozsahcin_label" class="d-inline word-break " for="id_profile_field_Rozsahcin">
+                    Rozsah činností, které bude pracovník/ce, vykonávat
+                </label>
+        
+        <div class="form-label-addon d-flex align-items-center align-self-start">
+            
+        </div>
+    </div>
+    <div class="col-md-9 d-flex flex-wrap align-items-start felement" data-fieldtype="text">
+        <input type="text" class="form-control " name="profile_field_Rozsahcin" id="id_profile_field_Rozsahcin" value="" size="60" maxlength="110">
+        <div class="form-control-feedback invalid-feedback" id="id_error_profile_field_Rozsahcin">
+            
+        </div>
+    </div>
+</div><div id="fitem_id_profile_field_Specifikacep" class="mb-3 row  fitem    ">
+    <div class="col-md-3 col-form-label d-flex pb-0 pe-md-0">
+        
+                <label id="id_profile_field_Specifikacep_label" class="d-inline word-break " for="id_profile_field_Specifikacep">
+                    Specifikace pracoviště
+                </label>
+        
+        <div class="form-label-addon d-flex align-items-center align-self-start">
+            
+        </div>
+    </div>
+    <div class="col-md-9 d-flex flex-wrap align-items-start felement" data-fieldtype="text">
+        <input type="text" class="form-control " name="profile_field_Specifikacep" id="id_profile_field_Specifikacep" value="" size="60" maxlength="140">
+        <div class="form-control-feedback invalid-feedback" id="id_error_profile_field_Specifikacep">
+            
+        </div>
+    </div>
+</div><div id="fitem_id_submitbutton" class="mb-3 row  fitem femptylabel   ">
+    <div class="col-md-3 col-form-label d-flex pb-0 pe-md-0">
+        
+        <div class="form-label-addon d-flex align-items-center align-self-start">
+            
+        </div>
+    </div>
+    <div class="col-md-9 d-flex flex-wrap align-items-start felement" data-fieldtype="submit">
+            <input type="submit" class="btn
+                        btn-primary
+                        
+                    
+                    
+                    " name="submitbutton" id="id_submitbutton" value="Aktualizovat profil">
+        <div class="form-control-feedback invalid-feedback" id="id_error_submitbutton">
+            
+        </div>
+    </div>
+</div>
+		<div class="fdescription required" aria-hidden="true"><i class="icon fa fa-circle-exclamation text-danger fa-fw " aria-hidden="true" title="Povinné pole"></i> Povinné</div>
+</form>
+<script>var skipClientValidation = false;</script></div>
+                        
+                        
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        </div>
+
+
+
+        
+        <footer id="page-footer" class="footer-popover bg-white">
+            <div data-region="footer-container-popover">
+                    <button class="btn btn-icon bg-secondary icon-no-margin btn-footer-popover" data-action="footer-popover" aria-label="Zobrazit zápatí" data-original-title="" title="">
+                        <i class="icon fa fa-question fa-fw " aria-hidden="true"></i>
+                    </button>
+                <div id="boost-union-footer-buttons"><button id="back-to-top" class="btn btn-icon bg-secondary icon-no-margin d-print-none" aria-label="Back to top" style="display: none;"><i aria-hidden="true" class="fa fa-chevron-up fa-fw "></i></button>
+                </div>
+            </div>
+                <div class="footer-content-popover container" data-region="footer-content-popover">
+                    <div class="tool_usertours-resettourcontainer"></div>
+                    <style>.tool_usertours-resettourcontainer{display:none;}</style>
+                        <div class="footer-section p-3 border-bottom">
+                            
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  if (document.body.id !== 'page-user-profile') return;
+
+  const allSections = document.querySelectorAll('section.node_category');
+  allSections.forEach(section => {
+    const heading = section.querySelector('.card-body > h3.lead');
+    if (heading && heading.textContent.trim() === 'Různé') {
+      section.style.setProperty('display', 'none', 'important');
+    }
+  });
+});
+</script>
+                        </div>
+                    <script>
+//<![CDATA[
+var require = {
+    baseUrl : 'https://kurzy.lpe.cz/lib/requirejs.php/1772457974/',
+    // We only support AMD modules with an explicit define() statement.
+    enforceDefine: true,
+    skipDataMain: true,
+    waitSeconds : 0,
+
+    paths: {
+        jquery: 'https://kurzy.lpe.cz/lib/javascript.php/1772457974/lib/jquery/jquery-3.7.1.min',
+        jqueryui: 'https://kurzy.lpe.cz/lib/javascript.php/1772457974/lib/jquery/ui-1.13.2/jquery-ui.min',
+        jqueryprivate: 'https://kurzy.lpe.cz/lib/javascript.php/1772457974/lib/requirejs/jquery-private'
+    },
+
+    // Custom jquery config map.
+    map: {
+      // '*' means all modules will get 'jqueryprivate'
+      // for their 'jquery' dependency.
+      '*': { jquery: 'jqueryprivate' },
+
+      // 'jquery-private' wants the real jQuery module
+      // though. If this line was not here, there would
+      // be an unresolvable cyclic dependency.
+      jqueryprivate: { jquery: 'jquery' }
+    }
+};
+
+//]]>
+</script>
+<script src="./udaje_ucastnika_files/javascript(4).php"></script>
+<script>
+//<![CDATA[
+M.util.js_pending("core/first");
+require(['core/first'], function() {
+require(['core/prefetch'])
+;
+require(["media_videojs/loader"], function(loader) {
+    loader.setUp('cs');
+});;
+M.util.js_pending('filter_glossary/autolinker'); require(['filter_glossary/autolinker'], function(amd) {amd.init(); M.util.js_complete('filter_glossary/autolinker');});;
+M.util.js_pending('filter_mathjaxloader/loader'); require(['filter_mathjaxloader/loader'], function(amd) {amd.configure({"mathjaxconfig":"\nMathJax.Hub.Config({\n    config: [\"Accessible.js\", \"Safe.js\"],\n    errorSettings: { message: [\"!\"] },\n    skipStartupTypeset: true,\n    messageStyle: \"none\"\n});\n","lang":"cs"}); M.util.js_complete('filter_mathjaxloader/loader');});;
+M.util.js_pending('theme_boost_union/backtotopbutton'); require(['theme_boost_union/backtotopbutton'], function(amd) {amd.init(); M.util.js_complete('theme_boost_union/backtotopbutton');});;
+M.util.js_pending('theme_boost_union/footerbuttons'); require(['theme_boost_union/footerbuttons'], function(amd) {amd.init(); M.util.js_complete('theme_boost_union/footerbuttons');});;
+
+    require(['core/moremenu'], function(moremenu) {
+        moremenu(document.querySelector('#moremenu-6a049fd63b93d-navbar-nav'));
+    });
+;
+
+require(
+[
+    'jquery',
+],
+function(
+    $
+) {
+    var uniqid = "6a049fd640c186a049fd63e2582";
+    var container = $('#searchinput-navbar-' + uniqid);
+    var opensearch = container.find('[data-action="opensearch"]');
+    var input = container.find('[data-region="input"]');
+    var submit = container.find('[data-action="submit"]');
+
+    submit.on('click', function(e) {
+        if (input.val() === '') {
+            e.preventDefault();
+        }
+    });
+    container.on('hidden.bs.collapse', function() {
+        opensearch.removeClass('d-none');
+        input.val('');
+    });
+    container.on('show.bs.collapse', function() {
+        opensearch.addClass('d-none');
+    });
+    container.on('shown.bs.collapse', function() {
+        input.focus();
+    });
+});
+;
+
+require(
+[
+    'jquery',
+],
+function(
+    $
+) {
+    var uniqid = "6a049fd64146b6a049fd63e2583";
+    var container = $('#searchinput-navbar-' + uniqid);
+    var opensearch = container.find('[data-action="opensearch"]');
+    var input = container.find('[data-region="input"]');
+    var submit = container.find('[data-action="submit"]');
+
+    submit.on('click', function(e) {
+        if (input.val() === '') {
+            e.preventDefault();
+        }
+    });
+    container.on('hidden.bs.collapse', function() {
+        opensearch.removeClass('d-none');
+        input.val('');
+    });
+    container.on('show.bs.collapse', function() {
+        opensearch.addClass('d-none');
+    });
+    container.on('shown.bs.collapse', function() {
+        input.focus();
+    });
+});
+;
+
+require(['jquery', 'message_popup/notification_popover_controller'], function($, Controller) {
+    var container = $('#nav-notification-popover-container');
+    var controller = new Controller(container);
+    controller.registerEventListeners();
+    controller.registerListNavigationEventListeners();
+});
+;
+
+    require(['core/usermenu'], function(UserMenu) {
+        UserMenu.init();
+    });
+;
+
+M.util.js_pending('theme_boost/drawers:load');
+require(['theme_boost/drawers'], function() {
+    M.util.js_complete('theme_boost/drawers:load');
+});
+;
+
+require(['theme_boost/footer-popover'], function(FooterPopover) {
+    FooterPopover.init();
+});
+;
+
+M.util.js_pending('theme_boost/loader');
+require(['theme_boost/loader', 'theme_boost/drawer'], function(Loader, Drawer) {
+    Drawer.init();
+    M.util.js_complete('theme_boost/loader');
+
+
+});
+;
+M.util.js_pending('core_form/changechecker'); require(['core_form/changechecker'], function(amd) {amd.watchFormById("mform1_1E8VurgURIfYlGD"); M.util.js_complete('core_form/changechecker');});;
+
+require(['theme_boost/form-display-errors'], function(module) {
+    module.enhance("id_firstname");
+});
+;
+
+require(['theme_boost/form-display-errors'], function(module) {
+    module.enhance("id_lastname");
+});
+;
+
+require(['theme_boost/form-display-errors'], function(module) {
+    module.enhance("id_profile_field_Titul");
+});
+;
+
+require(['theme_boost/form-display-errors'], function(module) {
+    module.enhance("id_profile_field_datumnar");
+});
+;
+
+require(['theme_boost/form-display-errors'], function(module) {
+    module.enhance("id_profile_field_mistonar");
+});
+;
+
+require(['theme_boost/form-display-errors'], function(module) {
+    module.enhance("id_profile_field_bydliste");
+});
+;
+
+require(['theme_boost/form-display-errors'], function(module) {
+    module.enhance("id_profile_field_zamestnavatel");
+});
+;
+
+require(['theme_boost/form-display-errors'], function(module) {
+    module.enhance("id_profile_field_oddeleni");
+});
+;
+
+require(['theme_boost/form-display-errors'], function(module) {
+    module.enhance("id_profile_field_pracovnipozice");
+});
+;
+
+require(['theme_boost/form-display-errors'], function(module) {
+    module.enhance("id_profile_field_adrzam");
+});
+;
+
+require(['theme_boost/form-display-errors'], function(module) {
+    module.enhance("id_profile_field_ICO");
+});
+;
+
+require(['theme_boost/form-display-errors'], function(module) {
+    module.enhance("id_profile_field_vzdelani");
+});
+;
+
+require(['theme_boost/form-display-errors'], function(module) {
+    module.enhance("id_profile_field_obor");
+});
+;
+
+require(['theme_boost/form-display-errors'], function(module) {
+    module.enhance("id_profile_field_KATEGORIE");
+});
+;
+
+require(['theme_boost/form-display-errors'], function(module) {
+    module.enhance("id_profile_field_Praxe");
+});
+;
+
+require(['theme_boost/form-display-errors'], function(module) {
+    module.enhance("id_profile_field_PraxeA");
+});
+;
+
+require(['theme_boost/form-display-errors'], function(module) {
+    module.enhance("id_profile_field_PraxeB");
+});
+;
+
+require(['theme_boost/form-display-errors'], function(module) {
+    module.enhance("id_profile_field_PraxeVN");
+});
+;
+
+require(['theme_boost/form-display-errors'], function(module) {
+    module.enhance("id_profile_field_Rozsahcin");
+});
+;
+
+require(['theme_boost/form-display-errors'], function(module) {
+    module.enhance("id_profile_field_Specifikacep");
+});
+;
+
+require(['theme_boost/form-display-errors'], function(module) {
+    module.enhance("id_submitbutton");
+});
+;
+
+        require(['core_form/submit'], function(Submit) {
+            Submit.init("id_submitbutton");
+        });
+;
+
+
+require([
+    "core_form/events",
+    "jquery",
+], function(
+    FormEvents,
+    $
+) {
+
+    function qf_errorHandler(element, _qfMsg, escapedName) {
+        const event = FormEvents.notifyFieldValidationFailure(element, _qfMsg);
+        if (event.defaultPrevented) {
+            return _qfMsg == '';
+        } else {
+            // Legacy mforms.
+            var div = element.parentNode;
+
+            if ((div == undefined) || (element.name == undefined)) {
+                // No checking can be done for undefined elements so let server handle it.
+                return true;
+            }
+
+            if (_qfMsg != '') {
+                var errorSpan = document.getElementById('id_error_' + escapedName);
+                if (!errorSpan) {
+                    errorSpan = document.createElement("span");
+                    errorSpan.id = 'id_error_' + escapedName;
+                    errorSpan.className = "error";
+                    element.parentNode.insertBefore(errorSpan, element.parentNode.firstChild);
+                    document.getElementById(errorSpan.id).setAttribute('TabIndex', '0');
+                    document.getElementById(errorSpan.id).focus();
+                }
+
+                while (errorSpan.firstChild) {
+                    errorSpan.removeChild(errorSpan.firstChild);
+                }
+
+                errorSpan.appendChild(document.createTextNode(_qfMsg.substring(3)));
+
+                if (div.className.substr(div.className.length - 6, 6) != " error"
+                        && div.className != "error") {
+                    div.className += " error";
+                    linebreak = document.createElement("br");
+                    linebreak.className = "error";
+                    linebreak.id = 'id_error_break_' + escapedName;
+                    errorSpan.parentNode.insertBefore(linebreak, errorSpan.nextSibling);
+                }
+
+                return false;
+            } else {
+                var errorSpan = document.getElementById('id_error_' + escapedName);
+                if (errorSpan) {
+                    errorSpan.parentNode.removeChild(errorSpan);
+                }
+                var linebreak = document.getElementById('id_error_break_' + escapedName);
+                if (linebreak) {
+                    linebreak.parentNode.removeChild(linebreak);
+                }
+
+                if (div.className.substr(div.className.length - 6, 6) == " error") {
+                    div.className = div.className.substr(0, div.className.length - 6);
+                } else if (div.className == "error") {
+                    div.className = "";
+                }
+
+                return true;
+            } // End if.
+        } // End if.
+    } // End function.
+    
+    function validate_user_edit_form_firstname(element, escapedName) {
+      if (undefined == element) {
+         //required element was not found, then let form be submitted without client side validation
+         return true;
+      }
+      var value = '';
+      var errFlag = new Array();
+      var _qfGroups = {};
+      var _qfMsg = '';
+      var frm = element.parentNode;
+      if ((undefined != element.name) && (frm != undefined)) {
+          while (frm && frm.nodeName.toUpperCase() != "FORM") {
+            frm = frm.parentNode;
+          }
+          value = frm.elements['firstname'].value;
+  if (value == '' && !errFlag['firstname']) {
+    errFlag['firstname'] = true;
+    _qfMsg = _qfMsg + 'Chybí křestní jméno';
+  }
+
+          return qf_errorHandler(element, _qfMsg, escapedName);
+      } else {
+        //element name should be defined else error msg will not be displayed.
+        return true;
+      }
+    }
+
+    document.getElementById('id_firstname').addEventListener('change', function(ev) {
+        validate_user_edit_form_firstname(ev.target, 'firstname')
+    });
+
+    function validate_user_edit_form_lastname(element, escapedName) {
+      if (undefined == element) {
+         //required element was not found, then let form be submitted without client side validation
+         return true;
+      }
+      var value = '';
+      var errFlag = new Array();
+      var _qfGroups = {};
+      var _qfMsg = '';
+      var frm = element.parentNode;
+      if ((undefined != element.name) && (frm != undefined)) {
+          while (frm && frm.nodeName.toUpperCase() != "FORM") {
+            frm = frm.parentNode;
+          }
+          value = frm.elements['lastname'].value;
+  if (value == '' && !errFlag['lastname']) {
+    errFlag['lastname'] = true;
+    _qfMsg = _qfMsg + 'Chybí příjmení';
+  }
+
+          return qf_errorHandler(element, _qfMsg, escapedName);
+      } else {
+        //element name should be defined else error msg will not be displayed.
+        return true;
+      }
+    }
+
+    document.getElementById('id_lastname').addEventListener('change', function(ev) {
+        validate_user_edit_form_lastname(ev.target, 'lastname')
+    });
+
+
+    function validate_user_edit_form() {
+      if (skipClientValidation) {
+         return true;
+      }
+      var ret = true;
+
+      var frm = document.getElementById('mform1_1E8VurgURIfYlGD')
+      var first_focus = false;
+    
+      ret = validate_user_edit_form_firstname(frm.elements['firstname'], 'firstname') && ret;
+      if (!ret && !first_focus) {
+        first_focus = true;
+        const element = document.getElementById("id_error_firstname");
+        if (element) {
+          FormEvents.notifyFormError(element);
+          element.focus();
+        }
+      }
+
+      ret = validate_user_edit_form_lastname(frm.elements['lastname'], 'lastname') && ret;
+      if (!ret && !first_focus) {
+        first_focus = true;
+        const element = document.getElementById("id_error_lastname");
+        if (element) {
+          FormEvents.notifyFormError(element);
+          element.focus();
+        }
+      }
+;
+      return ret;
+    }
+
+    var form = document.getElementById('mform1_1E8VurgURIfYlGD').closest('form');
+    form.addEventListener(FormEvents.eventTypes.formSubmittedByJavascript, () => {
+        try {
+            var myValidator = validate_user_edit_form;
+        } catch(e) {
+            return;
+        }
+        if (myValidator) {
+            myValidator();
+        }
+    });
+
+    document.getElementById('mform1_1E8VurgURIfYlGD').addEventListener('submit', function(ev) {
+        try {
+            var myValidator = validate_user_edit_form;
+        } catch(e) {
+            return true;
+        }
+        if (typeof window.tinyMCE !== 'undefined') {
+            window.tinyMCE.triggerSave();
+        }
+        if (!myValidator()) {
+            ev.preventDefault();
+        }
+    });
+
+});
+;
+M.util.js_pending('core/notification'); require(['core/notification'], function(amd) {amd.init(30739, []); M.util.js_complete('core/notification');});;
+M.util.js_pending('core/log'); require(['core/log'], function(amd) {amd.setConfig({"level":"warn"}); M.util.js_complete('core/log');});;
+M.util.js_pending('core/page_global'); require(['core/page_global'], function(amd) {amd.init(); M.util.js_complete('core/page_global');});;
+M.util.js_pending('core/utility'); require(['core/utility'], function(amd) {M.util.js_complete('core/utility');});;
+M.util.js_pending('core/storage_validation'); require(['core/storage_validation'], function(amd) {amd.init(1778686693); M.util.js_complete('core/storage_validation');});
+    M.util.js_complete("core/first");
+});
+//]]>
+</script>
+<script src="./udaje_ucastnika_files/MathJax.js.stažený soubor"></script>
+<script>
+//<![CDATA[
+M.str = {"moodle":{"lastmodified":"Naposledy zm\u011bn\u011bno","name":"N\u00e1zev","error":"Chyba","info":"Informace","yes":"Ano","no":"Ne","cancel":"Zru\u0161it","confirm":"Potvrdit","areyousure":"Opravdu?","closebuttontitle":"Zav\u0159\u00edt","unknownerror":"Nezn\u00e1m\u00e1 chyba","file":"Soubor","url":"URL","collapseall":"Sbalit v\u0161e","expandall":"Rozbalit v\u0161e"},"repository":{"type":"Typ","size":"Velikost","invalidjson":"Neplatn\u00fd \u0159et\u011bzec JSON","nofilesattached":"\u017d\u00e1dn\u00e9 p\u0159ilo\u017een\u00e9 soubory","filepicker":"V\u00fdb\u011br souboru","logout":"Odhl\u00e1sit se","nofilesavailable":"\u017d\u00e1dn\u00e9 soubory nejsou dostupn\u00e9","norepositoriesavailable":"Litujeme, ale \u017e\u00e1dn\u00fd z va\u0161ich sou\u010dasn\u00fdch repozit\u00e1\u0159\u016f nem\u016f\u017ee vr\u00e1tit soubory v po\u017eadovan\u00e9m form\u00e1tu.","fileexistsdialogheader":"Soubor existuje","fileexistsdialog_editor":"Soubor s t\u00edmto jm\u00e9nem byl ji\u017e p\u0159ipojen k textu, kter\u00fd upravujete.","fileexistsdialog_filemanager":"Soubor s t\u00edmto jm\u00e9nem byl ji\u017e p\u0159ipojen","renameto":"P\u0159ejmenovat na \"{$a}\"","referencesexist":"Existuje {$a}  odkaz\u016f na tento soubor","select":"Vybrat"},"admin":{"confirmdeletecomments":"Opravdu odstranit vybran\u00e9 koment\u00e1\u0159e?","confirmation":"Potvrzen\u00ed"},"debug":{"debuginfo":"Informace o lad\u011bn\u00ed","line":"\u0158\u00e1dek","stacktrace":"Z\u00e1sobn\u00edk trasov\u00e1n\u00ed"},"langconfig":{"labelsep":": "}};
+//]]>
+</script>
+<script>
+//<![CDATA[
+(function() {M.util.help_popups.setup(Y);
+ M.util.js_pending('random6a049fd63e2585'); Y.on('domready', function() { M.util.js_complete("init");  M.util.js_complete('random6a049fd63e2585'); });
+})();
+//]]>
+</script>
+
+                </div>
+        
+            <div class="footer-content-debugging footer-dark bg-dark text-light">
+                <div class="container-fluid footer-dark-inner">
+                    
+                </div>
+            </div>
+        
+        </footer>
+        
+            <div id="footnote" class="py-3">
+                <div class="container-fluid px-0">
+                    <div class="container footer-upper mb-5">
+<div class="row">
+<div class="client col-12 mb-3"><img class="img-fluid" src="./udaje_ucastnika_files/logo_inverse.svg"></div>
+</div>
+</div>
+<div class="container footer-upper">
+<div class="row">
+<div class="col-12 col-sm-6 col-md-3">
+<h3 class="mb-3">NV 194/2022 Sb.</h3>
+<ul>
+<li><a href="https://www.lpe.cz/nv-194-2022-sb#zkouska-odborne-zpusobilosti-paragraf-6-a-paragraf-7-osoba-znala">Osoba znalá §6 a §7</a></li>
+<li><a href="https://www.lpe.cz/nv-194-2022-sb#zkouska-odborne-zpusobilosti-paragraf-4-osoba-poucena">Osoba poučená §4</a></li>
+<li><a href="https://www.lpe.cz/nv-194-2022-sb#priprava-na-zkousky-pro-revizni-techniky-e2a">Revizní technici E2A</a></li>
+<li><a href="https://www.lpe.cz/nv-194-2022-sb#priprava-na-zkousky-pro-revizni-techniky-e2b">Revizní technici E2B</a></li>
+<li><a href="https://www.lpe.cz/nv-194-2022-sb#priprava-na-zkousky-pro-revizni-techniky-e1a">Revizní technici E1A</a></li>
+</ul>
+</div>
+<div class="col-12 col-sm-6 col-md-3">
+<h3 class="mb-3">Rozvoj v oboru</h3>
+<ul>
+<li><a href="https://www.lpe.cz/odborna-skoleni">Odborná školení</a></li>
+<li><a href="https://www.lpe.cz/online-skoleni-a-zaznamy">Online kurzy</a></li>
+<li><a href="https://www.elektroteka.cz/">Elektrotéka</a></li>
+<li><a href="https://www.lpe.cz/online-skoleni-a-zaznamy?typ=recordings">Záznamy školení</a></li>
+<li><a href="https://www.lpe.cz/online-skoleni-a-zaznamy?typ=publications">Odborné publikace</a></li>
+<li><a href="https://www.lpe.cz/odborna-skoleni/provadeni-zkousek-a-mereni-el-spotrebicu-a-naradi">ČSN 33 1600 ed. 2</a></li>
+</ul>
+</div>
+<div class="col-12 col-sm-6 col-md-3">
+<h3 class="mb-3">O nás</h3>
+<ul>
+<li><a href="https://www.lpe.cz/">Domovská stránka</a></li>
+<li><a href="https://www.lpe.cz/o-nas">O firmě LPE</a></li>
+<li><a href="https://www.lpe.cz/kontakty">Kontakt</a></li>
+<li><a href="https://www.lpe.cz/benefit-klub">Věrnostní program Benefit</a></li>
+<li><a href="https://www.lpe.cz/dotacni-pogramy">Dotační programy</a></li>
+</ul>
+</div>
+<div class="col-12 col-sm-6 col-md-3">
+<h3 class="mb-3">LPE s.r.o.</h3>
+<div class="mb-3">Nad Přehradou 1372/2</div>
+<div class="mb-3">635 00 Brno - Bystrc</div>
+<div class="mb-3">IČ: 25547461</div>
+<div class="mb-3">DIČ: CZ25547461</div>
+</div>
+</div>
+</div>
+<div class="container custom-footer">
+<div class="row copyright">
+<div class="client col-12 col-sm-6 text-xs-center text-sm-left">© 2000 - 2026 LPE s.r.o. Všechna práva vyhrazena</div>
+<div class="client col-12 col-sm-6 text-right authorlmw"><a href="https://www.limeway.cz/" target="_blank" rel="noopener">Limeway <strong>E-learning</strong></a></div>
+</div>
+</div>
+                </div>
+            </div>
+    </div>
+    
+</div><div id="yui3-css-stamp" style="position: absolute !important; visibility: hidden !important" class=""></div>
+
+
+<veepn-lock-screen><template shadowrootmode="open"><style>html{box-sizing:border-box;text-size-adjust:100%;word-break:normal;tab-size:4}*,:before,:after{background-repeat:no-repeat;box-sizing:border-box}:before,:after{text-decoration:inherit;vertical-align:inherit}*{padding:0;margin:0}hr{overflow:visible;height:0;color:inherit;border:0;border-top:1px solid}details,main{display:block}summary{display:list-item}small{font-size:80%}[hidden]{display:none!important}abbr[title]{border-bottom:none;text-decoration:underline;text-decoration:underline dotted}a{background-color:transparent}a:active,a:hover{outline-width:0}code,kbd,pre,samp{font-family:monospace}pre{font-size:1em}b,strong{font-weight:bolder}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{border-color:inherit;text-indent:0}iframe{border-style:none}input{border-radius:0}[type=number]::-webkit-inner-spin-button,[type=number]::-webkit-outer-spin-button{height:auto}[type=search]{appearance:textfield;outline-offset:-2px}[type=search]::-webkit-search-decoration{appearance:none}textarea{overflow:auto;resize:vertical}button,input,optgroup,select,textarea{font:inherit;color:inherit}optgroup{font-weight:700}button{overflow:visible}button,select{text-transform:none}button,[type=button],[type=reset],[type=submit],[role=button]{cursor:pointer}button::-moz-focus-inner,[type=button]::-moz-focus-inner,[type=reset]::-moz-focus-inner,[type=submit]::-moz-focus-inner{border-style:none;padding:0}button,html [type=button],[type=reset],[type=submit]{appearance:auto}button,input,select,textarea{background-color:transparent;border-style:none}button:-moz-focusring,[type=button]::-moz-focus-inner,[type=reset]::-moz-focus-inner,[type=submit]::-moz-focus-inner{outline:1px dotted ButtonText}select{appearance:none}a:focus,button:focus,input:focus,select:focus,textarea:focus{outline-width:0}select::-ms-expand{display:none}select::-ms-value{color:currentcolor}legend{border:0;color:inherit;display:table;white-space:normal;max-width:100%}::-webkit-file-upload-button{appearance:auto;color:inherit;font:inherit}[disabled]{cursor:default}img{border-style:none}progress{vertical-align:baseline}[aria-busy=true]{cursor:progress}[aria-controls]{cursor:pointer}[aria-disabled=true]{cursor:default}ul,ol{list-style-type:none}figure{margin:0}@keyframes slide-in{0%{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}.gradient-blue{background:radial-gradient(106.41% 128.47% at 50.15% 128.47%,#23abff,#3066ff)}.gradient-green{background:radial-gradient(92.26% 118.88% at 50.15% .13%,#00c3c3,#00aab3)}.gradient-purple{background:radial-gradient(165.12% 115.56% at 50.15% .13%,#a15aff,#00a0eb)}.bg-blue{background-color:#f2f5ff}.bg-purple{background-color:#f7f0ff}.bg-green{background-color:#ebffed}.lock-screen{font-family:FigtreeVF,sans-serif;letter-spacing:normal;position:fixed;z-index:2147483638;right:24px;bottom:24px;width:327px;border-radius:24px;overflow:hidden;box-shadow:0 24px 32px #00000014;animation:slide-in .3s ease-in-out forwards}.lock-screen__content{position:relative;padding:24px 24px 64px}.lock-screen__close{position:absolute;top:16px;right:16px;width:24px;height:24px;display:flex;align-items:center;justify-content:center;opacity:.5}.lock-screen__label{height:26px;width:fit-content;border-radius:50px;background-color:#fff3;padding-inline:16px;display:flex;align-items:center;justify-content:center;gap:8px;color:#fff;font-size:12px;line-height:18px;margin:-8px auto 16px}.lock-screen__title{color:#fff;text-align:center;font-size:20px;line-height:28px;font-weight:600;margin-bottom:8px}.lock-screen__description{color:#f5f6f7;text-align:center;font-size:14px;line-height:20px}.lock-screen__description b{font-weight:600}.lock-screen__card{position:relative;z-index:1;margin-top:-44px;background-color:#fff;border-radius:24px;padding:32px 20px 20px}.lock-screen__inner{margin-bottom:24px}.lock-screen__submit{display:flex;align-items:center;justify-content:center;gap:10px;font-weight:700;font-size:16px;height:40px;width:100%;border-radius:12px;padding-inline:16px;background-color:#f70;color:#fff;margin-bottom:16px}.lock-screen__skip{display:flex;align-items:center;justify-content:center;font-size:14px;line-height:20px;color:#82829c;margin-inline:auto}.price-card{border:1px solid #f2f2fc;background:linear-gradient(254.14deg,#fafbff .04%,#f5f8ff 100.04%);border-radius:24px;padding:24px 28px}.price-card__label{color:#4a5764;text-align:center;font-size:14px;line-height:20px;text-transform:uppercase;margin-bottom:16px}.price-card__price{display:flex;justify-content:center;align-items:flex-start;column-gap:2px;margin-bottom:12px}.price-card__currency{color:#515478;font-size:18px;line-height:28px}.price-card__number{color:#14142a;text-align:center;font-size:64px;line-height:54px}.price-card__wrap{display:flex;flex-direction:column}.price-card__decimal{color:#515478;font-size:18px;line-height:28px;font-weight:600}.price-card__period{color:#515478;font-size:14px;line-height:20px;margin-top:-6px}.price-card__discount{position:relative;display:flex;align-items:center;justify-content:center;margin-bottom:12px}.price-card__discount-divider{position:absolute;z-index:0;top:50%;left:0;width:100%;height:1px;background-color:#dbe2f9;transform:translateY(-50%)}.price-card__discount-icon{position:absolute;z-index:1;top:50%;left:50%;transform:translate(-50%,-50%)}.price-card__discount-text{position:relative;z-index:2;color:#fff;font-size:12px;font-weight:600;line-height:18px}.price-card__features{display:flex;align-items:center;justify-content:center;column-gap:16px}.price-card__feature{color:#222e3a;font-size:14px;line-height:20px;display:flex;align-items:center;gap:6px}.price-card__feature:before{content:"";display:block;width:4px;height:4px;background-color:#20df9e;border-radius:50%;flex-shrink:0}.features-list{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.features-list__item{display:flex;flex-direction:column;align-items:center;gap:6px}.features-list__icon{width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center}.features-list__text{color:#293a53;text-align:center;font-size:16px;line-height:24px;letter-spacing:-.1px}</style></template><style>@font-face{font-family:FigtreeVF;src:url(chrome-extension://majdfhpaihoncoakbjgbdhglocklcgno/fonts/FigtreeVF.woff2) format("woff2 supports variations"),url(chrome-extension://majdfhpaihoncoakbjgbdhglocklcgno/fonts/FigtreeVF.woff2) format("woff2-variations");font-weight:100 1000;font-display:swap}</style></veepn-lock-screen><div></div></body><grammarly-desktop-integration data-grammarly-shadow-root="true"><template shadowrootmode="open"><style>
+      div.grammarly-desktop-integration {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select:none;
+        user-select:none;
+      }
+
+      div.grammarly-desktop-integration:before {
+        content: attr(data-content);
+      }
+    </style><div aria-label="grammarly-integration" role="group" class="grammarly-desktop-integration" data-content="{&quot;mode&quot;:&quot;full&quot;,&quot;isActive&quot;:true,&quot;isUserDisabled&quot;:false}"></div></template></grammarly-desktop-integration></html>

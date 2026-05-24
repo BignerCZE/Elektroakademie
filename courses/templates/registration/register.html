@@ -1,6 +1,11 @@
 {% extends 'courses/base.html' %}
+{% load static %}
 
 {% block title %}Registrace | Elektroakademie{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'courses/css/course-selector.css' %}">
+{% endblock %}
 
 {% block content %}
 <main class="page-shell register-page">
@@ -12,11 +17,16 @@
                     <div class="checkout-steps-left">
                         <button type="button" class="checkout-step checkout-step--active" data-step-button="1">
                             <span>1</span>
-                            Košík
+                            Výběr kurzu
                         </button>
 
                         <button type="button" class="checkout-step" data-step-button="2">
                             <span>2</span>
+                            Košík
+                        </button>
+
+                        <button type="button" class="checkout-step" data-step-button="3">
+                            <span>3</span>
                             Údaje a platba
                         </button>
                     </div>
@@ -31,19 +41,64 @@
                     <form method="post" class="register-form" id="registration-form">
                         {% csrf_token %}
 
+                        <input type="hidden" name="selected_course" id="selected-course-input" value="">
+
                         {{ participant_formset.management_form }}
 
                         <section class="checkout-step-panel" data-step-panel="1">
+                            <div class="course-choice-header">
+                                <h1>Vyberte typ školení</h1>
+                                <p>
+                                    Zvolte odbornou způsobilost, o kterou máte zájem.
+                                    V dalším kroku doplníte účastníky školení.
+                                </p>
+                            </div>
+
+                            <div class="selector-grid">
+                                <button type="button" class="selector-card" data-course-select="4">
+                                    <div class="selector-icon">§4</div>
+                                    <h2>Osoba poučená</h2>
+                                    <p>Online kurz pro osoby bez elektrotechnické kvalifikace.</p>
+                                    <span class="selector-price">Cena 990 Kč</span>
+                                </button>
+
+                                <button type="button" class="selector-card" data-course-select="6">
+                                    <div class="selector-icon">§6</div>
+                                    <h2>Osoba znalá</h2>
+                                    <p>Kombinované školení pro osoby s elektrotechnickým vzděláním.</p>
+                                    <span class="selector-price">Cena 2 990 Kč</span>
+                                </button>
+
+                                <button type="button" class="selector-card" data-course-select="7">
+                                    <div class="selector-icon">§7</div>
+                                    <h2>Vedoucí elektrotechnik</h2>
+                                    <p>Rozšířená odborná způsobilost pro vedoucí pracovníky.</p>
+                                    <span class="selector-price">Cena 3 490 Kč</span>
+                                </button>
+
+                                <a href="{% url 'index' %}#contact" class="selector-card selector-card--link">
+                                    <div class="selector-icon">ⓘ</div>
+                                    <h2>Individuální školení</h2>
+                                    <p>Školení na míru pro firmy i jednotlivce.</p>
+                                    <span class="selector-price">Nezávazná poptávka</span>
+                                </a>
+                            </div>
+                        </section>
+
+                        <section class="checkout-step-panel" data-step-panel="2" hidden>
 
                             <div class="register-summary">
                                 <div>
-                                    <h1>Zkouška odborné způsobilosti v elektrotechnice dle NV č. 194/2022 Sb. - §6, §7
+                                    <h1 id="selected-course-title">
+                                        Vyberte kurz
                                     </h1>
-                                    <p><strong>19.5. Online</strong>, Varianta: § 6</p>
+                                    <p id="selected-course-meta">
+                                        Nejprve zvolte typ školení.
+                                    </p>
                                 </div>
 
                                 <div class="register-price">
-                                    <strong>1× 1 800 Kč</strong>
+                                    <strong id="selected-course-price">0 Kč</strong>
                                 </div>
                             </div>
 
@@ -116,7 +171,7 @@
                             </div>
                         </section>
 
-                        <section class="checkout-step-panel" data-step-panel="2" hidden>
+                        <section class="checkout-step-panel" data-step-panel="3" hidden>
                             <div class="billing-card">
                                 <h2>Fakturační údaje</h2>
                                 <p>Po odeslání objednávky nejde fakturační údaje měnit</p>
@@ -188,30 +243,28 @@
                     <aside class="order-summary-card" id="order-summary-card">
                         <h2>Shrnutí objednávky</h2>
 
-
-
                         <div class="summary-product">
                             <div>
-                                <strong>1×</strong>
-                                <span>
-                                    Zkouška odborné způsobilosti v elektrotechnice dle NV č. 194/2022 Sb. - §6, §7
+                                <strong id="summary-product-count">1×</strong>
+                                <span id="summary-product-title">
+                                    Kurz zatím není vybrán
                                 </span>
                             </div>
 
                             <div class="summary-product-meta">
-                                <span>19.5. online</span>
-                                <strong>1 800 Kč</strong>
+                                <span id="summary-product-meta">Vyberte typ školení</span>
+                                <strong id="summary-product-price">0 Kč</strong>
                             </div>
                         </div>
 
                         <div class="summary-total-row">
                             <span>Celkem s DPH</span>
-                            <strong>1 800 Kč</strong>
+                            <strong id="summary-total-with-vat">0 Kč</strong>
                         </div>
 
                         <div class="summary-total-row summary-total-row--muted">
                             <span>Celkem bez DPH</span>
-                            <span>1 487,60 Kč</span>
+                            <span id="summary-total-without-vat">0 Kč</span>
                         </div>
 
                         <label class="summary-consent" form="registration-form">
@@ -234,31 +287,73 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
+        const courses = {
+            "4": {
+                title: "Zkouška odborné způsobilosti §4 – osoba poučená",
+                meta: "Online kurz, přístup do e-learningu na 60 dnů",
+                price: 990
+            },
+            "6": {
+                title: "Zkouška odborné způsobilosti §6 – osoba znalá",
+                meta: "Kombinované školení pro samostatnou činnost",
+                price: 2990
+            },
+            "7": {
+                title: "Zkouška odborné způsobilosti §7 – vedoucí elektrotechnik",
+                meta: "Kombinované školení pro vedoucí elektrotechniky",
+                price: 3490
+            },
+            "individual": {
+                title: "Individuální školení a přezkoušení",
+                meta: "Nezávazná poptávka školení na míru",
+                price: 0
+            }
+        };
+
         const addButton = document.getElementById("add-participant-button");
         const wrapper = document.getElementById("participants-wrapper");
         const totalFormsInput = document.getElementById("id_participants-TOTAL_FORMS");
 
+        const selectedCourseInput = document.getElementById("selected-course-input");
+        const courseCards = document.querySelectorAll("[data-course]");
+
+        const selectedCourseTitle = document.getElementById("selected-course-title");
+        const selectedCourseMeta = document.getElementById("selected-course-meta");
+        const selectedCoursePrice = document.getElementById("selected-course-price");
+
+        const summaryProductCount = document.getElementById("summary-product-count");
+        const summaryProductTitle = document.getElementById("summary-product-title");
+        const summaryProductMeta = document.getElementById("summary-product-meta");
+        const summaryProductPrice = document.getElementById("summary-product-price");
+        const summaryTotalWithVat = document.getElementById("summary-total-with-vat");
+        const summaryTotalWithoutVat = document.getElementById("summary-total-without-vat");
+
         const nextButton = document.getElementById("next-step-button");
         const previousButton = document.getElementById("previous-step-button");
-        const summaryBackButton = document.getElementById("summary-back-button");
         const checkoutBackButton = document.getElementById("checkout-back-button");
 
         const stepButtons = document.querySelectorAll("[data-step-button]");
         const stepPanels = document.querySelectorAll("[data-step-panel]");
 
-        const initialParticipants = wrapper.querySelectorAll(".participant-item");
+        let selectedCourse = selectedCourseInput.value || "";
 
-        if (initialParticipants.length > 1) {
-            initialParticipants.forEach(function (participant, index) {
-                if (index > 0) {
-                    participant.remove();
-                }
-            });
+        function formatPrice(value) {
+            return new Intl.NumberFormat("cs-CZ", {
+                style: "currency",
+                currency: "CZK",
+                maximumFractionDigits: 0
+            }).format(value);
+        }
 
-            totalFormsInput.value = 1;
+        function getParticipantCount() {
+            return wrapper.querySelectorAll(".participant-item").length || 1;
         }
 
         function showStep(step) {
+            if (step > 1 && !selectedCourse) {
+                step = 1;
+            }
+
             stepPanels.forEach(function (panel) {
                 panel.hidden = panel.dataset.stepPanel !== String(step);
             });
@@ -273,6 +368,55 @@
             checkoutBackButton.hidden = step === 1;
         }
 
+        function updateCourseView() {
+            const course = courses[selectedCourse];
+            const participantCount = getParticipantCount();
+
+            courseCards.forEach(function (card) {
+                card.classList.toggle("selector-card--active", card.dataset.course === selectedCourse);
+            });
+
+            if (!course) {
+                selectedCourseTitle.textContent = "Vyberte kurz";
+                selectedCourseMeta.textContent = "Nejprve zvolte typ školení.";
+                selectedCoursePrice.textContent = "0 Kč";
+
+                summaryProductCount.textContent = "1×";
+                summaryProductTitle.textContent = "Kurz zatím není vybrán";
+                summaryProductMeta.textContent = "Vyberte typ školení";
+                summaryProductPrice.textContent = "0 Kč";
+                summaryTotalWithVat.textContent = "0 Kč";
+                summaryTotalWithoutVat.textContent = "0 Kč";
+
+                return;
+            }
+
+            const totalWithVat = course.price * participantCount;
+            const totalWithoutVat = Math.round(totalWithVat / 1.21);
+
+            selectedCourseInput.value = selectedCourse;
+            selectedCourseTitle.textContent = course.title;
+            selectedCourseMeta.innerHTML = "<strong>" + course.meta + "</strong>";
+            selectedCoursePrice.textContent = course.price > 0
+                ? participantCount + "× " + formatPrice(course.price)
+                : "Individuální cena";
+
+            summaryProductCount.textContent = participantCount + "×";
+            summaryProductTitle.textContent = course.title;
+            summaryProductMeta.textContent = course.meta;
+            summaryProductPrice.textContent = course.price > 0
+                ? formatPrice(course.price)
+                : "Dle dohody";
+
+            summaryTotalWithVat.textContent = course.price > 0
+                ? formatPrice(totalWithVat)
+                : "Dle dohody";
+
+            summaryTotalWithoutVat.textContent = course.price > 0
+                ? formatPrice(totalWithoutVat)
+                : "Dle dohody";
+        }
+
         function refreshParticipants() {
             const participants = wrapper.querySelectorAll(".participant-item");
 
@@ -284,33 +428,59 @@
             });
 
             totalFormsInput.value = participants.length;
+            updateCourseView();
         }
 
-        addButton.addEventListener("click", function () {
-            const formCount = Number(totalFormsInput.value);
-            const firstParticipant = wrapper.querySelector(".participant-item");
-            const newParticipant = firstParticipant.cloneNode(true);
+        const initialParticipants = wrapper.querySelectorAll(".participant-item");
 
-            newParticipant.querySelectorAll("input").forEach(function (input) {
-                input.name = input.name.replace(/participants-\d+-/, "participants-" + formCount + "-");
-                input.id = input.id.replace(/participants-\d+-/, "participants-" + formCount + "-");
-
-                if (input.name.endsWith("phone_prefix")) {
-                    input.value = "+420";
-                } else {
-                    input.value = "";
+        if (initialParticipants.length > 1) {
+            initialParticipants.forEach(function (participant, index) {
+                if (index > 0) {
+                    participant.remove();
                 }
             });
 
-            newParticipant.querySelectorAll(".errorlist").forEach(function (errorList) {
-                errorList.remove();
+            totalFormsInput.value = 1;
+        }
+
+        courseCards.forEach(function (card) {
+            card.addEventListener("click", function () {
+                selectedCourse = card.dataset.course;
+                selectedCourseInput.value = selectedCourse;
+
+                updateCourseView();
+                showStep(2);
+                window.scrollTo({ top: 0, behavior: "smooth" });
             });
-
-            wrapper.appendChild(newParticipant);
-            totalFormsInput.value = formCount + 1;
-
-            refreshParticipants();
         });
+
+        if (addButton) {
+            addButton.addEventListener("click", function () {
+                const formCount = Number(totalFormsInput.value);
+                const firstParticipant = wrapper.querySelector(".participant-item");
+                const newParticipant = firstParticipant.cloneNode(true);
+
+                newParticipant.querySelectorAll("input").forEach(function (input) {
+                    input.name = input.name.replace(/participants-\d+-/, "participants-" + formCount + "-");
+                    input.id = input.id.replace(/participants-\d+-/, "participants-" + formCount + "-");
+
+                    if (input.name.endsWith("phone_prefix")) {
+                        input.value = "+420";
+                    } else {
+                        input.value = "";
+                    }
+                });
+
+                newParticipant.querySelectorAll(".errorlist").forEach(function (errorList) {
+                    errorList.remove();
+                });
+
+                wrapper.appendChild(newParticipant);
+                totalFormsInput.value = formCount + 1;
+
+                refreshParticipants();
+            });
+        }
 
         stepButtons.forEach(function (button) {
             button.addEventListener("click", function () {
@@ -321,7 +491,10 @@
         });
 
         checkoutBackButton.addEventListener("click", function () {
-            showStep(1);
+            const activeStepButton = document.querySelector(".checkout-step--active");
+            const activeStep = activeStepButton ? Number(activeStepButton.dataset.stepButton) : 1;
+
+            showStep(Math.max(1, activeStep - 1));
             window.scrollTo({ top: 0, behavior: "smooth" });
         });
 
@@ -335,22 +508,27 @@
         });
 
         nextButton.addEventListener("click", function () {
-            showStep(2);
+            showStep(3);
             window.scrollTo({ top: 0, behavior: "smooth" });
         });
 
         previousButton.addEventListener("click", function () {
-            showStep(1);
+            showStep(2);
             window.scrollTo({ top: 0, behavior: "smooth" });
         });
 
-        summaryBackButton.addEventListener("click", function () {
-            showStep(1);
-            window.scrollTo({ top: 0, behavior: "smooth" });
-        });
+        const urlParams = new URLSearchParams(window.location.search);
+        const courseFromUrl = urlParams.get("course");
 
-        refreshParticipants();
-        showStep(1);
+        if (courseFromUrl && courses[courseFromUrl]) {
+            selectedCourse = courseFromUrl;
+            selectedCourseInput.value = selectedCourse;
+            updateCourseView();
+            showStep(2);
+        } else {
+            refreshParticipants();
+            showStep(1);
+        }
     });
 </script>
 {% endblock %}

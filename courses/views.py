@@ -312,3 +312,7 @@ def certificate_pdf(request, course_id):
 def dashboard(request):
     context = get_dashboard_context(request)
     return render(request, "courses/dashboard.html", context)
+
+    
+def course_selector(request):
+    return render(request, "courses/course_selector.html")
