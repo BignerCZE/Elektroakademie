@@ -19,8 +19,39 @@ class Course(models.Model):
         return self.title
 
 
+class QuestionCategory(models.Model):
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.CASCADE,
+        related_name="question_categories",
+        verbose_name="Kurz",
+    )
+    name = models.CharField(max_length=255, verbose_name="Název kategorie")
+    questions_per_quiz = models.PositiveIntegerField(
+        default=1,
+        verbose_name="Počet otázek v testu",
+    )
+    order = models.PositiveIntegerField(default=0, verbose_name="Pořadí")
+
+    class Meta:
+        ordering = ["course", "order", "name"]
+        verbose_name = "Kategorie otázek"
+        verbose_name_plural = "Kategorie otázek"
+
+    def __str__(self):
+        return f"{self.course} – {self.name}"
+
+
 class Question(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    category = models.ForeignKey(
+        QuestionCategory,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="questions",
+        verbose_name="Kategorie",
+    )
     text = models.CharField(max_length=255)
 
     def __str__(self):
