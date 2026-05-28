@@ -2,56 +2,48 @@
 
 .course-choice-header {
     max-width: 820px;
-    margin: 0 auto 28px;
+    margin: 0 auto 18px;
     text-align: center;
 }
 
 .course-choice-header h1 {
-    margin-bottom: 12px;
+    margin-bottom: 8px;
     color: var(--color-bg-end);
-    font-size: 38px;
-    line-height: 1.15;
+    font-size: 34px;
+    line-height: 1.1;
     font-weight: 700;
 }
 
 .course-choice-header p {
     color: var(--color-card-muted);
-    font-size: 17px;
-    line-height: 1.6;
+    font-size: 16px;
+    line-height: 1.45;
 }
 
 .selector-grid {
     display: flex;
-    flex-direction: row;
-    gap: 18px;
-    align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
     width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
 }
 
 .selector-card {
-    flex: 1 1 0;
-
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 64px 1fr 160px;
     align-items: center;
-    justify-content: space-between;
-
-    min-width: 0;
-    min-height: 300px;
-
-    padding: 24px 18px;
-
+    width: 100%;
+    min-height: 96px;
+    padding: 14px 26px;
     border: 2px solid #d8deea;
-    border-radius: 28px;
-
+    border-radius: 24px;
     background: #ffffff;
     color: var(--color-card-text);
-
-    text-align: center;
+    text-align: left;
     text-decoration: none;
     font: inherit;
     cursor: pointer;
-
     transition:
         transform 0.2s ease,
         box-shadow 0.2s ease,
@@ -60,16 +52,13 @@
 }
 
 .selector-card:hover {
-    transform: translateY(-3px);
-
+    transform: translateY(-2px);
     border-color: var(--color-primary);
-
     box-shadow: 0 18px 40px rgba(0, 0, 0, 0.12);
 }
 
 .selector-card.is-selected {
     border-color: var(--color-bg-mid);
-
     box-shadow: 0 18px 42px rgba(8, 32, 77, 0.18);
 }
 
@@ -77,65 +66,129 @@
     display: flex;
     align-items: center;
     justify-content: center;
-
-    width: 76px;
-    height: 76px;
-
-    margin-bottom: 18px;
-
-    border-radius: 50%;
-
-    background: #eef4ff;
+    width: 44px;
+    height: 44px;
+    margin: 0;
     color: var(--color-bg-mid);
-
-    font-size: 32px;
+    font-size: 28px;
     font-weight: 700;
+    line-height: 1;
+}
+
+.selector-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 64px;
+    padding-right: 18px;
 }
 
 .selector-card h2 {
-    margin-bottom: 14px;
-
+    margin-bottom: 5px;
     color: var(--color-bg-mid);
-
-    font-size: 19px;
-    line-height: 1.3;
+    font-size: 18px;
+    line-height: 1.2;
     font-weight: 700;
 }
 
 .selector-card p {
-    flex: 1;
-
-    margin-bottom: 20px;
-
+    margin: 0;
     color: var(--color-card-muted);
+    font-size: 14px;
+    line-height: 1.35;
+}
 
+.selector-price {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    justify-self: center;
+    width: 140px;
+    min-height: 44px;
+    padding: 0 18px;
+    border-radius: 999px;
+    background: var(--color-bg-mid);
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+/* Hide order summary on step 1 */
+
+.checkout-layout:has(.checkout-step-panel[data-step-panel="1"]:not([hidden])) {
+    grid-template-columns: 1fr;
+}
+
+.checkout-layout:has(.checkout-step-panel[data-step-panel="1"]:not([hidden])) .order-summary-card {
+    display: none;
+}
+
+.checkout-layout:has(.checkout-step-panel[data-step-panel="1"]:not([hidden])) .register-form {
+    max-width: 100%;
+}
+
+.checkout-step-panel[data-step-panel="1"] {
+    width: 100%;
+}
+
+/* Selected course detail */
+
+.selected-course-detail {
+    margin-bottom: 28px;
+    padding: 28px;
+    border-radius: 24px;
+    background: #ffffff;
+    border: 1px solid #d8deea;
+}
+
+.selected-course-detail h2 {
+    margin-bottom: 18px;
+    color: var(--color-bg-mid);
+    font-size: 28px;
+    line-height: 1.2;
+    font-weight: 700;
+}
+
+.selected-course-content {
+    display: grid;
+    gap: 18px;
+}
+
+.selected-course-content p,
+.selected-course-content li {
+    color: var(--color-card-muted);
     font-size: 15px;
     line-height: 1.6;
 }
 
-.selector-price {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-
-    width: 100%;
-    min-height: 50px;
-
-    padding: 0 16px;
-
-    border-radius: 999px;
-
-    background: var(--color-bg-mid);
-    color: #ffffff;
-
-    font-size: 16px;
+.selected-course-content h3 {
+    margin-top: 10px;
+    color: var(--color-bg-end);
+    font-size: 20px;
+    line-height: 1.3;
     font-weight: 700;
 }
 
+.selected-course-content ul {
+    display: grid;
+    gap: 6px;
+    padding-left: 22px;
+}
+
+.checkout-layout {
+    gap: 28px;
+}
+
 @media (max-width: 1200px) {
-    .selector-grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+    .selector-card {
+        grid-template-columns: 58px 1fr 145px;
+        min-height: 90px;
+        padding: 13px 22px;
+    }
+
+    .selector-price {
+        width: 132px;
+        font-size: 14px;
     }
 }
 
@@ -148,11 +201,33 @@
         font-size: 15px;
     }
 
-    .selector-grid {
+    .selector-card {
         grid-template-columns: 1fr;
+        justify-items: center;
+        min-height: auto;
+        padding: 20px;
+        text-align: center;
     }
 
-    .selector-card {
-        min-height: auto;
+    .selector-icon {
+        margin-bottom: 12px;
+    }
+
+    .selector-content {
+        min-height: 0;
+        padding-right: 0;
+    }
+
+    .selector-price {
+        width: 100%;
+        margin-top: 16px;
+    }
+
+    .selected-course-detail {
+        padding: 22px;
+    }
+
+    .selected-course-detail h2 {
+        font-size: 24px;
     }
 }

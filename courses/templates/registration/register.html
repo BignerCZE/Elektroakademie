@@ -57,48 +57,64 @@
                             <div class="selector-grid">
                                 <button type="button" class="selector-card" data-course-select="4">
                                     <div class="selector-icon">§4</div>
-                                    <h2>Osoba poučená</h2>
-                                    <p>Online kurz pro osoby bez elektrotechnické kvalifikace.</p>
-                                    <span class="selector-price">Cena 990 Kč</span>
+
+                                    <div class="selector-content">
+                                        <h2>Osoba poučená</h2>
+                                        <p>Online kurz pro osoby bez elektrotechnické kvalifikace.</p>
+                                    </div>
+
+                                    <span class="selector-price">990 Kč</span>
                                 </button>
 
                                 <button type="button" class="selector-card" data-course-select="6">
                                     <div class="selector-icon">§6</div>
-                                    <h2>Osoba znalá</h2>
-                                    <p>Kombinované školení pro osoby s elektrotechnickým vzděláním.</p>
-                                    <span class="selector-price">Cena 2 990 Kč</span>
+
+                                    <div class="selector-content">
+                                        <h2>Osoba znalá</h2>
+                                        <p>Kombinované školení pro osoby s elektrotechnickým vzděláním.</p>
+                                    </div>
+
+                                    <span class="selector-price">2 990 Kč</span>
                                 </button>
 
                                 <button type="button" class="selector-card" data-course-select="7">
                                     <div class="selector-icon">§7</div>
-                                    <h2>Vedoucí elektrotechnik</h2>
-                                    <p>Rozšířená odborná způsobilost pro vedoucí pracovníky.</p>
-                                    <span class="selector-price">Cena 3 490 Kč</span>
+
+                                    <div class="selector-content">
+                                        <h2>Vedoucí elektrotechnik</h2>
+                                        <p>Rozšířená odborná způsobilost pro vedoucí pracovníky.</p>
+                                    </div>
+
+                                    <span class="selector-price">3 490 Kč</span>
                                 </button>
 
                                 <a href="{% url 'index' %}#contact" class="selector-card selector-card--link">
                                     <div class="selector-icon">ⓘ</div>
-                                    <h2>Individuální školení</h2>
-                                    <p>Školení na míru pro firmy i jednotlivce.</p>
-                                    <span class="selector-price">Nezávazná poptávka</span>
+
+                                    <div class="selector-content">
+                                        <h2>Poptat individuální školení</h2>
+                                        <p>Školení na míru pro firmy i jednotlivce.</p>
+                                    </div>
+
+                                    <span class="selector-price">Poptat</span>
                                 </a>
                             </div>
                         </section>
 
                         <section class="checkout-step-panel" data-step-panel="2" hidden>
+                            <section class="selected-course-detail" id="selected-course-detail">
+                                <h2 id="selected-course-title"></h2>
+                                <div class="selected-course-content" id="selected-course-content"></div>
+                            </section>
 
                             <div class="register-summary">
                                 <div>
-                                    <h1 id="selected-course-title">
-                                        Vyberte kurz
-                                    </h1>
-                                    <p id="selected-course-meta">
-                                        Nejprve zvolte typ školení.
-                                    </p>
+                                    <h1 id="register-product-title">Vybraný kurz</h1>
+                                    <p id="register-product-meta"></p>
                                 </div>
 
                                 <div class="register-price">
-                                    <strong id="selected-course-price">0 Kč</strong>
+                                    <strong id="register-product-price"></strong>
                                 </div>
                             </div>
 
@@ -245,10 +261,8 @@
 
                         <div class="summary-product">
                             <div>
-                                <strong id="summary-product-count">1×</strong>
-                                <span id="summary-product-title">
-                                    Kurz zatím není vybrán
-                                </span>
+                                <strong id="summary-count">1×</strong>
+                                <span id="summary-product-title">Kurz zatím není vybrán</span>
                             </div>
 
                             <div class="summary-product-meta">
@@ -259,12 +273,12 @@
 
                         <div class="summary-total-row">
                             <span>Celkem s DPH</span>
-                            <strong id="summary-total-with-vat">0 Kč</strong>
+                            <strong id="summary-total-vat">0 Kč</strong>
                         </div>
 
                         <div class="summary-total-row summary-total-row--muted">
                             <span>Celkem bez DPH</span>
-                            <span id="summary-total-without-vat">0 Kč</span>
+                            <span id="summary-total-no-vat">0 Kč</span>
                         </div>
 
                         <label class="summary-consent" form="registration-form">
@@ -290,43 +304,252 @@
         const courses = {
             "4": {
                 title: "Zkouška odborné způsobilosti §4 – osoba poučená",
-                meta: "Online kurz, přístup do e-learningu na 60 dnů",
-                price: 990
+                shortTitle: "§4 – osoba poučená",
+                meta: "Online školení",
+                price: 990,
+                priceText: "990 Kč",
+                priceNoVatText: "818 Kč",
+                detailTitle: "Popis školení §4 – OSOBA POUČENÁ",
+                detailHtml: `
+                    <p>
+                        Online školení a přezkoušení pro osoby bez elektrotechnického vzdělání určené
+                        k získání odborné způsobilosti „osoba poučená“ dle §4 NV 194/2022 Sb.
+                    </p>
+
+                    <p>
+                        Příprava probíhá kompletně online formou e-learningu v souladu se zákonem č. 250/2021 Sb.
+                        a NV 194/2022 Sb. Studijní materiály i závěrečné testy jsou dostupné přes počítač
+                        nebo mobilní zařízení z pohodlí domova.
+                    </p>
+
+                    <p>
+                        Velkou výhodou online formy je možnost studovat vlastním tempem – sami si určíte,
+                        kdy a kolik času přípravě věnujete. Testy lze opakovat a průběžně si ověřovat dosažené
+                        znalosti. Přístup do e-learningového systému je aktivní po dobu 60 dnů.
+                    </p>
+
+                    <h3>Jaké činnosti může osoba poučená vykonávat?</h3>
+                    <p>
+                        Osoba poučená může vykonávat pouze ty činnosti, pro které byla proškolena
+                        a u kterých bylo provedeno ověření znalostí.
+                    </p>
+
+                    <ul>
+                        <li>samostatná obsluha elektrických zařízení v rozsahu určeném pro obsluhu,</li>
+                        <li>práce na elektrických zařízeních malého a nízkého napětí bez napětí a v jejich blízkosti podle pokynů,</li>
+                        <li>práce na zařízeních vysokého napětí bez napětí pod dohledem osoby znalé,</li>
+                        <li>činnosti v blízkosti elektrických zařízení nízkého napětí pod napětím při dodržení bezpečné vzdálenosti,</li>
+                        <li>práce pod dozorem osoby znalé v blízkosti zařízení vysokého napětí pod napětím,</li>
+                        <li>speciální činnosti dle stanovených pracovních postupů zaměstnavatele po předchozím zaškolení.</li>
+                    </ul>
+
+                    <p>
+                        Rozsah oprávnění vždy vychází z platných právních předpisů BOZP
+                        a místních provozních bezpečnostních pravidel.
+                    </p>
+
+                    <h3>Jak školení probíhá?</h3>
+                    <ul>
+                        <li>objednáte školení prostřednictvím objednávky na webu,</li>
+                        <li>po objednání obdržíte zálohovou fakturu k úhradě,</li>
+                        <li>následně zašlete požadované podklady,</li>
+                        <li>po zpracování Vám budou zaslány přístupové údaje do online systému,</li>
+                        <li>absolvujete samostudium a vyplníte online testy,</li>
+                        <li>po splnění podmínek obdržíte Zápis o provedení poučení dle §19 zákona č. 250/2021 Sb. a §4 NV 194/2022 Sb.</li>
+                    </ul>
+
+                    <h3>V ceně kurzu je zahrnuto</h3>
+                    <ul>
+                        <li>organizační zajištění školení,</li>
+                        <li>přístup do e-learningu na 60 dnů,</li>
+                        <li>online studijní materiály a testy,</li>
+                        <li>vystavení Zápisu o provedení poučení.</li>
+                    </ul>
+                `
             },
+
             "6": {
-                title: "Zkouška odborné způsobilosti §6 – osoba znalá",
-                meta: "Kombinované školení pro samostatnou činnost",
-                price: 2990
+                title: "Zkouška odborné způsobilosti §6 – elektrotechnik",
+                shortTitle: "§6 – elektrotechnik",
+                meta: "Kombinované školení",
+                price: 2990,
+                priceText: "2 990 Kč",
+                priceNoVatText: "2 471 Kč",
+                detailTitle: "Popis školení §6 – Elektrotechnik",
+                detailHtml: `
+                    <p>
+                        Online příprava ke zkoušce odborné způsobilosti dle §6 NV 194/2022 Sb. je určena
+                        pro osoby s elektrotechnickým vzděláním, které vykonávají samostatnou práci
+                        na elektrických zařízeních.
+                    </p>
+
+                    <p>
+                        Školení probíhá kombinovanou formou. Studijní materiály a testy jsou dostupné online
+                        prostřednictvím e-learningu, díky kterému se můžete připravovat odkudkoliv
+                        a vlastním tempem. Přístup do online systému získáte na 60 dnů.
+                    </p>
+
+                    <p>
+                        Ústní část zkoušky probíhá prezenčně buď přímo ve vaší firmě,
+                        nebo v našich školících prostorách. Součástí školení je odborná příprava
+                        k přezkoušení dle NV 194/2022 Sb.
+                    </p>
+
+                    <h3>Co opravňuje §6 – Elektrotechnik</h3>
+                    <p>
+                        Osoba znalá podle §6 NV 194/2022 Sb. může samostatně vykonávat činnosti
+                        na elektrických zařízeních a pracovat v jejich blízkosti bez neustálého dohledu,
+                        s výjimkou zvláštních případů vyplývajících z hodnocení rizik.
+                    </p>
+
+                    <h3>§6 – Elektrotechnik v omezeném rozsahu</h3>
+                    <p>
+                        Varianta v omezeném rozsahu je vhodná zejména pro pracovníky škol, vzdělávacích institucí,
+                        výzkumných organizací nebo osoby pracující převážně se slaboproudými zařízeními.
+                    </p>
+
+                    <h3>Možná rozšíření zkoušky</h3>
+                    <ul>
+                        <li>hromosvody (LPS),</li>
+                        <li>bez omezení napětí,</li>
+                        <li>prostory s nebezpečím výbuchu (Ex).</li>
+                    </ul>
+
+                    <h3>Kdo nejčastěji potřebuje §6</h3>
+                    <ul>
+                        <li>elektrotechnici ve výrobě a průmyslu,</li>
+                        <li>pracovníci montáže a elektro údržby,</li>
+                        <li>servisní technici,</li>
+                        <li>opraváři elektrických zařízení a nářadí,</li>
+                        <li>pracovníci provádějící kontroly elektrických spotřebičů,</li>
+                        <li>projektanti a pracovníci elektro provozů,</li>
+                        <li>budoucí revizní technici elektro.</li>
+                    </ul>
+
+                    <h3>Jak školení probíhá</h3>
+                    <ul>
+                        <li>objednáte školení a vybraný termín,</li>
+                        <li>po objednání obdržíte zálohovou fakturu,</li>
+                        <li>následně Vám zašleme přístupové údaje do e-learningu,</li>
+                        <li>absolvujete samostudium a online testy,</li>
+                        <li>nejpozději před termínem dokončíte online test,</li>
+                        <li>následně proběhne prezenční ústní zkouška,</li>
+                        <li>po úspěšném složení získáte Doklad o složení zkoušky odborné způsobilosti v elektrotechnice.</li>
+                    </ul>
+
+                    <h3>V ceně kurzu</h3>
+                    <ul>
+                        <li>přístup do e-learningu na 60 dnů,</li>
+                        <li>online studijní materiály a testy,</li>
+                        <li>odborná příprava k přezkoušení,</li>
+                        <li>prezenční ústní zkouška,</li>
+                        <li>vystavení Dokladu o složení zkoušky odborné způsobilosti.</li>
+                    </ul>
+                `
             },
+
             "7": {
                 title: "Zkouška odborné způsobilosti §7 – vedoucí elektrotechnik",
-                meta: "Kombinované školení pro vedoucí elektrotechniky",
-                price: 3490
-            },
-            "individual": {
-                title: "Individuální školení a přezkoušení",
-                meta: "Nezávazná poptávka školení na míru",
-                price: 0
+                shortTitle: "§7 – vedoucí elektrotechnik",
+                meta: "Kombinované školení",
+                price: 3490,
+                priceText: "3 490 Kč",
+                priceNoVatText: "2 884 Kč",
+                detailTitle: "Popis školení §7 – Vedoucí elektrotechnik",
+                detailHtml: `
+                    <p>
+                        Online příprava ke zkoušce odborné způsobilosti dle §7 NV 194/2022 Sb. je určena
+                        pro osoby s elektrotechnickým vzděláním, které vykonávají nebo budou vykonávat
+                        řídicí, kontrolní a organizační činnosti v elektrotechnice.
+                    </p>
+
+                    <p>
+                        Školení probíhá kombinovanou formou. Studijní materiály a testy jsou dostupné online
+                        prostřednictvím e-learningu, díky kterému se můžete připravovat odkudkoliv
+                        a vlastním tempem. Přístup do online systému získáte na 60 dnů.
+                    </p>
+
+                    <p>
+                        Ústní část zkoušky probíhá prezenčně buď přímo ve vaší firmě,
+                        nebo v našich školících prostorách. Součástí školení je odborná příprava
+                        k přezkoušení dle NV 194/2022 Sb.
+                    </p>
+
+                    <h3>Co opravňuje §7 – Vedoucí elektrotechnik</h3>
+                    <p>
+                        Osoba znalá podle §7 NV 194/2022 Sb. může vykonávat všechny činnosti elektrotechnika dle §6
+                        a zároveň řídit činnosti na elektrických zařízeních, řídit provoz elektrických zařízení
+                        a vykonávat odborný dohled nad pracovníky s nižší kvalifikací.
+                    </p>
+
+                    <p>
+                        Kvalifikace §7 je určena zejména pro vedoucí elektrotechniky odpovědné za bezpečný provoz,
+                        organizaci práce a kontrolu činností na elektrických zařízeních. Nahrazuje dřívější §8 a §10
+                        vyhlášky 50/1978 Sb.
+                    </p>
+
+                    <h3>Kdo nejčastěji potřebuje §7</h3>
+                    <ul>
+                        <li>vedoucí pracovníci elektro provozů,</li>
+                        <li>osoby řídící montáže a elektro údržbu,</li>
+                        <li>projektanti elektrických zařízení,</li>
+                        <li>osoby vykonávající odborný dohled nad pracovníky,</li>
+                        <li>servisní a provozní technici s odpovědností za řízení činností,</li>
+                        <li>pracovníci průmyslových závodů a velkých administrativních objektů,</li>
+                        <li>budoucí revizní technici elektro.</li>
+                    </ul>
+
+                    <h3>Požadavky pro získání §7</h3>
+                    <p>
+                        Pro získání §7 je nutné doložit odpovídající elektrotechnické vzdělání
+                        nebo uznatelnou profesní kvalifikaci dle NV 194/2022 Sb.
+                    </p>
+
+                    <ul>
+                        <li>2 roky pro E2A a E3A,</li>
+                        <li>3 roky pro E1A, E2B a E3B,</li>
+                        <li>4 roky pro E1B.</li>
+                    </ul>
+
+                    <h3>Možná rozšíření zkoušky</h3>
+                    <ul>
+                        <li>hromosvody (LPS),</li>
+                        <li>bez omezení napětí,</li>
+                        <li>prostory s nebezpečím výbuchu (Ex).</li>
+                    </ul>
+
+                    <p>
+                        Pro získání oprávnění RT EZ na TIČR je nutné mít §7 včetně rozšíření na hromosvody (LPS).
+                    </p>
+
+                    <h3>Jak školení probíhá</h3>
+                    <ul>
+                        <li>objednáte školení a vybraný termín,</li>
+                        <li>po objednání obdržíte zálohovou fakturu,</li>
+                        <li>následně Vám zašleme přístupové údaje do e-learningu,</li>
+                        <li>absolvujete samostudium a online testy,</li>
+                        <li>nejpozději před termínem dokončíte online test,</li>
+                        <li>následně proběhne prezenční ústní zkouška,</li>
+                        <li>po úspěšném složení získáte Doklad o složení zkoušky odborné způsobilosti v elektrotechnice.</li>
+                    </ul>
+
+                    <h3>V ceně kurzu</h3>
+                    <ul>
+                        <li>přístup do e-learningu na 60 dnů,</li>
+                        <li>online studijní materiály a testy,</li>
+                        <li>odborná příprava k přezkoušení,</li>
+                        <li>prezenční ústní zkouška,</li>
+                        <li>vystavení Dokladu o složení zkoušky odborné způsobilosti.</li>
+                    </ul>
+                `
             }
         };
+
+        const selectedCourseInput = document.getElementById("selected-course-input");
 
         const addButton = document.getElementById("add-participant-button");
         const wrapper = document.getElementById("participants-wrapper");
         const totalFormsInput = document.getElementById("id_participants-TOTAL_FORMS");
-
-        const selectedCourseInput = document.getElementById("selected-course-input");
-        const courseCards = document.querySelectorAll("[data-course]");
-
-        const selectedCourseTitle = document.getElementById("selected-course-title");
-        const selectedCourseMeta = document.getElementById("selected-course-meta");
-        const selectedCoursePrice = document.getElementById("selected-course-price");
-
-        const summaryProductCount = document.getElementById("summary-product-count");
-        const summaryProductTitle = document.getElementById("summary-product-title");
-        const summaryProductMeta = document.getElementById("summary-product-meta");
-        const summaryProductPrice = document.getElementById("summary-product-price");
-        const summaryTotalWithVat = document.getElementById("summary-total-with-vat");
-        const summaryTotalWithoutVat = document.getElementById("summary-total-without-vat");
 
         const nextButton = document.getElementById("next-step-button");
         const previousButton = document.getElementById("previous-step-button");
@@ -334,26 +557,34 @@
 
         const stepButtons = document.querySelectorAll("[data-step-button]");
         const stepPanels = document.querySelectorAll("[data-step-panel]");
+        const courseButtons = document.querySelectorAll("[data-course-select]");
 
-        let selectedCourse = selectedCourseInput.value || "";
+        const selectedCourseTitle = document.getElementById("selected-course-title");
+        const selectedCourseContent = document.getElementById("selected-course-content");
 
-        function formatPrice(value) {
-            return new Intl.NumberFormat("cs-CZ", {
-                style: "currency",
-                currency: "CZK",
-                maximumFractionDigits: 0
-            }).format(value);
-        }
+        const registerProductTitle = document.getElementById("register-product-title");
+        const registerProductMeta = document.getElementById("register-product-meta");
+        const registerProductPrice = document.getElementById("register-product-price");
 
-        function getParticipantCount() {
-            return wrapper.querySelectorAll(".participant-item").length || 1;
+        const summaryProductTitle = document.getElementById("summary-product-title");
+        const summaryProductMeta = document.getElementById("summary-product-meta");
+        const summaryProductPrice = document.getElementById("summary-product-price");
+        const summaryTotalVat = document.getElementById("summary-total-vat");
+        const summaryTotalNoVat = document.getElementById("summary-total-no-vat");
+
+        const initialParticipants = wrapper.querySelectorAll(".participant-item");
+
+        if (initialParticipants.length > 1) {
+            initialParticipants.forEach(function (participant, index) {
+                if (index > 0) {
+                    participant.remove();
+                }
+            });
+
+            totalFormsInput.value = 1;
         }
 
         function showStep(step) {
-            if (step > 1 && !selectedCourse) {
-                step = 1;
-            }
-
             stepPanels.forEach(function (panel) {
                 panel.hidden = panel.dataset.stepPanel !== String(step);
             });
@@ -368,53 +599,31 @@
             checkoutBackButton.hidden = step === 1;
         }
 
-        function updateCourseView() {
-            const course = courses[selectedCourse];
-            const participantCount = getParticipantCount();
-
-            courseCards.forEach(function (card) {
-                card.classList.toggle("selector-card--active", card.dataset.course === selectedCourse);
-            });
+        function updateCourseView(courseId) {
+            const course = courses[courseId];
 
             if (!course) {
-                selectedCourseTitle.textContent = "Vyberte kurz";
-                selectedCourseMeta.textContent = "Nejprve zvolte typ školení.";
-                selectedCoursePrice.textContent = "0 Kč";
-
-                summaryProductCount.textContent = "1×";
-                summaryProductTitle.textContent = "Kurz zatím není vybrán";
-                summaryProductMeta.textContent = "Vyberte typ školení";
-                summaryProductPrice.textContent = "0 Kč";
-                summaryTotalWithVat.textContent = "0 Kč";
-                summaryTotalWithoutVat.textContent = "0 Kč";
-
                 return;
             }
 
-            const totalWithVat = course.price * participantCount;
-            const totalWithoutVat = Math.round(totalWithVat / 1.21);
+            selectedCourseInput.value = courseId;
 
-            selectedCourseInput.value = selectedCourse;
-            selectedCourseTitle.textContent = course.title;
-            selectedCourseMeta.innerHTML = "<strong>" + course.meta + "</strong>";
-            selectedCoursePrice.textContent = course.price > 0
-                ? participantCount + "× " + formatPrice(course.price)
-                : "Individuální cena";
+            selectedCourseTitle.textContent = course.detailTitle;
+            selectedCourseContent.innerHTML = course.detailHtml;
 
-            summaryProductCount.textContent = participantCount + "×";
-            summaryProductTitle.textContent = course.title;
+            registerProductTitle.textContent = course.title;
+            registerProductMeta.innerHTML = `<strong>${course.meta}</strong>`;
+            registerProductPrice.textContent = `1× ${course.priceText}`;
+
+            summaryProductTitle.textContent = course.shortTitle;
             summaryProductMeta.textContent = course.meta;
-            summaryProductPrice.textContent = course.price > 0
-                ? formatPrice(course.price)
-                : "Dle dohody";
+            summaryProductPrice.textContent = course.priceText;
+            summaryTotalVat.textContent = course.priceText;
+            summaryTotalNoVat.textContent = course.priceNoVatText;
 
-            summaryTotalWithVat.textContent = course.price > 0
-                ? formatPrice(totalWithVat)
-                : "Dle dohody";
-
-            summaryTotalWithoutVat.textContent = course.price > 0
-                ? formatPrice(totalWithoutVat)
-                : "Dle dohody";
+            courseButtons.forEach(function (button) {
+                button.classList.toggle("is-selected", button.dataset.courseSelect === courseId);
+            });
         }
 
         function refreshParticipants() {
@@ -428,71 +637,62 @@
             });
 
             totalFormsInput.value = participants.length;
-            updateCourseView();
         }
 
-        const initialParticipants = wrapper.querySelectorAll(".participant-item");
+        courseButtons.forEach(function (button) {
+            button.addEventListener("click", function () {
+                const courseId = button.dataset.courseSelect;
 
-        if (initialParticipants.length > 1) {
-            initialParticipants.forEach(function (participant, index) {
-                if (index > 0) {
-                    participant.remove();
-                }
-            });
-
-            totalFormsInput.value = 1;
-        }
-
-        courseCards.forEach(function (card) {
-            card.addEventListener("click", function () {
-                selectedCourse = card.dataset.course;
-                selectedCourseInput.value = selectedCourse;
-
-                updateCourseView();
+                updateCourseView(courseId);
                 showStep(2);
+
                 window.scrollTo({ top: 0, behavior: "smooth" });
             });
         });
 
-        if (addButton) {
-            addButton.addEventListener("click", function () {
-                const formCount = Number(totalFormsInput.value);
-                const firstParticipant = wrapper.querySelector(".participant-item");
-                const newParticipant = firstParticipant.cloneNode(true);
+        addButton.addEventListener("click", function () {
+            const formCount = Number(totalFormsInput.value);
+            const firstParticipant = wrapper.querySelector(".participant-item");
+            const newParticipant = firstParticipant.cloneNode(true);
 
-                newParticipant.querySelectorAll("input").forEach(function (input) {
-                    input.name = input.name.replace(/participants-\d+-/, "participants-" + formCount + "-");
-                    input.id = input.id.replace(/participants-\d+-/, "participants-" + formCount + "-");
+            newParticipant.querySelectorAll("input").forEach(function (input) {
+                input.name = input.name.replace(/participants-\d+-/, "participants-" + formCount + "-");
+                input.id = input.id.replace(/participants-\d+-/, "participants-" + formCount + "-");
 
-                    if (input.name.endsWith("phone_prefix")) {
-                        input.value = "+420";
-                    } else {
-                        input.value = "";
-                    }
-                });
-
-                newParticipant.querySelectorAll(".errorlist").forEach(function (errorList) {
-                    errorList.remove();
-                });
-
-                wrapper.appendChild(newParticipant);
-                totalFormsInput.value = formCount + 1;
-
-                refreshParticipants();
+                if (input.name.endsWith("phone_prefix")) {
+                    input.value = "+420";
+                } else {
+                    input.value = "";
+                }
             });
-        }
+
+            newParticipant.querySelectorAll(".errorlist").forEach(function (errorList) {
+                errorList.remove();
+            });
+
+            wrapper.appendChild(newParticipant);
+            totalFormsInput.value = formCount + 1;
+
+            refreshParticipants();
+        });
 
         stepButtons.forEach(function (button) {
             button.addEventListener("click", function () {
                 const step = Number(button.dataset.stepButton);
+
+                if (step > 1 && !selectedCourseInput.value) {
+                    showStep(1);
+                    return;
+                }
+
                 showStep(step);
                 window.scrollTo({ top: 0, behavior: "smooth" });
             });
         });
 
         checkoutBackButton.addEventListener("click", function () {
-            const activeStepButton = document.querySelector(".checkout-step--active");
-            const activeStep = activeStepButton ? Number(activeStepButton.dataset.stepButton) : 1;
+            const activePanel = document.querySelector(".checkout-step-panel:not([hidden])");
+            const activeStep = activePanel ? Number(activePanel.dataset.stepPanel) : 1;
 
             showStep(Math.max(1, activeStep - 1));
             window.scrollTo({ top: 0, behavior: "smooth" });
@@ -517,18 +717,8 @@
             window.scrollTo({ top: 0, behavior: "smooth" });
         });
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const courseFromUrl = urlParams.get("course");
-
-        if (courseFromUrl && courses[courseFromUrl]) {
-            selectedCourse = courseFromUrl;
-            selectedCourseInput.value = selectedCourse;
-            updateCourseView();
-            showStep(2);
-        } else {
-            refreshParticipants();
-            showStep(1);
-        }
+        refreshParticipants();
+        showStep(1);
     });
 </script>
 {% endblock %}
