@@ -1,0 +1,41 @@
+{% extends 'courses/base.html' %}
+
+{% block title %}Platba | Elektroakademie{% endblock %}
+
+{% block content %}
+<main class="page-shell page-shell--centered">
+    <div class="container">
+        <section class="content-card content-card--narrow">
+            <h1>Zde proběhne platba</h1>
+
+            <p>
+                Toto je pouze simulace platební brány. Za několik sekund budete přesměrováni zpět na web.
+            </p>
+
+            <p>
+                Objednávka č. {{ order.id }}<br>
+                Celková částka: {{ order.total_price }} Kč
+            </p>
+
+            <p>
+                Přesměrování za <strong id="payment-countdown">5</strong> sekund.
+            </p>
+        </section>
+    </div>
+</main>
+
+<script>
+    let seconds = 5;
+    const countdown = document.getElementById("payment-countdown");
+
+    const timer = setInterval(function () {
+        seconds -= 1;
+        countdown.textContent = seconds;
+
+        if (seconds <= 0) {
+            clearInterval(timer);
+            window.location.href = "{% url 'order_payment_success' order.id %}";
+        }
+    }, 1000);
+</script>
+{% endblock %}

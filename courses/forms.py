@@ -3,37 +3,26 @@ from django import forms
 
 class ParticipantForm(forms.Form):
     first_name = forms.CharField(
-        label="Jméno *",
-        max_length=150,
-        widget=forms.TextInput(attrs={"placeholder": "Jméno *"}),
+        label="Jméno",
+        max_length=100,
+        widget=forms.TextInput(attrs={
+            "placeholder": "Jan"
+        })
     )
 
     last_name = forms.CharField(
-        label="Příjmení *",
-        max_length=150,
-        widget=forms.TextInput(attrs={"placeholder": "Příjmení *"}),
-    )
-
-    title = forms.CharField(
-        label="Titul",
-        required=False,
-        widget=forms.TextInput(attrs={"placeholder": "Titul (nepovinné)"}),
+        label="Příjmení",
+        max_length=100,
+        widget=forms.TextInput(attrs={
+            "placeholder": "Novák"
+        })
     )
 
     email = forms.EmailField(
-        label="E-mail *",
-        widget=forms.EmailInput(attrs={"placeholder": "E-mail *"}),
-    )
-
-    phone_prefix = forms.CharField(
-        label="Předvolba",
-        initial="+420",
-        widget=forms.TextInput(attrs={"placeholder": "+420"}),
-    )
-
-    phone = forms.CharField(
-        label="Telefon *",
-        widget=forms.TextInput(attrs={"placeholder": "123 456 789"}),
+        label="E-mail",
+        widget=forms.EmailInput(attrs={
+            "placeholder": "jan.novak@email.cz"
+        })
     )
 
 

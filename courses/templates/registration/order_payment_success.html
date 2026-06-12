@@ -1,0 +1,21 @@
+{% extends 'courses/base.html' %}
+
+{% block title %}Platba dokončena | Elektroakademie{% endblock %}
+
+{% block content %}
+<main class="page-shell page-shell--centered">
+    <div class="container">
+        <section class="content-card content-card--narrow">
+            <h1>Služba byla zaplacena</h1>
+
+            <p>
+                Děkujeme. Objednávka č. {{ order.id }} byla označena jako zaplacená.
+            </p>
+
+            <a href="{% url 'index' %}" class="button-primary">
+                Zpět na úvod
+            </a>
+        </section>
+    </div>
+</main>
+{% endblock %}

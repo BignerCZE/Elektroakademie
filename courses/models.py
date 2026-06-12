@@ -76,3 +76,45 @@ class Payment(models.Model):
 
     def __str__(self):
         return f"{self.user} - {self.course}"
+    
+
+class Order(models.Model):
+    COURSE_CHOICES = [
+        ("4", "§4 – osoba poučená"),
+        ("6", "§6 – elektrotechnik"),
+        ("7", "§7 – vedoucí elektrotechnik"),
+    ]
+
+    STATUS_CHOICES = [
+        ("pending_payment", "Čeká na platbu"),
+        ("paid", "Zaplaceno"),
+    ]
+
+    course_type = models.CharField(max_length=10, choices=COURSE_CHOICES)
+    total_price = models.PositiveIntegerField(default=0)
+    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default="pending_payment")
+
+    ico = models.CharField(max_length=20, blank=True)
+    dic = models.CharField(max_length=20, blank=True)
+    company_name = models.CharField(max_length=255)
+    street = models.CharField(max_length=255)
+    city = models.CharField(max_length=120)
+    zip_code = models.CharField(max_length=20)
+    country = models.CharField(max_length=120)
+    note = models.TextField(blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    paid_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f"Objednávka #{self.id} – {self.get_course_type_display()}"
+
+
+class OrderParticipant(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="participants")
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    email = models.EmailField()
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name}"

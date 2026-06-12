@@ -62,4 +62,7 @@ urlpatterns = [
     # certifikát
     path("kurz/<int:course_id>/certifikat/", views.certificate_success, name="certificate_success"),
     path("kurz/<int:course_id>/certifikat/pdf/", views.certificate_pdf, name="certificate_pdf"),
+
+    path("platba/<int:order_id>/", views.order_payment_simulation, name="order_payment_simulation"),
+    path("platba/<int:order_id>/dokonceno/", views.order_payment_success, name="order_payment_success"),
 ]

@@ -1,3 +1,7 @@
+[hidden] {
+    display: none !important;
+}
+
 :root {
     --color-bg-start: #0b3d91;
     --color-bg-mid: #0a2f6b;

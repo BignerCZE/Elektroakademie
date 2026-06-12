@@ -20,6 +20,13 @@
                         class="logo-image">
                 </a>
 
+                <nav class="top-navigation" id="top-navigation" aria-label="Hlavní navigace">
+                    <a href="{% url 'index' %}#intro" class="menu-button">Úvod</a>
+                    <a href="{% url 'index' %}#courses" class="menu-button">Školení</a>
+                    <a href="{% url 'index' %}#faq" class="menu-button">FAQ</a>
+                    <a href="{% url 'index' %}#contact" class="menu-button">Kontakt</a>
+                </nav>
+
                 <div class="topbar-actions">
                     <button class="mobile-menu-toggle" id="mobile-menu-toggle" type="button" aria-expanded="false"
                         aria-controls="top-navigation">
@@ -40,40 +47,53 @@
                     </form>
                     {% else %}
                     <a href="{% url 'login' %}" class="login-link">Přihlásit se</a>
-                    <a href="{% url 'register' %}" class="cta-button primary">
-                        Mám zájem
-                    </a> {% endif %}
-                </div>
 
-                <nav class="top-navigation" id="top-navigation" aria-label="Hlavní navigace">
-                    <a href="{% url 'index' %}#intro" class="menu-button">Úvod</a>
-                    <a href="{% url 'index' %}#courses" class="menu-button">Školení</a>
-                    <a href="{% url 'index' %}#faq" class="menu-button">FAQ</a>
-                    <a href="{% url 'index' %}#contact" class="menu-button">Kontakt</a>
-                </nav>
+                    <a href="{% url 'register' %}" class="cta-button primary" id="start-order-link">
+                        Mám zájem
+                    </a>
+
+                    <a href="{% url 'register' %}" class="cta-button primary" id="draft-order-link" hidden>
+                        Rozpracovaná objednávka
+                    </a>
+                    {% endif %}
+                </div>
             </div>
         </header>
 
         {% block content %}{% endblock %}
 
         <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                const toggle = document.getElementById('mobile-menu-toggle');
-                const navigation = document.getElementById('top-navigation');
+            document.addEventListener("DOMContentLoaded", function () {
+                const toggle = document.getElementById("mobile-menu-toggle");
+                const navigation = document.getElementById("top-navigation");
 
-                if (!toggle || !navigation) return;
-
-                toggle.addEventListener('click', function () {
-                    const isOpen = navigation.classList.toggle('is-open');
-                    toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-                });
-
-                navigation.querySelectorAll('a').forEach(link => {
-                    link.addEventListener('click', function () {
-                        navigation.classList.remove('is-open');
-                        toggle.setAttribute('aria-expanded', 'false');
+                if (toggle && navigation) {
+                    toggle.addEventListener("click", function () {
+                        const isOpen = navigation.classList.toggle("is-open");
+                        toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
                     });
-                });
+
+                    navigation.querySelectorAll("a").forEach(function (link) {
+                        link.addEventListener("click", function () {
+                            navigation.classList.remove("is-open");
+                            toggle.setAttribute("aria-expanded", "false");
+                        });
+                    });
+                }
+
+                const draftOrder = localStorage.getItem("elektroakademie_order_draft");
+                const startOrderLink = document.getElementById("start-order-link");
+                const draftOrderLink = document.getElementById("draft-order-link");
+
+                if (startOrderLink && draftOrderLink) {
+                    if (draftOrder) {
+                        startOrderLink.hidden = true;
+                        draftOrderLink.hidden = false;
+                    } else {
+                        startOrderLink.hidden = false;
+                        draftOrderLink.hidden = true;
+                    }
+                }
             });
         </script>
 

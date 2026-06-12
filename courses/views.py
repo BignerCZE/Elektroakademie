@@ -3,21 +3,33 @@ from datetime import date
 from io import BytesIO
 
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import send_mail
+from django.forms import formset_factory
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import get_template, render_to_string
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from xhtml2pdf import pisa
-from django.forms import formset_factory
 
 from .forms import BillingForm, ParticipantForm
-from .models import Choice, Course, Payment, Question
+from .models import Choice, Course, Order, OrderParticipant, Payment, Question
+
+
+User = get_user_model()
+
+
+COURSE_PRICES = {
+    "4": 990,
+    "6": 2990,
+    "7": 3490,
+}
 
 
 def get_dashboard_context(request, active_course=None):
@@ -70,58 +82,96 @@ def register(request):
             prefix="participants",
         )
         billing_form = BillingForm(request.POST)
+        selected_course = request.POST.get("selected_course")
 
-        if participant_formset.is_valid() and billing_form.is_valid():
-            first_participant = participant_formset.cleaned_data[0]
+        if (
+            selected_course in COURSE_PRICES
+            and participant_formset.is_valid()
+            and billing_form.is_valid()
+        ):
+            participants = [
+                form.cleaned_data
+                for form in participant_formset
+                if form.cleaned_data
+            ]
 
+            participant_count = len(participants)
+            total_price = COURSE_PRICES[selected_course] * participant_count
+
+            order = Order.objects.create(
+                course_type=selected_course,
+                total_price=total_price,
+                status="pending_payment",
+                ico=billing_form.cleaned_data.get("ico", ""),
+                dic=billing_form.cleaned_data.get("dic", ""),
+                company_name=billing_form.cleaned_data["company_name"],
+                street=billing_form.cleaned_data["street"],
+                city=billing_form.cleaned_data["city"],
+                zip_code=billing_form.cleaned_data["zip_code"],
+                country=billing_form.cleaned_data["country"],
+                note=billing_form.cleaned_data.get("note", ""),
+            )
+
+            for participant in participants:
+                OrderParticipant.objects.create(
+                    order=order,
+                    first_name=participant["first_name"],
+                    last_name=participant["last_name"],
+                    email=participant["email"],
+                )
+
+            first_participant = participants[0]
             email = first_participant["email"]
 
-            user = CustomUser.objects.create(
-                username=email,
+            user, created = User.objects.get_or_create(
                 email=email,
-                first_name=first_participant["first_name"],
-                last_name=first_participant["last_name"],
-                is_active=True,
-            )
-
-            user.set_unusable_password()
-            user.save()
-
-            current_site = get_current_site(request)
-
-            uid = urlsafe_base64_encode(force_bytes(user.pk))
-            token = default_token_generator.make_token(user)
-
-            password_setup_url = request.build_absolute_uri(
-                reverse(
-                    "password_reset_confirm",
-                    kwargs={
-                        "uidb64": uid,
-                        "token": token,
-                    },
-                )
-            )
-
-            subject = "Nastavení hesla | Elektroakademie"
-
-            message = render_to_string(
-                "registration/password_setup_email.txt",
-                {
-                    "user": user,
-                    "domain": current_site.domain,
-                    "password_setup_url": password_setup_url,
+                defaults={
+                    "username": email,
+                    "first_name": first_participant["first_name"],
+                    "last_name": first_participant["last_name"],
+                    "is_active": True,
                 },
             )
 
-            send_mail(
-                subject=subject,
-                message=message,
-                from_email=getattr(settings, "DEFAULT_FROM_EMAIL", None),
-                recipient_list=[user.email],
-                fail_silently=False,
-            )
+            if created:
+                user.set_unusable_password()
+                user.save()
 
-            return redirect("password_setup_sent")
+                current_site = get_current_site(request)
+
+                uid = urlsafe_base64_encode(force_bytes(user.pk))
+                token = default_token_generator.make_token(user)
+
+                password_setup_url = request.build_absolute_uri(
+                    reverse(
+                        "password_reset_confirm",
+                        kwargs={
+                            "uidb64": uid,
+                            "token": token,
+                        },
+                    )
+                )
+
+                subject = "Nastavení hesla | Elektroakademie"
+
+                message = render_to_string(
+                    "registration/password_setup_email.txt",
+                    {
+                        "user": user,
+                        "domain": current_site.domain,
+                        "password_setup_url": password_setup_url,
+                    },
+                )
+
+                send_mail(
+                    subject=subject,
+                    message=message,
+                    from_email=getattr(settings, "DEFAULT_FROM_EMAIL", None),
+                    recipient_list=[user.email],
+                    fail_silently=False,
+                )
+
+            return redirect("order_payment_simulation", order_id=order.id)
 
     else:
         participant_formset = ParticipantFormSet(prefix="participants")
@@ -133,6 +183,35 @@ def register(request):
         {
             "participant_formset": participant_formset,
             "billing_form": billing_form,
+        },
+    )
+
+
+def order_payment_simulation(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+
+    return render(
+        request,
+        "registration/payment_simulation.html",
+        {
+            "order": order,
+        },
+    )
+
+
+def order_payment_success(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+
+    if order.status != "paid":
+        order.status = "paid"
+        order.paid_at = timezone.now()
+        order.save()
+
+    return render(
+        request,
+        "registration/order_payment_success.html",
+        {
+            "order": order,
         },
     )
 
@@ -313,6 +392,6 @@ def dashboard(request):
     context = get_dashboard_context(request)
     return render(request, "courses/dashboard.html", context)
 
-    
+
 def course_selector(request):
     return render(request, "courses/course_selector.html")
