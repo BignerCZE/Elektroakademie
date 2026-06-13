@@ -12,10 +12,38 @@
                 Děkujeme. Objednávka č. {{ order.id }} byla označena jako zaplacená.
             </p>
 
+            <p>
+                Za <strong id="redirect-countdown">5</strong> sekund budete přesměrováni
+                na úvodní stránku.
+            </p>
+
             <a href="{% url 'index' %}" class="button-primary">
                 Zpět na úvod
             </a>
         </section>
     </div>
 </main>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        localStorage.clear();
+        sessionStorage.clear();
+
+        let seconds = 5;
+        const countdownElement = document.getElementById("redirect-countdown");
+
+        const timer = setInterval(function () {
+            seconds -= 1;
+
+            if (countdownElement) {
+                countdownElement.textContent = seconds;
+            }
+
+            if (seconds <= 0) {
+                clearInterval(timer);
+                window.location.href = "{% url 'index' %}";
+            }
+        }, 1000);
+    });
+</script>
 {% endblock %}

@@ -136,41 +136,6 @@ def register(request):
             if created:
                 user.set_unusable_password()
                 user.save()
-
-                current_site = get_current_site(request)
-
-                uid = urlsafe_base64_encode(force_bytes(user.pk))
-                token = default_token_generator.make_token(user)
-
-                password_setup_url = request.build_absolute_uri(
-                    reverse(
-                        "password_reset_confirm",
-                        kwargs={
-                            "uidb64": uid,
-                            "token": token,
-                        },
-                    )
-                )
-
-                subject = "Nastavení hesla | Elektroakademie"
-
-                message = render_to_string(
-                    "registration/password_setup_email.txt",
-                    {
-                        "user": user,
-                        "domain": current_site.domain,
-                        "password_setup_url": password_setup_url,
-                    },
-                )
-
-                send_mail(
-                    subject=subject,
-                    message=message,
-                    from_email=getattr(settings, "DEFAULT_FROM_EMAIL", None),
-                    recipient_list=[user.email],
-                    fail_silently=False,
-                )
-
             return redirect("order_payment_simulation", order_id=order.id)
 
     else:
