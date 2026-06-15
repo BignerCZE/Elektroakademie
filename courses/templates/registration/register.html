@@ -170,9 +170,7 @@
                                     Přidat další osobu
                                 </button>
 
-                                <button type="button" class="button-primary" id="next-step-button">
-                                    Dále
-                                </button>
+
                             </div>
                         </section>
 
@@ -510,6 +508,8 @@
         const summaryToBillingButton = document.getElementById("summary-to-billing-button");
         const participantsErrorMessage = document.getElementById("participants-error-message");
         const billingErrorMessage = document.getElementById("billing-error-message");
+        const termsAgreement = document.getElementById("terms-agreement");
+        const termsAgreementLabel = document.querySelector(".terms-agreement-label");
 
         function openLegalModal(modalId) {
             const modal = document.getElementById(modalId);
@@ -1195,15 +1195,15 @@
             });
         });
 
-        nextButton.addEventListener("click", function () {
-            if (!validateParticipants()) {
-                return;
-            }
+        // nextButton.addEventListener("click", function () {
+        //     if (!validateParticipants()) {
+        //         return;
+        //     }
 
-            saveOrderDraft();
-            showStep(4);
-            window.scrollTo({ top: 0, behavior: "smooth" });
-        });
+        //     saveOrderDraft();
+        //     showStep(4);
+        //     window.scrollTo({ top: 0, behavior: "smooth" });
+        // });
 
         refreshParticipants();
 
@@ -1229,6 +1229,34 @@
         document.querySelectorAll(".delete-order-button").forEach(function (button) {
             button.addEventListener("click", deleteDraftOrder);
         });
+
+        document
+            .getElementById("registration-form")
+            .addEventListener("submit", function (event) {
+
+                if (!termsAgreement.checked) {
+                    event.preventDefault();
+
+                    termsAgreementLabel.classList.add("error");
+
+                    termsAgreement.scrollIntoView({
+                        behavior: "smooth",
+                        block: "center"
+                    });
+
+                    termsAgreement.focus();
+                    return;
+                }
+
+                termsAgreementLabel.classList.remove("error");
+            });
+
+        termsAgreement.addEventListener("change", function () {
+            if (termsAgreement.checked) {
+                termsAgreementLabel.classList.remove("error");
+            }
+        });
+
     });
 
 
