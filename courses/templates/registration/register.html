@@ -5,6 +5,8 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'courses/css/course-selector.css' %}?v=4">
+
+
 {% endblock %}
 
 {% block content %}
@@ -254,12 +256,17 @@
                                     <strong id="final-order-total">0 Kč</strong>
                                 </div>
 
-                                <label class="summary-consent final-summary-consent" id="final-summary-consent"
-                                    form="registration-form">
-                                    <input type="checkbox" name="terms_agreement" required form="registration-form">
-                                    <span>
-                                        Souhlasím s obchodními podmínkami a zásadami ochrany osobních údajů *
-                                    </span>
+                                <label for="terms-agreement" class="terms-agreement-label">
+                                    <input type="checkbox" id="terms-agreement" name="terms_agreement" required>
+                                    Souhlasím s
+                                    <a href="#" class="terms-link" data-legal-modal-open="terms-modal">
+                                        obchodními podmínkami
+                                    </a>
+                                    a
+                                    <a href="#" class="terms-link" data-legal-modal-open="privacy-modal">
+                                        zásadami ochrany osobních údajů
+                                    </a>
+                                    *
                                 </label>
 
                                 <div class="final-summary-section">
@@ -351,6 +358,38 @@
         </section>
     </div>
 </main>
+
+<div class="legal-modal-overlay" id="terms-modal" aria-hidden="true">
+    <div class="legal-modal-window" role="dialog" aria-modal="true" aria-labelledby="terms-modal-title">
+        <div class="legal-modal-header">
+            <h2 class="legal-modal-title" id="terms-modal-title">Obchodní podmínky</h2>
+
+            <button type="button" class="legal-modal-close" data-legal-modal-close>
+                Zavřít
+                <span aria-hidden="true">×</span>
+            </button>
+        </div>
+
+        <iframe class="legal-modal-frame" src="{% url 'terms_and_conditions' %}" title="Obchodní podmínky">
+        </iframe>
+    </div>
+</div>
+
+<div class="legal-modal-overlay" id="privacy-modal" aria-hidden="true">
+    <div class="legal-modal-window" role="dialog" aria-modal="true" aria-labelledby="privacy-modal-title">
+        <div class="legal-modal-header">
+            <h2 class="legal-modal-title" id="privacy-modal-title">Zásady ochrany osobních údajů</h2>
+
+            <button type="button" class="legal-modal-close" data-legal-modal-close>
+                Zavřít
+                <span aria-hidden="true">×</span>
+            </button>
+        </div>
+
+        <iframe class="legal-modal-frame" src="{% url 'privacy_policy' %}" title="Zásady ochrany osobních údajů">
+        </iframe>
+    </div>
+</div>
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
@@ -471,6 +510,68 @@
         const summaryToBillingButton = document.getElementById("summary-to-billing-button");
         const participantsErrorMessage = document.getElementById("participants-error-message");
         const billingErrorMessage = document.getElementById("billing-error-message");
+
+        function openLegalModal(modalId) {
+            const modal = document.getElementById(modalId);
+
+            if (!modal) {
+                return;
+            }
+
+            modal.classList.add("is-open");
+            modal.setAttribute("aria-hidden", "false");
+            document.body.classList.add("legal-modal-open");
+
+            const closeButton = modal.querySelector("[data-legal-modal-close]");
+
+            if (closeButton) {
+                closeButton.focus();
+            }
+        }
+
+        function closeLegalModal(modal) {
+            if (!modal) {
+                return;
+            }
+
+            modal.classList.remove("is-open");
+            modal.setAttribute("aria-hidden", "true");
+            document.body.classList.remove("legal-modal-open");
+        }
+
+        document.querySelectorAll("[data-legal-modal-open]").forEach(function (link) {
+            link.addEventListener("click", function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                openLegalModal(link.dataset.legalModalOpen);
+            });
+        });
+
+        document.querySelectorAll(".legal-modal-overlay").forEach(function (modal) {
+            modal.addEventListener("click", function (event) {
+                if (event.target === modal) {
+                    closeLegalModal(modal);
+                }
+            });
+
+            modal.querySelectorAll("[data-legal-modal-close]").forEach(function (button) {
+                button.addEventListener("click", function () {
+                    closeLegalModal(modal);
+                });
+            });
+        });
+
+        document.addEventListener("keydown", function (event) {
+            if (event.key !== "Escape") {
+                return;
+            }
+
+            document.querySelectorAll(".legal-modal-overlay.is-open").forEach(function (modal) {
+                closeLegalModal(modal);
+            });
+        });
+
 
         const stepButtons = document.querySelectorAll("[data-step-button]");
         const stepPanels = document.querySelectorAll("[data-step-panel]");

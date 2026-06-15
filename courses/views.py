@@ -360,3 +360,9 @@ def dashboard(request):
 
 def course_selector(request):
     return render(request, "courses/course_selector.html")
+
+def terms_and_conditions(request):
+    return render(request, "courses/terms_and_conditions.html")
+
+def privacy_policy(request):
+    return render(request, "courses/privacy_policy.html")

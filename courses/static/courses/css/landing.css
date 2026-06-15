@@ -1063,3 +1063,24 @@
         min-width: unset;
     }
 }
+
+.hero-law-link {
+    color: #ffffff;
+    font-weight: 700;
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 4px;
+    transition: color 0.2s ease;
+}
+
+.hero-law-link:hover {
+    color: #4da3ff;
+}
+
+.hero-law-note {
+    margin-top: 8px;
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}

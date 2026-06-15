@@ -65,4 +65,7 @@ urlpatterns = [
 
     path("platba/<int:order_id>/", views.order_payment_simulation, name="order_payment_simulation"),
     path("platba/<int:order_id>/dokonceno/", views.order_payment_success, name="order_payment_success"),
+
+    path("obchodni-podminky/", views.terms_and_conditions, name="terms_and_conditions"),
+    path("zasady-ochrany-osobnich-udaju/", views.privacy_policy, name="privacy_policy"),
 ]
