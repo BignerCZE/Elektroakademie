@@ -1,0 +1,69 @@
+{% extends 'courses/dashboard_base.html' %}
+
+{% block title %}Test | {{ course.title }}{% endblock %}
+
+{% block dashboard_main %}
+
+<section class="content-card">
+    <h1>Test ke kurzu</h1>
+
+    <p><strong>Kurz:</strong> {{ course.title }}</p>
+
+    {% if active_attempt %}
+    <p>Máte rozpracovaný test.</p>
+
+    <a href="{% url 'quiz_question' active_attempt.id 1 %}" class="button-primary">
+        Pokračovat v testu
+    </a>
+    {% else %}
+    <form method="post" action="{% url 'quiz_start' course.id %}">
+        {% csrf_token %}
+        <button type="submit" class="button-primary">
+            Spustit test
+        </button>
+    </form>
+    {% endif %}
+</section>
+
+<section class="content-card">
+    <h2>Historie testů</h2>
+
+    {% if past_attempts %}
+    <div class="table-wrapper">
+        <table class="dashboard-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Datum spuštění</th>
+                    <th>Datum ukončení</th>
+                    <th>Délka trvání</th>
+                    <th>Úspěšnost</th>
+                    <th>Výsledek</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for attempt in past_attempts %}
+                <tr>
+                    <td>{{ forloop.revcounter }}</td>
+                    <td>{{ attempt.started_at|date:"d.m.Y H:i" }}</td>
+                    <td>{{ attempt.submitted_at|date:"d.m.Y H:i" }}</td>
+                    <td>{{ attempt.duration }}</td>
+                    <td>{{ attempt.score_percent|floatformat:0 }} %</td>
+                    <td>
+                        {% if attempt.passed %}
+                        Splnil
+                        {% else %}
+                        Nesplnil
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p>Zatím nemáte žádný dokončený test.</p>
+    {% endif %}
+</section>
+
+{% endblock %}

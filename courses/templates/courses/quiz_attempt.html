@@ -1,0 +1,49 @@
+{% extends 'courses/dashboard_base.html' %}
+
+{% block title %}Rozpracovaný test{% endblock %}
+
+{% block dashboard_main %}
+
+<section class="content-card quiz-card">
+    <h1>Test ke kurzu</h1>
+
+    <p><strong>Kurz:</strong> {{ course.title }}</p>
+
+    <form method="post" class="quiz-form">
+        {% csrf_token %}
+
+        {% for attempt_question in attempt.attempt_questions.all %}
+        <section class="quiz-question">
+            <h2>
+                {{ forloop.counter }}. {{ attempt_question.question.text }}
+            </h2>
+
+            <div class="quiz-answers">
+                {% for choice in attempt_question.question.choice_set.all %}
+                <label class="quiz-answer">
+                    <input type="radio" name="question_{{ attempt_question.id }}" value="{{ choice.id }}">
+                    <span>{{ choice.text }}</span>
+                </label>
+                {% empty %}
+                <p>U této otázky nejsou žádné odpovědi.</p>
+                {% endfor %}
+            </div>
+        </section>
+        {% empty %}
+        <p>V tomto testu nejsou žádné otázky.</p>
+        {% endfor %}
+
+        <button type="submit" class="button-secondary">
+            Uložit odpovědi
+        </button>
+    </form>
+
+    <form method="post" action="{% url 'quiz_submit' attempt.id %}" class="quiz-submit-form">
+        {% csrf_token %}
+        <button type="submit" class="button-primary">
+            Odeslat test
+        </button>
+    </form>
+</section>
+
+{% endblock %}

@@ -19,8 +19,16 @@ from django.utils.http import urlsafe_base64_encode
 from xhtml2pdf import pisa
 
 from .forms import BillingForm, ParticipantForm
-from .models import Choice, Course, Order, OrderParticipant, Payment, Question
-
+from .models import (
+    Choice,
+    Course,
+    Order,
+    OrderParticipant,
+    Payment,
+    Question,
+    QuizAttempt,
+    QuizAttemptQuestion,
+)
 
 User = get_user_model()
 
@@ -233,74 +241,270 @@ def video_detail(request, course_id):
 
 
 @login_required
-def quiz_view(request, course_id):
+def quiz_dashboard(request, course_id):
     course = get_object_or_404(Course, id=course_id)
 
     if not request.user.is_paid:
         return redirect("buy_course", course_id=course.id)
 
-    all_questions = list(Question.objects.filter(course=course))
-    question_count = getattr(settings, "QUIZ_QUESTION_COUNT", 3)
+    active_attempt = QuizAttempt.objects.filter(
+        user=request.user,
+        course=course,
+        status=QuizAttempt.STATUS_IN_PROGRESS,
+    ).first()
 
-    if request.method == "POST":
-        selected_question_ids = request.session.get("selected_question_ids", [])
-        questions = Question.objects.filter(id__in=selected_question_ids, course=course)
-
-        total_questions = questions.count()
-        correct_answers = 0
-
-        for question in questions:
-            selected_choice_id = request.POST.get(str(question.id))
-
-            if selected_choice_id:
-                try:
-                    choice = Choice.objects.get(id=selected_choice_id, question=question)
-                    if choice.is_correct:
-                        correct_answers += 1
-                except Choice.DoesNotExist:
-                    pass
-
-        score_percent = 0
-
-        if total_questions > 0:
-            score_percent = (correct_answers / total_questions) * 100
-
-        pass_percentage = getattr(settings, "QUIZ_PASS_PERCENTAGE", 70)
-        passed = score_percent >= pass_percentage
-
-        if passed:
-            request.user.passed_quiz = True
-            request.user.save()
-
-        context = {
-            "course": course,
-            "total_questions": total_questions,
-            "correct_answers": correct_answers,
-            "score_percent": score_percent,
-            "passed": passed,
-            "pass_percentage": pass_percentage,
-        }
-
-        context.update(get_dashboard_context(request, active_course=course))
-        return render(request, "courses/quiz_result.html", context)
-
-    if len(all_questions) <= question_count:
-        selected_questions = all_questions
-    else:
-        selected_questions = random.sample(all_questions, question_count)
-
-    request.session["selected_question_ids"] = [
-        question.id for question in selected_questions
-    ]
+    past_attempts = QuizAttempt.objects.filter(
+        user=request.user,
+        course=course,
+        status=QuizAttempt.STATUS_SUBMITTED,
+    )
 
     context = {
         "course": course,
-        "questions": selected_questions,
+        "active_attempt": active_attempt,
+        "past_attempts": past_attempts,
+    }
+    context.update(get_dashboard_context(request, active_course=course))
+
+    return render(request, "courses/quiz_dashboard.html", context)
+
+@login_required
+def quiz_start(request, course_id):
+    course = get_object_or_404(Course, id=course_id)
+
+    if not request.user.is_paid:
+        return redirect("buy_course", course_id=course.id)
+
+    active_attempt = QuizAttempt.objects.filter(
+        user=request.user,
+        course=course,
+        status=QuizAttempt.STATUS_IN_PROGRESS,
+    ).first()
+
+    if active_attempt:
+        return redirect(
+            "quiz_question",
+            attempt_id=active_attempt.id,
+            order=1,
+        )
+
+    category_counts = getattr(settings, "QUIZ_CATEGORY_COUNTS", [
+        ("obecne", 8),
+        ("zdravotni", 2),
+    ])
+
+    selected_questions = []
+
+    for category_slug, count in category_counts:
+        questions = list(
+            Question.objects.filter(
+                course=course,
+                category__slug=category_slug,
+            )
+        )
+
+        if len(questions) < count:
+            return HttpResponse(
+                f"V kategorii '{category_slug}' není dostatek otázek. "
+                f"Požadováno: {count}, dostupné: {len(questions)}.",
+                status=400,
+            )
+
+        selected_questions.extend(random.sample(questions, count))
+
+    attempt = QuizAttempt.objects.create(
+        user=request.user,
+        course=course,
+        total_questions=len(selected_questions),
+    )
+
+    for index, question in enumerate(selected_questions, start=1):
+        QuizAttemptQuestion.objects.create(
+            attempt=attempt,
+            question=question,
+            order=index,
+        )
+
+    return redirect(
+        "quiz_question",
+        attempt_id=attempt.id,
+        order=1,
+    )
+
+@login_required
+def quiz_question(request, attempt_id, order):
+    attempt = get_object_or_404(
+        QuizAttempt,
+        id=attempt_id,
+        user=request.user,
+    )
+
+    if attempt.status == QuizAttempt.STATUS_SUBMITTED:
+        return redirect("quiz_result", attempt_id=attempt.id)
+
+    total_questions = attempt.attempt_questions.count()
+
+    attempt_question = get_object_or_404(
+        QuizAttemptQuestion,
+        attempt=attempt,
+        order=order,
+    )
+
+    if request.method == "POST":
+        choice_id = request.POST.get("choice")
+
+        if choice_id:
+            choice = Choice.objects.filter(
+                id=choice_id,
+                question=attempt_question.question,
+            ).first()
+
+            if choice:
+                attempt_question.selected_choice = choice
+                attempt_question.save()
+
+
+
+        if "submit_test" in request.POST:
+            return redirect("quiz_submit", attempt_id=attempt.id)
+
+        return redirect(
+            "quiz_question",
+            attempt_id=attempt.id,
+            order=order,
+        )
+
+    choices = []
+
+    for choice in attempt_question.question.choice_set.all():
+        choices.append({
+            "id": choice.id,
+            "text": choice.text,
+            "checked": "checked" if choice.id == attempt_question.selected_choice_id else "",
+        })
+
+    answered_question_orders = set(
+        attempt.attempt_questions
+        .filter(selected_choice__isnull=False)
+        .values_list("order", flat=True)
+    )
+
+    unanswered_count = total_questions - len(answered_question_orders)
+
+    question_numbers = []
+
+    for number in range(1, total_questions + 1):
+        question_numbers.append({
+            "number": number,
+            "is_current": number == order,
+            "is_answered": number in answered_question_orders,
+        })
+
+    context = {
+        "attempt": attempt,
+        "attempt_question": attempt_question,
+        "course": attempt.course,
+        "order": order,
+        "total_questions": total_questions,
+        "question_numbers": question_numbers,
+        "unanswered_count": unanswered_count,
+        "choices": choices,
+        "is_first": order == 1,
+        "is_last": order == total_questions,
     }
 
-    context.update(get_dashboard_context(request, active_course=course))
-    return render(request, "courses/quiz.html", context)
+    context.update(get_dashboard_context(request, active_course=attempt.course))
 
+    return render(request, "courses/quiz_question.html", context)
+
+@login_required
+def quiz_attempt(request, attempt_id):
+    attempt = get_object_or_404(
+        QuizAttempt,
+        id=attempt_id,
+        user=request.user,
+    )
+
+    if attempt.status == QuizAttempt.STATUS_SUBMITTED:
+        return redirect("quiz_result", attempt_id=attempt.id)
+
+    if request.method == "POST":
+        for attempt_question in attempt.attempt_questions.select_related("question"):
+            choice_id = request.POST.get(f"question_{attempt_question.id}")
+
+            if choice_id:
+                choice = Choice.objects.filter(
+                    id=choice_id,
+                    question=attempt_question.question,
+                ).first()
+
+                if choice:
+                    attempt_question.selected_choice = choice
+                    attempt_question.save()
+
+        return redirect("quiz_attempt", attempt_id=attempt.id)
+
+    context = {
+        "attempt": attempt,
+        "course": attempt.course,
+    }
+    context.update(get_dashboard_context(request, active_course=attempt.course))
+
+    return render(request, "courses/quiz_attempt.html", context)
+
+@login_required
+def quiz_submit(request, attempt_id):
+    attempt = get_object_or_404(
+        QuizAttempt,
+        id=attempt_id,
+        user=request.user,
+        status=QuizAttempt.STATUS_IN_PROGRESS,
+    )
+
+    total_questions = attempt.attempt_questions.count()
+
+    correct_answers = attempt.attempt_questions.filter(
+        selected_choice__is_correct=True
+    ).count()
+
+    score_percent = 0
+
+    if total_questions:
+        score_percent = round((correct_answers / total_questions) * 100, 2)
+
+    pass_percentage = getattr(settings, "QUIZ_PASS_PERCENTAGE", 70)
+    passed = score_percent >= pass_percentage
+
+    attempt.total_questions = total_questions
+    attempt.correct_answers = correct_answers
+    attempt.score_percent = score_percent
+    attempt.passed = passed
+    attempt.status = QuizAttempt.STATUS_SUBMITTED
+    attempt.submitted_at = timezone.now()
+    attempt.save()
+
+    if passed:
+        request.user.passed_quiz = True
+        request.user.save()
+
+    return redirect("quiz_result", attempt_id=attempt.id)
+
+@login_required
+def quiz_result(request, attempt_id):
+    attempt = get_object_or_404(
+        QuizAttempt,
+        id=attempt_id,
+        user=request.user,
+        status=QuizAttempt.STATUS_SUBMITTED,
+    )
+
+    context = {
+        "attempt": attempt,
+        "course": attempt.course,
+    }
+    context.update(get_dashboard_context(request, active_course=attempt.course))
+
+    return render(request, "courses/quiz_result.html", context)
 
 @login_required
 def certificate_success(request, course_id):

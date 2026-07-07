@@ -213,3 +213,33 @@
     color: #6b7280;
     font-weight: 600;
 }
+
+.content-card {
+    background: #ffffff;
+    color: #241224;
+    border-radius: 24px;
+    padding: 32px;
+    margin-bottom: 24px;
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.12);
+}
+
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.dashboard-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.dashboard-table th,
+.dashboard-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #e5e7eb;
+    text-align: left;
+}
+
+.dashboard-table th {
+    font-weight: 700;
+}

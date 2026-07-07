@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils import timezone
 
 
 class CustomUser(AbstractUser):
@@ -27,6 +28,7 @@ class QuestionCategory(models.Model):
         verbose_name="Kurz",
     )
     name = models.CharField(max_length=255, verbose_name="Název kategorie")
+    slug = models.SlugField(max_length=100, verbose_name="Slug")
     questions_per_quiz = models.PositiveIntegerField(
         default=1,
         verbose_name="Počet otázek v testu",
@@ -37,6 +39,7 @@ class QuestionCategory(models.Model):
         ordering = ["course", "order", "name"]
         verbose_name = "Kategorie otázek"
         verbose_name_plural = "Kategorie otázek"
+        unique_together = ("course", "slug")
 
     def __str__(self):
         return f"{self.course} – {self.name}"
@@ -76,7 +79,7 @@ class Payment(models.Model):
 
     def __str__(self):
         return f"{self.user} - {self.course}"
-    
+
 
 class Order(models.Model):
     COURSE_CHOICES = [
@@ -92,7 +95,11 @@ class Order(models.Model):
 
     course_type = models.CharField(max_length=10, choices=COURSE_CHOICES)
     total_price = models.PositiveIntegerField(default=0)
-    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default="pending_payment")
+    status = models.CharField(
+        max_length=30,
+        choices=STATUS_CHOICES,
+        default="pending_payment",
+    )
 
     ico = models.CharField(max_length=20, blank=True)
     dic = models.CharField(max_length=20, blank=True)
@@ -111,10 +118,89 @@ class Order(models.Model):
 
 
 class OrderParticipant(models.Model):
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="participants")
+    order = models.ForeignKey(
+        Order,
+        on_delete=models.CASCADE,
+        related_name="participants",
+    )
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     email = models.EmailField()
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
+
+
+class QuizAttempt(models.Model):
+    STATUS_IN_PROGRESS = "in_progress"
+    STATUS_SUBMITTED = "submitted"
+
+    STATUS_CHOICES = [
+        (STATUS_IN_PROGRESS, "Rozpracovaný"),
+        (STATUS_SUBMITTED, "Odeslaný"),
+    ]
+
+    user = models.ForeignKey(
+        CustomUser,
+        on_delete=models.CASCADE,
+        related_name="quiz_attempts",
+    )
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.CASCADE,
+        related_name="quiz_attempts",
+    )
+
+    started_at = models.DateTimeField(auto_now_add=True)
+    submitted_at = models.DateTimeField(null=True, blank=True)
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default=STATUS_IN_PROGRESS,
+    )
+
+    total_questions = models.PositiveIntegerField(default=0)
+    correct_answers = models.PositiveIntegerField(default=0)
+    score_percent = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        null=True,
+        blank=True,
+    )
+    passed = models.BooleanField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-started_at"]
+
+    def __str__(self):
+        return f"{self.user} - {self.course} - {self.started_at}"
+
+    @property
+    def duration(self):
+        if self.submitted_at:
+            return self.submitted_at - self.started_at
+        return timezone.now() - self.started_at
+
+
+class QuizAttemptQuestion(models.Model):
+    attempt = models.ForeignKey(
+        QuizAttempt,
+        on_delete=models.CASCADE,
+        related_name="attempt_questions",
+    )
+    question = models.ForeignKey(Question, on_delete=models.PROTECT)
+    selected_choice = models.ForeignKey(
+        Choice,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    order = models.PositiveIntegerField()
+
+    class Meta:
+        ordering = ["order"]
+        unique_together = ("attempt", "question")
+
+    def __str__(self):
+        return f"{self.attempt} - {self.question}"

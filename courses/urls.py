@@ -57,8 +57,13 @@ urlpatterns = [
 
     # obsah kurzu
     path("kurz/<int:course_id>/video/", views.video_detail, name="video_detail"),
-    path("kurz/<int:course_id>/test/", views.quiz_view, name="quiz"),
+    path("kurz/<int:course_id>/test/", views.quiz_dashboard, name="quiz"),
+    path("kurz/<int:course_id>/test/spustit/", views.quiz_start, name="quiz_start"),
+    path("test/<int:attempt_id>/", views.quiz_attempt, name="quiz_attempt"),
+    path("test/<int:attempt_id>/odeslat/", views.quiz_submit, name="quiz_submit"),
+    path("test/<int:attempt_id>/vysledek/", views.quiz_result, name="quiz_result"),
 
+    path("test/<int:attempt_id>/otazka/<int:order>/", views.quiz_question, name="quiz_question"),
     # certifikát
     path("kurz/<int:course_id>/certifikat/", views.certificate_success, name="certificate_success"),
     path("kurz/<int:course_id>/certifikat/pdf/", views.certificate_pdf, name="certificate_pdf"),
