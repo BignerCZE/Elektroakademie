@@ -145,6 +145,7 @@ class QuizAttempt(models.Model):
         on_delete=models.CASCADE,
         related_name="quiz_attempts",
     )
+
     course = models.ForeignKey(
         Course,
         on_delete=models.CASCADE,
@@ -162,12 +163,14 @@ class QuizAttempt(models.Model):
 
     total_questions = models.PositiveIntegerField(default=0)
     correct_answers = models.PositiveIntegerField(default=0)
+
     score_percent = models.DecimalField(
         max_digits=5,
         decimal_places=2,
         null=True,
         blank=True,
     )
+
     passed = models.BooleanField(null=True, blank=True)
 
     class Meta:
@@ -178,9 +181,28 @@ class QuizAttempt(models.Model):
 
     @property
     def duration(self):
+        """Vrací skutečný timedelta."""
         if self.submitted_at:
             return self.submitted_at - self.started_at
         return timezone.now() - self.started_at
+
+    @property
+    def duration_minutes(self):
+        """Vrací délku testu ve formátu 'X min'."""
+        duration = self.duration
+
+        total_seconds = int(duration.total_seconds())
+
+        if total_seconds < 60:
+            return "< 1 min"
+
+        minutes = total_seconds // 60
+        seconds = total_seconds % 60
+
+        if seconds >= 30:
+            minutes += 1
+
+        return f"{minutes} min"
 
 
 class QuizAttemptQuestion(models.Model):

@@ -30,31 +30,38 @@
 
     {% if past_attempts %}
     <div class="table-wrapper">
-        <table class="dashboard-table">
+        <table class="dashboard-table quiz-history-table">
             <thead>
                 <tr>
                     <th>#</th>
-                    <th>Datum spuštění</th>
-                    <th>Datum ukončení</th>
-                    <th>Délka trvání</th>
+                    <th>Spuštění</th>
+                    <th>Ukončení</th>
+                    <th>Délka</th>
                     <th>Úspěšnost</th>
                     <th>Výsledek</th>
+                    <th>Akce</th>
                 </tr>
             </thead>
+
             <tbody>
                 {% for attempt in past_attempts %}
                 <tr>
-                    <td>{{ forloop.revcounter }}</td>
+                    <td>{{ attempt.id }}</td>
                     <td>{{ attempt.started_at|date:"d.m.Y H:i" }}</td>
                     <td>{{ attempt.submitted_at|date:"d.m.Y H:i" }}</td>
-                    <td>{{ attempt.duration }}</td>
+                    <td>{{ attempt.duration_minutes }}</td>
                     <td>{{ attempt.score_percent|floatformat:0 }} %</td>
                     <td>
                         {% if attempt.passed %}
-                        Splnil
+                        <span class="status-pill status-pill-success">Splnil</span>
                         {% else %}
-                        Nesplnil
+                        <span class="status-pill status-pill-failed">Nesplnil</span>
                         {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'quiz_attempt_detail' attempt.id 1 %}" class="table-action-link">
+                            Projít test
+                        </a>
                     </td>
                 </tr>
                 {% endfor %}

@@ -1,28 +1,50 @@
-{% extends 'courses/dashboard_base.html' %}
+{% extends "courses/dashboard_base.html" %}
 
 {% block title %}Výsledek testu{% endblock %}
 
 {% block dashboard_main %}
 
-<h1>Výsledek testu</h1>
+<section class="content-card quiz-result-card">
+    <div class="quiz-result-header">
+        {% if attempt.passed %}
+        <div class="quiz-result-badge is-success">Splněno</div>
+        <h1>Test byl úspěšně splněn</h1>
+        {% else %}
+        <div class="quiz-result-badge is-failed">Nesplněno</div>
+        <h1>Test nebyl splněn</h1>
+        {% endif %}
+    </div>
 
-<p>Kurz: {{ course.title }}</p>
+    <div class="quiz-result-summary">
+        <div>
+            <span>Kurz</span>
+            <strong>{{ attempt.course.title }}</strong>
+        </div>
 
-<p>Správné odpovědi: {{ attempt.correct_answers }} / {{ attempt.total_questions }}</p>
+        <div>
+            <span>Správné odpovědi</span>
+            <strong>{{ attempt.correct_answers }} / {{ attempt.total_questions }}</strong>
+        </div>
 
-<p>Úspěšnost: {{ attempt.score_percent|floatformat:0 }} %</p>
+        <div>
+            <span>Úspěšnost</span>
+            <strong>{{ attempt.score_percent|floatformat:0 }} %</strong>
+        </div>
 
-<p>
-    Výsledek:
-    {% if attempt.passed %}
-    Splnil
-    {% else %}
-    Nesplnil
-    {% endif %}
-</p>
+        <div>
+            <span>Délka testu</span>
+            <strong>{{ attempt.duration_minutes }}</strong>
+        </div>
+    </div>
 
-<a href="{% url 'quiz' course.id %}" class="button-primary">
-    Zpět na přehled testů
-</a>
+    <div class="quiz-result-actions">
+        <a href="{% url 'quiz_attempt_detail' attempt.id 1 %}?from=result" class="button-primary">
+            Zobrazit odpovědi
+        </a>
+
+        <a href="{% url 'quiz' attempt.course.id %}" class="button-secondary"> Zpět na přehled testů
+        </a>
+    </div>
+</section>
 
 {% endblock %}

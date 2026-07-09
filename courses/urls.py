@@ -73,4 +73,10 @@ urlpatterns = [
 
     path("obchodni-podminky/", views.terms_and_conditions, name="terms_and_conditions"),
     path("zasady-ochrany-osobnich-udaju/", views.privacy_policy, name="privacy_policy"),
+
+    path(
+        "test/<int:attempt_id>/nahled/<int:order>/",
+        views.quiz_attempt_detail,
+        name="quiz_attempt_detail",
+    ),
 ]

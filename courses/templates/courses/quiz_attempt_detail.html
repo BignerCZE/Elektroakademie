@@ -1,0 +1,116 @@
+{% extends "courses/dashboard_base.html" %}
+
+{% block title %}Prohlížení testu{% endblock %}
+
+{% block dashboard_main %}
+
+<section class="content-card quiz-review-card">
+    <div class="quiz-result-strip">
+        <div class="quiz-result-strip-header">
+            {% if attempt.passed %}
+            <span class="quiz-result-badge is-success">Splněno</span>
+            <h1>Test byl úspěšně splněn</h1>
+            {% else %}
+            <span class="quiz-result-badge is-failed">Nesplněno</span>
+            <h1>Test nebyl splněn</h1>
+            {% endif %}
+        </div>
+
+        <div class="quiz-result-summary">
+            <div>
+                <span>Kurz</span>
+                <strong>{{ attempt.course.title }}</strong>
+            </div>
+
+            <div>
+                <span>Správné odpovědi</span>
+                <strong>{{ attempt.correct_answers }} / {{ attempt.total_questions }}</strong>
+            </div>
+
+            <div>
+                <span>Úspěšnost</span>
+                <strong>{{ attempt.score_percent|floatformat:0 }} %</strong>
+            </div>
+
+            <div>
+                <span>Délka testu</span>
+                <strong>{{ attempt.duration_minutes }}</strong>
+            </div>
+        </div>
+    </div>
+
+    <hr class="quiz-divider">
+
+    <div class="quiz-card">
+        <h1>Otázka {{ order }} z {{ total_questions }}</h1>
+
+        <div class="quiz-question-switcher">
+            {% for item in question_numbers %}
+            <a href="{% url 'quiz_attempt_detail' attempt.id item.order %}" class="quiz-question-number
+                          {% if item.is_current %}is-active{% endif %}
+                          {% if item.is_correct %}is-correct{% else %}is-wrong{% endif %}">
+                {{ item.order }}
+            </a>
+            {% endfor %}
+        </div>
+
+        <p class="quiz-review-question-text">
+            {{ attempt_question.question.text }}
+        </p>
+
+        <div class="quiz-review-choices">
+            {% for choice in attempt_question.question.choice_set.all %}
+            <div class="
+                    quiz-review-choice
+                    {% if choice.is_correct %}is-correct{% endif %}
+                    {% if attempt_question.selected_choice_id == choice.id %}is-selected{% endif %}
+                    {% if attempt_question.selected_choice_id == choice.id and not choice.is_correct %}is-wrong{% endif %}
+                ">
+                <span class="quiz-review-choice-text">
+                    {{ choice.text }}
+                </span>
+
+                <span class="quiz-review-labels">
+                    {% if attempt_question.selected_choice_id == choice.id %}
+                    <span class="quiz-review-label is-user-choice">
+                        Vaše odpověď
+                    </span>
+                    {% endif %}
+
+                    {% if choice.is_correct %}
+                    <span class="quiz-review-label is-correct-choice">
+                        Správná odpověď
+                    </span>
+                    {% endif %}
+
+                    {% if attempt_question.selected_choice_id == choice.id and not choice.is_correct %}
+                    <span class="quiz-review-label is-wrong-choice">
+                        Špatná odpověď
+                    </span>
+                    {% endif %}
+                </span>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="quiz-actions">
+            {% if not is_first %}
+            <a href="{% url 'quiz_attempt_detail' attempt.id order|add:'-1' %}" class="button-secondary">
+                Zpět
+            </a>
+            {% endif %}
+
+            {% if not is_last %}
+            <a href="{% url 'quiz_attempt_detail' attempt.id order|add:'1' %}" class="button-primary">
+                Další
+            </a>
+            {% endif %}
+
+            <a href="{% url 'quiz' attempt.course.id %}" class="button-secondary">
+                Zpět na přehled testů
+            </a>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

@@ -5,17 +5,11 @@ from io import BytesIO
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.tokens import default_token_generator
-from django.contrib.sites.shortcuts import get_current_site
-from django.core.mail import send_mail
 from django.forms import formset_factory
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.template.loader import get_template, render_to_string
-from django.urls import reverse
+from django.template.loader import get_template
 from django.utils import timezone
-from django.utils.encoding import force_bytes
-from django.utils.http import urlsafe_base64_encode
 from xhtml2pdf import pisa
 
 from .forms import BillingForm, ParticipantForm
@@ -144,6 +138,7 @@ def register(request):
             if created:
                 user.set_unusable_password()
                 user.save()
+
             return redirect("order_payment_simulation", order_id=order.id)
 
     else:
@@ -257,7 +252,7 @@ def quiz_dashboard(request, course_id):
         user=request.user,
         course=course,
         status=QuizAttempt.STATUS_SUBMITTED,
-    )
+    ).order_by("-submitted_at", "-started_at")
 
     context = {
         "course": course,
@@ -267,6 +262,7 @@ def quiz_dashboard(request, course_id):
     context.update(get_dashboard_context(request, active_course=course))
 
     return render(request, "courses/quiz_dashboard.html", context)
+
 
 @login_required
 def quiz_start(request, course_id):
@@ -288,10 +284,14 @@ def quiz_start(request, course_id):
             order=1,
         )
 
-    category_counts = getattr(settings, "QUIZ_CATEGORY_COUNTS", [
-        ("obecne", 8),
-        ("zdravotni", 2),
-    ])
+    category_counts = getattr(
+        settings,
+        "QUIZ_CATEGORY_COUNTS",
+        [
+            ("obecne", 8),
+            ("zdravotni", 2),
+        ],
+    )
 
     selected_questions = []
 
@@ -331,6 +331,7 @@ def quiz_start(request, course_id):
         order=1,
     )
 
+
 @login_required
 def quiz_question(request, attempt_id, order):
     attempt = get_object_or_404(
@@ -340,7 +341,11 @@ def quiz_question(request, attempt_id, order):
     )
 
     if attempt.status == QuizAttempt.STATUS_SUBMITTED:
-        return redirect("quiz_result", attempt_id=attempt.id)
+        return redirect(
+            "quiz_attempt_detail",
+            attempt_id=attempt.id,
+            order=1,
+        )
 
     total_questions = attempt.attempt_questions.count()
 
@@ -362,8 +367,6 @@ def quiz_question(request, attempt_id, order):
             if choice:
                 attempt_question.selected_choice = choice
                 attempt_question.save()
-
-
 
         if "submit_test" in request.POST:
             return redirect("quiz_submit", attempt_id=attempt.id)
@@ -417,6 +420,7 @@ def quiz_question(request, attempt_id, order):
 
     return render(request, "courses/quiz_question.html", context)
 
+
 @login_required
 def quiz_attempt(request, attempt_id):
     attempt = get_object_or_404(
@@ -426,7 +430,11 @@ def quiz_attempt(request, attempt_id):
     )
 
     if attempt.status == QuizAttempt.STATUS_SUBMITTED:
-        return redirect("quiz_result", attempt_id=attempt.id)
+        return redirect(
+            "quiz_attempt_detail",
+            attempt_id=attempt.id,
+            order=1,
+        )
 
     if request.method == "POST":
         for attempt_question in attempt.attempt_questions.select_related("question"):
@@ -451,6 +459,7 @@ def quiz_attempt(request, attempt_id):
     context.update(get_dashboard_context(request, active_course=attempt.course))
 
     return render(request, "courses/quiz_attempt.html", context)
+
 
 @login_required
 def quiz_submit(request, attempt_id):
@@ -487,24 +496,79 @@ def quiz_submit(request, attempt_id):
         request.user.passed_quiz = True
         request.user.save()
 
-    return redirect("quiz_result", attempt_id=attempt.id)
+    return redirect(
+        "quiz_attempt_detail",
+        attempt_id=attempt.id,
+        order=1,
+    )
+
 
 @login_required
 def quiz_result(request, attempt_id):
     attempt = get_object_or_404(
-        QuizAttempt,
+        QuizAttempt.objects.select_related("course"),
         id=attempt_id,
         user=request.user,
         status=QuizAttempt.STATUS_SUBMITTED,
     )
 
+    return redirect(
+        "quiz_attempt_detail",
+        attempt_id=attempt.id,
+        order=1,
+    )
+
+
+@login_required
+def quiz_attempt_detail(request, attempt_id, order):
+    attempt = get_object_or_404(
+        QuizAttempt.objects.select_related("course"),
+        id=attempt_id,
+        user=request.user,
+        status=QuizAttempt.STATUS_SUBMITTED,
+    )
+
+    attempt_questions = (
+        QuizAttemptQuestion.objects
+        .filter(attempt=attempt)
+        .select_related("question", "selected_choice")
+        .prefetch_related("question__choice_set")
+        .order_by("order")
+    )
+
+    total_questions = attempt_questions.count()
+
+    attempt_question = get_object_or_404(
+        attempt_questions,
+        order=order,
+    )
+
+    question_numbers = []
+
+    for item in attempt_questions:
+        selected_choice = item.selected_choice
+        is_correct = bool(selected_choice and selected_choice.is_correct)
+
+        question_numbers.append({
+            "order": item.order,
+            "is_current": item.order == order,
+            "is_correct": is_correct,
+        })
+
     context = {
         "attempt": attempt,
-        "course": attempt.course,
+        "attempt_question": attempt_question,
+        "question_numbers": question_numbers,
+        "order": order,
+        "total_questions": total_questions,
+        "is_first": order == 1,
+        "is_last": order == total_questions,
+        "came_from_result": request.GET.get("from") == "result",
     }
     context.update(get_dashboard_context(request, active_course=attempt.course))
 
-    return render(request, "courses/quiz_result.html", context)
+    return render(request, "courses/quiz_attempt_detail.html", context)
+
 
 @login_required
 def certificate_success(request, course_id):
@@ -565,8 +629,10 @@ def dashboard(request):
 def course_selector(request):
     return render(request, "courses/course_selector.html")
 
+
 def terms_and_conditions(request):
     return render(request, "courses/terms_and_conditions.html")
+
 
 def privacy_policy(request):
     return render(request, "courses/privacy_policy.html")

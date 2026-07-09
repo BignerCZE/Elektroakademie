@@ -1,0 +1,34 @@
+{% extends "courses/dashboard_base.html" %}
+
+{% block dashboard_main %}
+<section class="content-card quiz-card">
+    <h1>Neúspěšné testy</h1>
+
+    {% if attempts %}
+    <div class="quiz-history-list">
+        {% for attempt in attempts %}
+        <article class="quiz-history-item">
+            <h2>{{ attempt.course.title }}</h2>
+
+            <p>
+                Datum dokončení:
+                {{ attempt.submitted_at|date:"d.m.Y H:i" }}
+            </p>
+
+            <p>
+                Výsledek:
+                {{ attempt.correct_answers }} / {{ attempt.total_questions }}
+                — {{ attempt.score_percent }} %
+            </p>
+
+            <a href="{% url 'failed_quiz_attempt_detail' attempt.id %}" class="button-primary">
+                Prohlédnout test
+            </a>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p>Nemáte žádné ukončené neúspěšné testy.</p>
+    {% endif %}
+</section>
+{% endblock %}
