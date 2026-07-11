@@ -29,8 +29,9 @@ Otázka {{ order }} z {{ total_questions }}
         data-selected-choice="{{ attempt_question.selected_choice_id|default:'' }}">
         {% csrf_token %}
 
-        <h2>{{ attempt_question.question.text }}</h2>
-
+        <div class="quiz-question-content">
+            <h2>{{ attempt_question.question.text }}</h2>
+        </div>
         <div class="quiz-answers">
             {% for choice in choices %}
             <label class="quiz-answer">
@@ -43,22 +44,34 @@ Otázka {{ order }} z {{ total_questions }}
         </div>
 
         <div class="quiz-navigation">
-            {% if not is_first %}
+            {% if is_first %}
+            <a href="{% url 'quiz' attempt.course.id %}" class="button-secondary"
+                onclick="return confirm('Opravdu chcete opustit test? Rozpracovaný test zůstane uložen a budete v něm moci pokračovat později.')">
+                Zpět
+            </a>
+            {% else %}
             <a href="{% url 'quiz_question' attempt.id order|add:'-1' %}" class="button-secondary">
                 Zpět
             </a>
             {% endif %}
 
-            {% if not is_last %}
+            {% if is_last %}
+            <button type="submit" name="submit_test" value="1" class="button-primary" data-submit-test="true"
+                data-unanswered-count="{{ unanswered_count }}"
+                data-unanswered-questions="{{ unanswered_questions|join:',' }}">
+                Další otázka
+            </button>
+            {% else %}
             <a href="{% url 'quiz_question' attempt.id order|add:'1' %}" class="button-primary">
                 Další otázka
             </a>
-            {% else %}
-            <button type="submit" name="submit_test" class="button-primary" data-submit-test="true"
-                data-unanswered-count="{{ unanswered_count }}">
+            {% endif %}
+
+            <button type="submit" name="submit_test" value="1" class="button-primary" data-submit-test="true"
+                data-unanswered-count="{{ unanswered_count }}"
+                data-unanswered-questions="{{ unanswered_questions|join:',' }}">
                 Odeslat test
             </button>
-            {% endif %}
         </div>
 
     </form>
@@ -84,22 +97,32 @@ Otázka {{ order }} z {{ total_questions }}
         quizForm.addEventListener("submit", function (event) {
             const submitter = event.submitter;
 
+            /*
+             * Automatické uložení odpovědi po změně radio inputu
+             * nemá submitter, proto jej necháme proběhnout.
+             */
             if (!submitter || submitter.dataset.submitTest !== "true") {
                 return;
             }
 
-            const unansweredCount = Number(submitter.dataset.unansweredCount || 0);
+            const unansweredCount = Number(
+                submitter.dataset.unansweredCount || 0
+            );
+
+            const unansweredQuestions = submitter.dataset.unansweredQuestions
+                ? submitter.dataset.unansweredQuestions
+                    .split(",")
+                    .filter(Boolean)
+                : [];
 
             if (unansweredCount > 0) {
-                const confirmed = confirm(
-                    "Nemáte vyplněné všechny otázky. Chybí odpověď u " +
-                    unansweredCount +
-                    " otázky/otázek. Opravdu chcete test odeslat?"
-                );
+                event.preventDefault();
 
-                if (!confirmed) {
-                    event.preventDefault();
-                }
+                alert(
+                    "Test nelze odeslat.\n\n" +
+                    "Doplňte odpovědi u otázek:\n\n" +
+                    unansweredQuestions.join(", ")
+                );
 
                 return;
             }

@@ -152,6 +152,8 @@ class QuizAttempt(models.Model):
         related_name="quiz_attempts",
     )
 
+    attempt_number = models.PositiveIntegerField(default=1)
+
     started_at = models.DateTimeField(auto_now_add=True)
     submitted_at = models.DateTimeField(null=True, blank=True)
 
@@ -177,20 +179,20 @@ class QuizAttempt(models.Model):
         ordering = ["-started_at"]
 
     def __str__(self):
-        return f"{self.user} - {self.course} - {self.started_at}"
+        return (
+            f"{self.user} - {self.course} - "
+            f"pokus č. {self.attempt_number}"
+        )
 
     @property
     def duration(self):
-        """Vrací skutečný timedelta."""
         if self.submitted_at:
             return self.submitted_at - self.started_at
         return timezone.now() - self.started_at
 
     @property
     def duration_minutes(self):
-        """Vrací délku testu ve formátu 'X min'."""
         duration = self.duration
-
         total_seconds = int(duration.total_seconds())
 
         if total_seconds < 60:

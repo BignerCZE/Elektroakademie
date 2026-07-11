@@ -4,25 +4,44 @@
 
 {% block dashboard_main %}
 
-<section class="content-card">
-    <h1>Test ke kurzu</h1>
+<section class="content-card quiz-start-card">
+    <div class="quiz-start-content">
+        <div class="quiz-start-info">
+            <span class="quiz-start-eyebrow">Online test</span>
 
-    <p><strong>Kurz:</strong> {{ course.title }}</p>
+            <h1>Test ke kurzu</h1>
 
-    {% if active_attempt %}
-    <p>Máte rozpracovaný test.</p>
+            <p class="quiz-start-course">
+                <strong>Kurz:</strong>
+                {{ course.title }}
+            </p>
 
-    <a href="{% url 'quiz_question' active_attempt.id 1 %}" class="button-primary">
-        Pokračovat v testu
-    </a>
-    {% else %}
-    <form method="post" action="{% url 'quiz_start' course.id %}">
-        {% csrf_token %}
-        <button type="submit" class="button-primary">
-            Spustit test
-        </button>
-    </form>
-    {% endif %}
+            <p class="quiz-start-description">
+                Ověřte své znalosti v závěrečném testu. Průběžně můžete test opustit
+                a později v něm pokračovat.
+            </p>
+        </div>
+
+        <div class="quiz-start-action">
+            {% if active_attempt %}
+            <span class="quiz-start-status">Rozpracovaný test</span>
+
+            <a href="{% url 'quiz_question' active_attempt.id 1 %}" class="button-primary">
+                Pokračovat v testu
+            </a>
+            {% else %}
+            <span class="quiz-start-status">Test je připraven</span>
+
+            <form method="post" action="{% url 'quiz_start' course.id %}">
+                {% csrf_token %}
+
+                <button type="submit" class="button-primary">
+                    Spustit test
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
 </section>
 
 <section class="content-card">
@@ -46,7 +65,7 @@
             <tbody>
                 {% for attempt in past_attempts %}
                 <tr>
-                    <td>{{ attempt.id }}</td>
+                    <td>{{ attempt.attempt_number }}</td>
                     <td>{{ attempt.started_at|date:"d.m.Y H:i" }}</td>
                     <td>{{ attempt.submitted_at|date:"d.m.Y H:i" }}</td>
                     <td>{{ attempt.duration_minutes }}</td>

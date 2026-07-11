@@ -5,6 +5,7 @@ from io import BytesIO
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
+from django.db.models import Max
 from django.forms import formset_factory
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -40,7 +41,11 @@ def get_dashboard_context(request, active_course=None):
     if active_course is None:
         active_course = purchased_courses.first()
 
-    has_paid = getattr(request.user, "is_paid", False) if request.user.is_authenticated else False
+    has_paid = (
+        getattr(request.user, "is_paid", False)
+        if request.user.is_authenticated
+        else False
+    )
 
     return {
         "purchased_courses": purchased_courses,
@@ -62,12 +67,23 @@ def landing(request):
 def course_detail(request, course_id):
     course = get_object_or_404(Course, id=course_id)
 
-    context = {"course": course}
+    context = {
+        "course": course,
+    }
 
     if request.user.is_authenticated:
-        context.update(get_dashboard_context(request, active_course=course))
+        context.update(
+            get_dashboard_context(
+                request,
+                active_course=course,
+            )
+        )
 
-    return render(request, "courses/course_detail.html", context)
+    return render(
+        request,
+        "courses/course_detail.html",
+        context,
+    )
 
 
 def register(request):
@@ -98,7 +114,10 @@ def register(request):
             ]
 
             participant_count = len(participants)
-            total_price = COURSE_PRICES[selected_course] * participant_count
+            total_price = (
+                COURSE_PRICES[selected_course]
+                * participant_count
+            )
 
             order = Order.objects.create(
                 course_type=selected_course,
@@ -139,10 +158,15 @@ def register(request):
                 user.set_unusable_password()
                 user.save()
 
-            return redirect("order_payment_simulation", order_id=order.id)
+            return redirect(
+                "order_payment_simulation",
+                order_id=order.id,
+            )
 
     else:
-        participant_formset = ParticipantFormSet(prefix="participants")
+        participant_formset = ParticipantFormSet(
+            prefix="participants",
+        )
         billing_form = BillingForm()
 
     return render(
@@ -156,7 +180,10 @@ def register(request):
 
 
 def order_payment_simulation(request, order_id):
-    order = get_object_or_404(Order, id=order_id)
+    order = get_object_or_404(
+        Order,
+        id=order_id,
+    )
 
     return render(
         request,
@@ -168,7 +195,10 @@ def order_payment_simulation(request, order_id):
 
 
 def order_payment_success(request, order_id):
-    order = get_object_or_404(Order, id=order_id)
+    order = get_object_or_404(
+        Order,
+        id=order_id,
+    )
 
     if order.status != "paid":
         order.status = "paid"
@@ -185,18 +215,29 @@ def order_payment_success(request, order_id):
 
 
 def password_setup_sent(request):
-    return render(request, "registration/password_setup_sent.html")
+    return render(
+        request,
+        "registration/password_setup_sent.html",
+    )
 
 
 @login_required
 def profile(request):
     context = get_dashboard_context(request)
-    return render(request, "courses/profile.html", context)
+
+    return render(
+        request,
+        "courses/profile.html",
+        context,
+    )
 
 
 @login_required
 def buy_course(request, course_id):
-    course = get_object_or_404(Course, id=course_id)
+    course = get_object_or_404(
+        Course,
+        id=course_id,
+    )
 
     if request.method == "POST":
         Payment.objects.create(
@@ -205,77 +246,163 @@ def buy_course(request, course_id):
             amount=999.00,
             is_successful=True,
         )
+
         request.user.is_paid = True
         request.user.save()
-        return redirect("payment_success", course_id=course.id)
 
-    context = {"course": course}
-    context.update(get_dashboard_context(request, active_course=course))
-    return render(request, "courses/buy_course.html", context)
+        return redirect(
+            "payment_success",
+            course_id=course.id,
+        )
+
+    context = {
+        "course": course,
+    }
+    context.update(
+        get_dashboard_context(
+            request,
+            active_course=course,
+        )
+    )
+
+    return render(
+        request,
+        "courses/buy_course.html",
+        context,
+    )
 
 
 @login_required
 def payment_success(request, course_id):
-    course = get_object_or_404(Course, id=course_id)
+    course = get_object_or_404(
+        Course,
+        id=course_id,
+    )
 
-    context = {"course": course}
-    context.update(get_dashboard_context(request, active_course=course))
-    return render(request, "courses/payment_success.html", context)
+    context = {
+        "course": course,
+    }
+    context.update(
+        get_dashboard_context(
+            request,
+            active_course=course,
+        )
+    )
+
+    return render(
+        request,
+        "courses/payment_success.html",
+        context,
+    )
 
 
 @login_required
 def video_detail(request, course_id):
-    course = get_object_or_404(Course, id=course_id)
+    course = get_object_or_404(
+        Course,
+        id=course_id,
+    )
 
     if not request.user.is_paid:
-        return redirect("buy_course", course_id=course.id)
+        return redirect(
+            "buy_course",
+            course_id=course.id,
+        )
 
-    context = {"course": course}
-    context.update(get_dashboard_context(request, active_course=course))
-    return render(request, "courses/video_detail.html", context)
+    context = {
+        "course": course,
+    }
+    context.update(
+        get_dashboard_context(
+            request,
+            active_course=course,
+        )
+    )
+
+    return render(
+        request,
+        "courses/video_detail.html",
+        context,
+    )
 
 
 @login_required
 def quiz_dashboard(request, course_id):
-    course = get_object_or_404(Course, id=course_id)
+    course = get_object_or_404(
+        Course,
+        id=course_id,
+    )
 
     if not request.user.is_paid:
-        return redirect("buy_course", course_id=course.id)
+        return redirect(
+            "buy_course",
+            course_id=course.id,
+        )
 
-    active_attempt = QuizAttempt.objects.filter(
-        user=request.user,
-        course=course,
-        status=QuizAttempt.STATUS_IN_PROGRESS,
-    ).first()
+    active_attempt = (
+        QuizAttempt.objects
+        .filter(
+            user=request.user,
+            course=course,
+            status=QuizAttempt.STATUS_IN_PROGRESS,
+        )
+        .first()
+    )
 
-    past_attempts = QuizAttempt.objects.filter(
-        user=request.user,
-        course=course,
-        status=QuizAttempt.STATUS_SUBMITTED,
-    ).order_by("-submitted_at", "-started_at")
+    past_attempts = (
+        QuizAttempt.objects
+        .filter(
+            user=request.user,
+            course=course,
+            status=QuizAttempt.STATUS_SUBMITTED,
+        )
+        .order_by(
+            "-submitted_at",
+            "-started_at",
+        )
+    )
 
     context = {
         "course": course,
         "active_attempt": active_attempt,
         "past_attempts": past_attempts,
     }
-    context.update(get_dashboard_context(request, active_course=course))
+    context.update(
+        get_dashboard_context(
+            request,
+            active_course=course,
+        )
+    )
 
-    return render(request, "courses/quiz_dashboard.html", context)
+    return render(
+        request,
+        "courses/quiz_dashboard.html",
+        context,
+    )
 
 
 @login_required
 def quiz_start(request, course_id):
-    course = get_object_or_404(Course, id=course_id)
+    course = get_object_or_404(
+        Course,
+        id=course_id,
+    )
 
     if not request.user.is_paid:
-        return redirect("buy_course", course_id=course.id)
+        return redirect(
+            "buy_course",
+            course_id=course.id,
+        )
 
-    active_attempt = QuizAttempt.objects.filter(
-        user=request.user,
-        course=course,
-        status=QuizAttempt.STATUS_IN_PROGRESS,
-    ).first()
+    active_attempt = (
+        QuizAttempt.objects
+        .filter(
+            user=request.user,
+            course=course,
+            status=QuizAttempt.STATUS_IN_PROGRESS,
+        )
+        .first()
+    )
 
     if active_attempt:
         return redirect(
@@ -310,15 +437,38 @@ def quiz_start(request, course_id):
                 status=400,
             )
 
-        selected_questions.extend(random.sample(questions, count))
+        selected_questions.extend(
+            random.sample(
+                questions,
+                count,
+            )
+        )
+
+    current_max_attempt_number = (
+        QuizAttempt.objects
+        .filter(user=request.user)
+        .aggregate(
+            max_number=Max("attempt_number")
+        )
+        .get("max_number")
+        or 0
+    )
+
+    next_attempt_number = (
+        current_max_attempt_number + 1
+    )
 
     attempt = QuizAttempt.objects.create(
         user=request.user,
         course=course,
         total_questions=len(selected_questions),
+        attempt_number=next_attempt_number,
     )
 
-    for index, question in enumerate(selected_questions, start=1):
+    for index, question in enumerate(
+        selected_questions,
+        start=1,
+    ):
         QuizAttemptQuestion.objects.create(
             attempt=attempt,
             question=question,
@@ -347,7 +497,9 @@ def quiz_question(request, attempt_id, order):
             order=1,
         )
 
-    total_questions = attempt.attempt_questions.count()
+    total_questions = (
+        attempt.attempt_questions.count()
+    )
 
     attempt_question = get_object_or_404(
         QuizAttemptQuestion,
@@ -359,17 +511,57 @@ def quiz_question(request, attempt_id, order):
         choice_id = request.POST.get("choice")
 
         if choice_id:
-            choice = Choice.objects.filter(
-                id=choice_id,
-                question=attempt_question.question,
-            ).first()
+            choice = (
+                Choice.objects
+                .filter(
+                    id=choice_id,
+                    question=attempt_question.question,
+                )
+                .first()
+            )
 
             if choice:
                 attempt_question.selected_choice = choice
-                attempt_question.save()
+                attempt_question.save(
+                    update_fields=["selected_choice"]
+                )
+
+        if "leave_test" in request.POST:
+            return redirect(
+                "quiz",
+                course_id=attempt.course.id,
+            )
+
+        if "previous" in request.POST:
+            previous_order = max(
+                order - 1,
+                1,
+            )
+
+            return redirect(
+                "quiz_question",
+                attempt_id=attempt.id,
+                order=previous_order,
+            )
+
+        if "next" in request.POST:
+            if order == total_questions:
+                return redirect(
+                    "quiz_submit",
+                    attempt_id=attempt.id,
+                )
+
+            return redirect(
+                "quiz_question",
+                attempt_id=attempt.id,
+                order=order + 1,
+            )
 
         if "submit_test" in request.POST:
-            return redirect("quiz_submit", attempt_id=attempt.id)
+            return redirect(
+                "quiz_submit",
+                attempt_id=attempt.id,
+            )
 
         return redirect(
             "quiz_question",
@@ -379,28 +571,56 @@ def quiz_question(request, attempt_id, order):
 
     choices = []
 
-    for choice in attempt_question.question.choice_set.all():
+    for choice in (
+        attempt_question.question
+        .choice_set
+        .all()
+    ):
         choices.append({
             "id": choice.id,
             "text": choice.text,
-            "checked": "checked" if choice.id == attempt_question.selected_choice_id else "",
+            "checked": (
+                "checked"
+                if choice.id
+                == attempt_question.selected_choice_id
+                else ""
+            ),
         })
 
     answered_question_orders = set(
         attempt.attempt_questions
         .filter(selected_choice__isnull=False)
-        .values_list("order", flat=True)
+        .values_list(
+            "order",
+            flat=True,
+        )
     )
 
-    unanswered_count = total_questions - len(answered_question_orders)
+    unanswered_questions = [
+        number
+        for number in range(
+            1,
+            total_questions + 1,
+        )
+        if number not in answered_question_orders
+    ]
+
+    unanswered_count = len(
+        unanswered_questions
+    )
 
     question_numbers = []
 
-    for number in range(1, total_questions + 1):
+    for number in range(
+        1,
+        total_questions + 1,
+    ):
         question_numbers.append({
             "number": number,
             "is_current": number == order,
-            "is_answered": number in answered_question_orders,
+            "is_answered": (
+                number in answered_question_orders
+            ),
         })
 
     context = {
@@ -411,14 +631,24 @@ def quiz_question(request, attempt_id, order):
         "total_questions": total_questions,
         "question_numbers": question_numbers,
         "unanswered_count": unanswered_count,
+        "unanswered_questions": unanswered_questions,
         "choices": choices,
         "is_first": order == 1,
         "is_last": order == total_questions,
     }
 
-    context.update(get_dashboard_context(request, active_course=attempt.course))
+    context.update(
+        get_dashboard_context(
+            request,
+            active_course=attempt.course,
+        )
+    )
 
-    return render(request, "courses/quiz_question.html", context)
+    return render(
+        request,
+        "courses/quiz_question.html",
+        context,
+    )
 
 
 @login_required
@@ -437,28 +667,53 @@ def quiz_attempt(request, attempt_id):
         )
 
     if request.method == "POST":
-        for attempt_question in attempt.attempt_questions.select_related("question"):
-            choice_id = request.POST.get(f"question_{attempt_question.id}")
+        attempt_questions = (
+            attempt.attempt_questions
+            .select_related("question")
+        )
+
+        for attempt_question in attempt_questions:
+            choice_id = request.POST.get(
+                f"question_{attempt_question.id}"
+            )
 
             if choice_id:
-                choice = Choice.objects.filter(
-                    id=choice_id,
-                    question=attempt_question.question,
-                ).first()
+                choice = (
+                    Choice.objects
+                    .filter(
+                        id=choice_id,
+                        question=attempt_question.question,
+                    )
+                    .first()
+                )
 
                 if choice:
                     attempt_question.selected_choice = choice
-                    attempt_question.save()
+                    attempt_question.save(
+                        update_fields=["selected_choice"]
+                    )
 
-        return redirect("quiz_attempt", attempt_id=attempt.id)
+        return redirect(
+            "quiz_attempt",
+            attempt_id=attempt.id,
+        )
 
     context = {
         "attempt": attempt,
         "course": attempt.course,
     }
-    context.update(get_dashboard_context(request, active_course=attempt.course))
+    context.update(
+        get_dashboard_context(
+            request,
+            active_course=attempt.course,
+        )
+    )
 
-    return render(request, "courses/quiz_attempt.html", context)
+    return render(
+        request,
+        "courses/quiz_attempt.html",
+        context,
+    )
 
 
 @login_required
@@ -470,19 +725,51 @@ def quiz_submit(request, attempt_id):
         status=QuizAttempt.STATUS_IN_PROGRESS,
     )
 
-    total_questions = attempt.attempt_questions.count()
+    unanswered_question = (
+        attempt.attempt_questions
+        .filter(selected_choice__isnull=True)
+        .order_by("order")
+        .first()
+    )
 
-    correct_answers = attempt.attempt_questions.filter(
-        selected_choice__is_correct=True
-    ).count()
+    if unanswered_question:
+        return redirect(
+            "quiz_question",
+            attempt_id=attempt.id,
+            order=unanswered_question.order,
+        )
+
+    total_questions = (
+        attempt.attempt_questions.count()
+    )
+
+    correct_answers = (
+        attempt.attempt_questions
+        .filter(selected_choice__is_correct=True)
+        .count()
+    )
 
     score_percent = 0
 
     if total_questions:
-        score_percent = round((correct_answers / total_questions) * 100, 2)
+        score_percent = round(
+            (
+                correct_answers
+                / total_questions
+            )
+            * 100,
+            2,
+        )
 
-    pass_percentage = getattr(settings, "QUIZ_PASS_PERCENTAGE", 70)
-    passed = score_percent >= pass_percentage
+    pass_percentage = getattr(
+        settings,
+        "QUIZ_PASS_PERCENTAGE",
+        70,
+    )
+
+    passed = (
+        score_percent >= pass_percentage
+    )
 
     attempt.total_questions = total_questions
     attempt.correct_answers = correct_answers
@@ -490,11 +777,23 @@ def quiz_submit(request, attempt_id):
     attempt.passed = passed
     attempt.status = QuizAttempt.STATUS_SUBMITTED
     attempt.submitted_at = timezone.now()
-    attempt.save()
+
+    attempt.save(
+        update_fields=[
+            "total_questions",
+            "correct_answers",
+            "score_percent",
+            "passed",
+            "status",
+            "submitted_at",
+        ]
+    )
 
     if passed:
         request.user.passed_quiz = True
-        request.user.save()
+        request.user.save(
+            update_fields=["passed_quiz"]
+        )
 
     return redirect(
         "quiz_attempt_detail",
@@ -520,7 +819,11 @@ def quiz_result(request, attempt_id):
 
 
 @login_required
-def quiz_attempt_detail(request, attempt_id, order):
+def quiz_attempt_detail(
+    request,
+    attempt_id,
+    order,
+):
     attempt = get_object_or_404(
         QuizAttempt.objects.select_related("course"),
         id=attempt_id,
@@ -531,12 +834,19 @@ def quiz_attempt_detail(request, attempt_id, order):
     attempt_questions = (
         QuizAttemptQuestion.objects
         .filter(attempt=attempt)
-        .select_related("question", "selected_choice")
-        .prefetch_related("question__choice_set")
+        .select_related(
+            "question",
+            "selected_choice",
+        )
+        .prefetch_related(
+            "question__choice_set"
+        )
         .order_by("order")
     )
 
-    total_questions = attempt_questions.count()
+    total_questions = (
+        attempt_questions.count()
+    )
 
     attempt_question = get_object_or_404(
         attempt_questions,
@@ -547,7 +857,11 @@ def quiz_attempt_detail(request, attempt_id, order):
 
     for item in attempt_questions:
         selected_choice = item.selected_choice
-        is_correct = bool(selected_choice and selected_choice.is_correct)
+
+        is_correct = bool(
+            selected_choice
+            and selected_choice.is_correct
+        )
 
         question_numbers.append({
             "order": item.order,
@@ -563,76 +877,145 @@ def quiz_attempt_detail(request, attempt_id, order):
         "total_questions": total_questions,
         "is_first": order == 1,
         "is_last": order == total_questions,
-        "came_from_result": request.GET.get("from") == "result",
+        "came_from_result": (
+            request.GET.get("from")
+            == "result"
+        ),
     }
-    context.update(get_dashboard_context(request, active_course=attempt.course))
 
-    return render(request, "courses/quiz_attempt_detail.html", context)
+    context.update(
+        get_dashboard_context(
+            request,
+            active_course=attempt.course,
+        )
+    )
+
+    return render(
+        request,
+        "courses/quiz_attempt_detail.html",
+        context,
+    )
 
 
 @login_required
 def certificate_success(request, course_id):
-    course = get_object_or_404(Course, id=course_id)
+    course = get_object_or_404(
+        Course,
+        id=course_id,
+    )
 
     if not request.user.is_paid:
-        return redirect("buy_course", course_id=course.id)
+        return redirect(
+            "buy_course",
+            course_id=course.id,
+        )
 
     if not request.user.passed_quiz:
-        return redirect("quiz", course_id=course.id)
+        return redirect(
+            "quiz",
+            course_id=course.id,
+        )
 
     context = {
         "course": course,
         "completion_date": date.today(),
     }
 
-    context.update(get_dashboard_context(request, active_course=course))
-    return render(request, "courses/certificate_success.html", context)
+    context.update(
+        get_dashboard_context(
+            request,
+            active_course=course,
+        )
+    )
+
+    return render(
+        request,
+        "courses/certificate_success.html",
+        context,
+    )
 
 
 @login_required
 def certificate_pdf(request, course_id):
-    course = get_object_or_404(Course, id=course_id)
-
-    if not request.user.is_paid:
-        return redirect("buy_course", course_id=course.id)
-
-    if not request.user.passed_quiz:
-        return redirect("quiz", course_id=course.id)
-
-    template = get_template("courses/certificate_pdf.html")
-
-    html = template.render(
-        {
-            "user": request.user,
-            "course": course,
-            "completion_date": date.today(),
-        }
+    course = get_object_or_404(
+        Course,
+        id=course_id,
     )
 
+    if not request.user.is_paid:
+        return redirect(
+            "buy_course",
+            course_id=course.id,
+        )
+
+    if not request.user.passed_quiz:
+        return redirect(
+            "quiz",
+            course_id=course.id,
+        )
+
+    template = get_template(
+        "courses/certificate_pdf.html"
+    )
+
+    html = template.render({
+        "user": request.user,
+        "course": course,
+        "completion_date": date.today(),
+    })
+
     result = BytesIO()
-    pdf = pisa.CreatePDF(src=html, dest=result)
+
+    pdf = pisa.CreatePDF(
+        src=html,
+        dest=result,
+    )
 
     if pdf.err:
-        return HttpResponse("Chyba při generování PDF certifikátu", status=500)
+        return HttpResponse(
+            "Chyba při generování PDF certifikátu",
+            status=500,
+        )
 
-    response = HttpResponse(result.getvalue(), content_type="application/pdf")
-    response["Content-Disposition"] = 'inline; filename="certificate.pdf"'
+    response = HttpResponse(
+        result.getvalue(),
+        content_type="application/pdf",
+    )
+
+    response["Content-Disposition"] = (
+        'inline; filename="certificate.pdf"'
+    )
+
     return response
 
 
 @login_required
 def dashboard(request):
     context = get_dashboard_context(request)
-    return render(request, "courses/dashboard.html", context)
+
+    return render(
+        request,
+        "courses/dashboard.html",
+        context,
+    )
 
 
 def course_selector(request):
-    return render(request, "courses/course_selector.html")
+    return render(
+        request,
+        "courses/course_selector.html",
+    )
 
 
 def terms_and_conditions(request):
-    return render(request, "courses/terms_and_conditions.html")
+    return render(
+        request,
+        "courses/terms_and_conditions.html",
+    )
 
 
 def privacy_policy(request):
-    return render(request, "courses/privacy_policy.html")
+    return render(
+        request,
+        "courses/privacy_policy.html",
+    )
