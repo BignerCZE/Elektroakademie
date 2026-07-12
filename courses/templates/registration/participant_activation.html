@@ -1,0 +1,142 @@
+{% extends "courses/base.html" %}
+{% load static %}
+
+{% block title %}Aktivace účtu | Elektroakademie{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'courses/css/course-selector.css' %}?v=5">
+{% endblock %}
+
+{% block content %}
+<main class="page-shell activation-page">
+    <div class="container">
+        <section class="content-card activation-card">
+            <header class="activation-header">
+                <div>
+                    <h1>Aktivace účtu</h1>
+                    <p>
+                        Doplňte osobní údaje a nastavte heslo pro přístup
+                        do Elektroakademie.
+                    </p>
+                </div>
+            </header>
+
+            {% if form.non_field_errors %}
+            <div class="checkout-error-message">
+                {{ form.non_field_errors }}
+            </div>
+            {% endif %}
+
+            <form method="post" class="activation-form">
+                {% csrf_token %}
+
+                <div class="activation-layout">
+                    <section class="activation-section">
+                        <h2>Přihlašovací údaje</h2>
+
+                        <div class="activation-grid">
+                            <div class="activation-field activation-field--full">
+                                <label for="activation-login">Login</label>
+
+                                <input type="email" id="activation-login" value="{{ participant.email }}" readonly
+                                    class="readonly-field">
+
+                                <small class="readonly-note">
+                                    Tento údaj nelze změnit.
+                                </small>
+                            </div>
+
+                            <div class="activation-field">
+                                {{ form.password1.label_tag }}
+                                {{ form.password1 }}
+                                {{ form.password1.errors }}
+                            </div>
+
+                            <div class="activation-field">
+                                {{ form.password2.label_tag }}
+                                {{ form.password2 }}
+                                {{ form.password2.errors }}
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="activation-section">
+                        <h2>Osobní údaje</h2>
+
+                        <div class="activation-grid">
+                            <div class="activation-field">
+                                <label for="activation-first-name">Jméno</label>
+
+                                <input type="text" id="activation-first-name" value="{{ participant.first_name }}"
+                                    readonly class="readonly-field">
+                            </div>
+
+                            <div class="activation-field">
+                                <label for="activation-last-name">Příjmení</label>
+
+                                <input type="text" id="activation-last-name" value="{{ participant.last_name }}"
+                                    readonly class="readonly-field">
+                            </div>
+
+                            <div class="activation-field activation-field--full">
+                                <label for="activation-registration-number">
+                                    Evidenční číslo
+                                </label>
+
+                                <input type="text" id="activation-registration-number"
+                                    value="{{ participant.registration_number }}" readonly class="readonly-field">
+
+                                <small class="readonly-note">
+                                    Evidenční číslo bylo vytvořeno automaticky.
+                                </small>
+                            </div>
+
+                            <div class="activation-field">
+                                {{ form.birth_date.label_tag }}
+                                {{ form.birth_date }}
+                                {{ form.birth_date.errors }}
+                            </div>
+
+                            <div class="activation-field">
+                                {{ form.birth_place.label_tag }}
+                                {{ form.birth_place }}
+                                {{ form.birth_place.errors }}
+                            </div>
+
+                            <div class="activation-field activation-field--full">
+                                {{ form.permanent_address.label_tag }}
+                                {{ form.permanent_address }}
+                                {{ form.permanent_address.errors }}
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="activation-section activation-section--full">
+                        <h2>Zaměstnavatel</h2>
+
+                        <div class="activation-grid">
+                            <div class="activation-field">
+                                {{ form.employer_name.label_tag }}
+                                {{ form.employer_name }}
+                                {{ form.employer_name.errors }}
+                            </div>
+
+                            <div class="activation-field">
+                                {{ form.employer_address.label_tag }}
+                                {{ form.employer_address }}
+                                {{ form.employer_address.errors }}
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <div class="activation-actions">
+                    <button type="submit" class="button-primary">
+                        Aktivovat účet
+                    </button>
+                </div>
+            </form>
+        </section>
+    </div>
+</main>
+{% endblock %}

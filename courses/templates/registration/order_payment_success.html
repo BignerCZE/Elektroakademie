@@ -13,37 +13,110 @@
             </p>
 
             <p>
-                Za <strong id="redirect-countdown">5</strong> sekund budete přesměrováni
+                Za <strong id="redirect-countdown">30</strong> sekund budete přesměrováni
                 na úvodní stránku.
             </p>
 
             <a href="{% url 'index' %}" class="button-primary">
                 Zpět na úvod
             </a>
+
+            <section class="activation-links">
+                <h2>Aktivační odkazy účastníků</h2>
+
+                <p>
+                    Pro testování se odkazy zatím zobrazují přímo zde.
+                </p>
+
+                {% for item in activation_links %}
+                <article class="activation-link-card">
+                    <div class="activation-link-person">
+                        <strong>
+                            {{ item.participant.first_name }}
+                            {{ item.participant.last_name }}
+                        </strong>
+
+                        <span>
+                            {{ item.participant.registration_number }}
+                        </span>
+                    </div>
+
+                    <input type="text" value="{{ item.url }}" readonly id="activation-link-{{ forloop.counter }}"
+                        aria-label="Aktivační odkaz pro {{ item.participant.first_name }} {{ item.participant.last_name }}">
+
+                    <button type="button" class="button-primary" data-copy-link="activation-link-{{ forloop.counter }}">
+                        Kopírovat odkaz
+                    </button>
+                </article>
+                {% empty %}
+                <p>Objednávka neobsahuje žádné účastníky.</p>
+                {% endfor %}
+            </section>
         </section>
     </div>
 </main>
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        localStorage.clear();
-        sessionStorage.clear();
+        localStorage.removeItem("elektroakademie_order_draft");
 
-        let seconds = 5;
-        const countdownElement = document.getElementById("redirect-countdown");
+        let seconds = 30;
+        const countdownElement = document.getElementById(
+            "redirect-countdown"
+        );
 
-        const timer = setInterval(function () {
+        const timer = window.setInterval(function () {
             seconds -= 1;
 
             if (countdownElement) {
-                countdownElement.textContent = seconds;
+                countdownElement.textContent = String(seconds);
             }
 
             if (seconds <= 0) {
-                clearInterval(timer);
+                window.clearInterval(timer);
                 window.location.href = "{% url 'index' %}";
             }
         }, 1000);
+
+        document.querySelectorAll("[data-copy-link]").forEach(
+            function (button) {
+                button.addEventListener("click", async function () {
+                    const input = document.getElementById(
+                        button.dataset.copyLink
+                    );
+
+                    if (!input) {
+                        return;
+                    }
+
+                    const originalText = button.textContent.trim();
+
+                    try {
+                        await navigator.clipboard.writeText(
+                            input.value
+                        );
+
+                        button.textContent = "Zkopírováno";
+                    } catch (error) {
+                        input.select();
+                        input.setSelectionRange(
+                            0,
+                            input.value.length
+                        );
+
+                        const copied = document.execCommand("copy");
+
+                        button.textContent = copied
+                            ? "Zkopírováno"
+                            : "Kopírování selhalo";
+                    }
+
+                    window.setTimeout(function () {
+                        button.textContent = originalText;
+                    }, 2000);
+                });
+            }
+        );
     });
 </script>
 {% endblock %}

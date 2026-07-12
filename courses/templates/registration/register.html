@@ -6,7 +6,156 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'courses/css/course-selector.css' %}?v=4">
 
+<style>
+    .ares-field {
+        position: relative;
+        grid-column: 1 / -1;
+    }
 
+    .ares-input-group {
+        display: flex;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .ares-input-group input {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .ares-button {
+        flex: 0 0 auto;
+        min-width: 170px;
+        padding: 0 18px;
+        border: 0;
+        border-radius: 12px;
+        background: #183b6b;
+        color: #ffffff;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+    .ares-button:hover {
+        background: #102d53;
+    }
+
+    .ares-button:focus-visible {
+        outline: 3px solid rgba(24, 59, 107, 0.25);
+        outline-offset: 2px;
+    }
+
+    .ares-button:disabled {
+        cursor: progress;
+        opacity: 0.7;
+    }
+
+    @media (max-width: 640px) {
+        .ares-input-group {
+            flex-direction: column;
+        }
+
+        .ares-button {
+            width: 100%;
+            min-height: 48px;
+        }
+    }
+
+    .ares-status {
+        display: block;
+        min-height: 1.25rem;
+        margin-top: 0.45rem;
+        font-size: 0.875rem;
+        line-height: 1.35;
+        color: #5f6f89;
+    }
+
+    .ares-status.is-loading {
+        color: #275dad;
+    }
+
+    .ares-status.is-success {
+        color: #18713c;
+    }
+
+    .ares-status.is-error {
+        color: #c62828;
+    }
+
+    .ares-loading {
+        cursor: progress;
+        background-image:
+            linear-gradient(90deg,
+                rgba(39, 93, 173, 0) 0%,
+                rgba(39, 93, 173, 0.08) 50%,
+                rgba(39, 93, 173, 0) 100%);
+        background-size: 200% 100%;
+        animation: ares-loading-pulse 1.2s linear infinite;
+    }
+
+    @keyframes ares-loading-pulse {
+        from {
+            background-position: 200% 0;
+        }
+
+        to {
+            background-position: -200% 0;
+        }
+    }
+
+    .contact-person-section {
+        grid-column: 1 / -1;
+        margin-top: 12px;
+        padding-top: 24px;
+        border-top: 1px solid #d8deea;
+    }
+
+    .contact-person-heading {
+        margin-bottom: 16px;
+    }
+
+    .contact-person-heading h3 {
+        margin: 0 0 6px;
+        font-size: 1.25rem;
+    }
+
+    .contact-person-heading p {
+        margin: 0;
+        color: #5f6f89;
+    }
+
+    .contact-person-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+    }
+
+    .contact-phone-group {
+        display: grid;
+        grid-template-columns: 96px minmax(0, 1fr);
+        gap: 10px;
+    }
+
+    .contact-phone-prefix input,
+    .contact-phone-number input {
+        width: 100%;
+    }
+
+    .contact-phone-prefix input {
+        text-align: center;
+    }
+
+    @media (max-width: 700px) {
+        .contact-person-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .contact-phone-group {
+            grid-template-columns: 90px minmax(0, 1fr);
+        }
+    }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -182,8 +331,20 @@
                                 <div class="checkout-error-message" id="billing-error-message" hidden></div>
 
                                 <div class="billing-grid">
-                                    <div class="register-field">
-                                        {{ billing_form.ico }}
+
+                                    <div class="register-field ares-field">
+                                        <div class="ares-input-group">
+                                            {{ billing_form.ico }}
+
+                                            <button type="button" id="load-ares-button"
+                                                class="button-secondary ares-button">
+                                                Načíst z ARES
+                                            </button>
+                                        </div>
+
+                                        <span id="ares-status" class="ares-status" role="status" aria-live="polite">
+                                        </span>
+
                                         {{ billing_form.ico.errors }}
                                     </div>
 
@@ -217,16 +378,56 @@
                                         {{ billing_form.country.errors }}
                                     </div>
 
-                                    <label class="billing-checkbox">
-                                        {{ billing_form.contact_person }}
-                                        <span>Chci vyplnit kontaktní osobu</span>
-                                    </label>
+                                    <div class="contact-person-section">
+                                        <div class="contact-person-heading">
+                                            <h3>Kontaktní osoba</h3>
+                                            <p>
+                                                Na tyto údaje budeme zasílat informace související s objednávkou.
+                                            </p>
+                                        </div>
+
+                                        <div class="contact-person-grid">
+                                            <div class="register-field">
+                                                {{ billing_form.contact_first_name }}
+                                                {{ billing_form.contact_first_name.errors }}
+                                            </div>
+
+                                            <div class="register-field">
+                                                {{ billing_form.contact_last_name }}
+                                                {{ billing_form.contact_last_name.errors }}
+                                            </div>
+
+                                            <div class="register-field contact-phone-field">
+                                                <div class="contact-phone-group">
+                                                    <div class="contact-phone-prefix">
+                                                        {{ billing_form.contact_phone_prefix }}
+                                                    </div>
+
+                                                    <div class="contact-phone-number">
+                                                        {{ billing_form.contact_phone }}
+                                                    </div>
+                                                </div>
+
+                                                {{ billing_form.contact_phone_prefix.errors }}
+                                                {{ billing_form.contact_phone.errors }}
+                                            </div>
+
+                                            <div class="register-field">
+                                                {{ billing_form.contact_email }}
+                                                {{ billing_form.contact_email.errors }}
+                                            </div>
+                                        </div>
+                                    </div>
+
 
                                     <div class="register-field billing-note">
                                         {{ billing_form.note }}
                                         {{ billing_form.note.errors }}
                                     </div>
+
                                 </div>
+
+
                             </div>
                         </section>
 
@@ -510,6 +711,201 @@
         const billingErrorMessage = document.getElementById("billing-error-message");
         const termsAgreement = document.getElementById("terms-agreement");
         const termsAgreementLabel = document.querySelector(".terms-agreement-label");
+
+        const icoInput = document.querySelector('[name="ico"]');
+        const dicInput = document.querySelector('[name="dic"]');
+        const companyNameInput = document.querySelector('[name="company_name"]');
+        const streetInput = document.querySelector('[name="street"]');
+        const cityInput = document.querySelector('[name="city"]');
+        const zipCodeInput = document.querySelector('[name="zip_code"]');
+        const countryInput = document.querySelector('[name="country"]');
+        const loadAresButton = document.getElementById("load-ares-button");
+        const aresStatus = document.getElementById("ares-status");
+
+        let aresRequestController = null;
+
+        function setAresStatus(message, state = "") {
+            if (!aresStatus) {
+                return;
+            }
+
+            aresStatus.textContent = message;
+            aresStatus.classList.remove("is-loading", "is-success", "is-error");
+
+            if (state) {
+                aresStatus.classList.add("is-" + state);
+            }
+        }
+
+        function normalizeIco(value) {
+            return String(value || "").replace(/\D/g, "").slice(0, 8);
+        }
+
+        function dispatchFieldUpdate(input) {
+            if (!input) {
+                return;
+            }
+
+            input.dispatchEvent(new Event("input", { bubbles: true }));
+            input.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+
+        function setCountryFromAres(countryName) {
+            if (!countryInput) {
+                return;
+            }
+
+            const value = countryName || "Česká republika";
+
+            if (countryInput.tagName === "SELECT") {
+                const normalizedCountry = value.trim().toLocaleLowerCase("cs-CZ");
+
+                const matchingOption = Array.from(countryInput.options).find(function (option) {
+                    const optionText = option.textContent.trim().toLocaleLowerCase("cs-CZ");
+                    const optionValue = option.value.trim().toLocaleLowerCase("cs-CZ");
+
+                    return optionText === normalizedCountry || optionValue === normalizedCountry;
+                });
+
+                if (matchingOption) {
+                    countryInput.value = matchingOption.value;
+                    dispatchFieldUpdate(countryInput);
+                }
+
+                return;
+            }
+
+            countryInput.value = value;
+            dispatchFieldUpdate(countryInput);
+        }
+
+        function fillBillingFromAres(company) {
+            const fieldValues = [
+                [dicInput, company.dic || ""],
+                [companyNameInput, company.name || ""],
+                [streetInput, company.street || ""],
+                [cityInput, company.city || ""],
+                [zipCodeInput, company.postal_code || ""]
+            ];
+
+            fieldValues.forEach(function ([input, value]) {
+                if (!input) {
+                    return;
+                }
+
+                input.value = value;
+                input.classList.remove("field-error");
+                dispatchFieldUpdate(input);
+            });
+
+            setCountryFromAres(company.country || "Česká republika");
+            clearValidationMessage(billingErrorMessage);
+            saveOrderDraft();
+        }
+
+        async function loadCompanyFromAres() {
+            if (!icoInput || !loadAresButton) {
+                return;
+            }
+
+            const ico = normalizeIco(icoInput.value);
+            icoInput.value = ico;
+            icoInput.classList.remove("field-error");
+
+            if (ico.length !== 8) {
+                icoInput.classList.add("field-error");
+                setAresStatus("IČO musí obsahovat přesně 8 číslic.", "error");
+                icoInput.focus();
+                return;
+            }
+
+            if (aresRequestController) {
+                aresRequestController.abort();
+            }
+
+            aresRequestController = new AbortController();
+
+            const originalButtonText = loadAresButton.textContent;
+            loadAresButton.disabled = true;
+            loadAresButton.textContent = "Načítám…";
+
+            icoInput.classList.add("ares-loading");
+            icoInput.setAttribute("aria-busy", "true");
+            setAresStatus("Načítám údaje z ARES…", "loading");
+
+            try {
+                const response = await fetch(`/api/ares/${encodeURIComponent(ico)}/`, {
+                    method: "GET",
+                    headers: {
+                        "Accept": "application/json",
+                        "X-Requested-With": "XMLHttpRequest"
+                    },
+                    signal: aresRequestController.signal
+                });
+
+                let data;
+
+                try {
+                    data = await response.json();
+                } catch (error) {
+                    throw new Error("Server nevrátil platnou odpověď.");
+                }
+
+                if (!response.ok || !data.success || !data.company) {
+                    throw new Error(
+                        data.message || "Subjekt se nepodařilo v ARES načíst."
+                    );
+                }
+
+                fillBillingFromAres(data.company);
+                setAresStatus("Fakturační údaje byly doplněny z ARES.", "success");
+            } catch (error) {
+                if (error.name === "AbortError") {
+                    return;
+                }
+
+                console.error("Chyba při načítání ARES:", error);
+
+                setAresStatus(
+                    error.message || "ARES je momentálně nedostupný. Údaje vyplňte ručně.",
+                    "error"
+                );
+            } finally {
+                icoInput.classList.remove("ares-loading");
+                icoInput.removeAttribute("aria-busy");
+                loadAresButton.disabled = false;
+                loadAresButton.textContent = originalButtonText;
+                aresRequestController = null;
+            }
+        }
+
+        if (icoInput) {
+            icoInput.setAttribute("inputmode", "numeric");
+            icoInput.setAttribute("autocomplete", "organization");
+            icoInput.setAttribute("maxlength", "8");
+
+            icoInput.addEventListener("input", function () {
+                const normalizedValue = normalizeIco(icoInput.value);
+
+                if (icoInput.value !== normalizedValue) {
+                    icoInput.value = normalizedValue;
+                }
+
+                icoInput.classList.remove("field-error");
+                setAresStatus("");
+            });
+
+            icoInput.addEventListener("keydown", function (event) {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    loadCompanyFromAres();
+                }
+            });
+        }
+
+        if (loadAresButton) {
+            loadAresButton.addEventListener("click", loadCompanyFromAres);
+        }
 
         function openLegalModal(modalId) {
             const modal = document.getElementById(modalId);
@@ -867,7 +1263,12 @@
                 ["street", "ulice"],
                 ["city", "město"],
                 ["zip_code", "PSČ"],
-                ["country", "země"]
+                ["country", "země"],
+                ["contact_first_name", "jméno kontaktní osoby"],
+                ["contact_last_name", "příjmení kontaktní osoby"],
+                ["contact_phone_prefix", "telefonní předvolba"],
+                ["contact_phone", "telefonní číslo"],
+                ["contact_email", "e-mail kontaktní osoby"]
             ];
 
             requiredBillingFields.forEach(function ([name, label]) {
@@ -889,6 +1290,24 @@
                     input.classList.remove("field-error");
                 }
             });
+
+            const contactEmailInput = document.querySelector(
+                '[name="contact_email"]'
+            );
+
+            if (
+                contactEmailInput &&
+                contactEmailInput.value.trim() &&
+                !contactEmailInput.validity.valid
+            ) {
+                contactEmailInput.classList.add("field-error");
+                messages.push("E-mail kontaktní osoby nemá platný formát.");
+                isValid = false;
+
+                if (!firstInvalidInput) {
+                    firstInvalidInput = contactEmailInput;
+                }
+            }
 
             if (!isValid) {
                 showValidationMessage(
@@ -932,6 +1351,12 @@
             finalParticipantCount.textContent = String(participantCount);
             finalOrderTotal.textContent = formatPrice(totalVat);
 
+            const countrySelect = document.querySelector('[name="country"]');
+
+            const countryDisplayValue = countrySelect
+                ? countrySelect.options[countrySelect.selectedIndex]?.textContent.trim() || ""
+                : "";
+
             const billingRows = [
                 ["IČO", getInputValue("ico")],
                 ["DIČ", getInputValue("dic")],
@@ -939,7 +1364,16 @@
                 ["Ulice", getInputValue("street")],
                 ["Město", getInputValue("city")],
                 ["PSČ", getInputValue("zip_code")],
-                ["Země", getInputValue("country")],
+                ["Země", countryDisplayValue],
+                ["Kontaktní osoba", [
+                    getInputValue("contact_first_name"),
+                    getInputValue("contact_last_name")
+                ].filter(Boolean).join(" ")],
+                ["Telefon", [
+                    getInputValue("contact_phone_prefix"),
+                    getInputValue("contact_phone")
+                ].filter(Boolean).join(" ")],
+                ["Kontaktní e-mail", getInputValue("contact_email")],
                 ["Poznámka", getInputValue("note")]
             ];
 

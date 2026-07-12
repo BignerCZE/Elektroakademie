@@ -1,31 +1,44 @@
 import random
+import re
 from datetime import date
 from io import BytesIO
 
+import requests
 from django.conf import settings
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, login
 from django.contrib.auth.decorators import login_required
-from django.db.models import Max
+from django.db import transaction
+from django.db.models import Max, Q
 from django.forms import formset_factory
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import get_template
+from django.urls import reverse
 from django.utils import timezone
+from django.views.decorators.http import require_GET
 from xhtml2pdf import pisa
 
-from .forms import BillingForm, ParticipantForm
+from .forms import (
+    BillingForm,
+    ParticipantActivationForm,
+    ParticipantForm,
+)
 from .models import (
     Choice,
     Course,
     Order,
     OrderParticipant,
+    ParticipantProfile,
     Payment,
     Question,
     QuizAttempt,
     QuizAttemptQuestion,
 )
+from .services import generate_registration_number
+
 
 User = get_user_model()
+
 
 
 COURSE_PRICES = {
@@ -119,44 +132,49 @@ def register(request):
                 * participant_count
             )
 
-            order = Order.objects.create(
-                course_type=selected_course,
-                total_price=total_price,
-                status="pending_payment",
-                ico=billing_form.cleaned_data.get("ico", ""),
-                dic=billing_form.cleaned_data.get("dic", ""),
-                company_name=billing_form.cleaned_data["company_name"],
-                street=billing_form.cleaned_data["street"],
-                city=billing_form.cleaned_data["city"],
-                zip_code=billing_form.cleaned_data["zip_code"],
-                country=billing_form.cleaned_data["country"],
-                note=billing_form.cleaned_data.get("note", ""),
-            )
-
-            for participant in participants:
-                OrderParticipant.objects.create(
-                    order=order,
-                    first_name=participant["first_name"],
-                    last_name=participant["last_name"],
-                    email=participant["email"],
+            with transaction.atomic():
+                order = Order.objects.create(
+                    course_type=selected_course,
+                    total_price=total_price,
+                    status="pending_payment",
+                    ico=billing_form.cleaned_data.get("ico", ""),
+                    dic=billing_form.cleaned_data.get("dic", ""),
+                    company_name=billing_form.cleaned_data[
+                        "company_name"
+                    ],
+                    street=billing_form.cleaned_data["street"],
+                    city=billing_form.cleaned_data["city"],
+                    zip_code=billing_form.cleaned_data["zip_code"],
+                    country=billing_form.cleaned_data["country"],
+                    contact_first_name=billing_form.cleaned_data[
+                        "contact_first_name"
+                    ],
+                    contact_last_name=billing_form.cleaned_data[
+                        "contact_last_name"
+                    ],
+                    contact_phone_prefix=billing_form.cleaned_data[
+                        "contact_phone_prefix"
+                    ],
+                    contact_phone=billing_form.cleaned_data[
+                        "contact_phone"
+                    ],
+                    contact_email=billing_form.cleaned_data[
+                        "contact_email"
+                    ],
+                    note=billing_form.cleaned_data.get("note", ""),
                 )
 
-            first_participant = participants[0]
-            email = first_participant["email"]
-
-            user, created = User.objects.get_or_create(
-                email=email,
-                defaults={
-                    "username": email,
-                    "first_name": first_participant["first_name"],
-                    "last_name": first_participant["last_name"],
-                    "is_active": True,
-                },
-            )
-
-            if created:
-                user.set_unusable_password()
-                user.save()
+                OrderParticipant.objects.bulk_create(
+                    [
+                        OrderParticipant(
+                            order=order,
+                            first_name=participant["first_name"],
+                            last_name=participant["last_name"],
+                            email=participant["email"],
+                        )
+                        for participant in participants
+                    ]
+                )
 
             return redirect(
                 "order_payment_simulation",
@@ -179,6 +197,99 @@ def register(request):
     )
 
 
+@require_GET
+def ares_company_detail(request, ico):
+    ico = re.sub(r"\D", "", ico)
+
+    if len(ico) != 8:
+        return JsonResponse(
+            {
+                "success": False,
+                "message": "IČO musí obsahovat přesně 8 číslic.",
+            },
+            status=400,
+        )
+
+    url = (
+        "https://ares.gov.cz/"
+        f"ekonomicke-subjekty-v-be/rest/ekonomicke-subjekty/{ico}"
+    )
+
+    try:
+        response = requests.get(
+            url,
+            timeout=8,
+            headers={
+                "Accept": "application/json",
+                "User-Agent": "Elektroakademie/1.0",
+            },
+        )
+    except requests.RequestException:
+        return JsonResponse(
+            {
+                "success": False,
+                "message": "ARES je momentálně nedostupný.",
+            },
+            status=503,
+        )
+
+    if response.status_code == 404:
+        return JsonResponse(
+            {
+                "success": False,
+                "message": "Subjekt s tímto IČO nebyl nalezen.",
+            },
+            status=404,
+        )
+
+    if not response.ok:
+        return JsonResponse(
+            {
+                "success": False,
+                "message": "Nepodařilo se načíst údaje z ARES.",
+            },
+            status=502,
+        )
+
+    data = response.json()
+    sidlo = data.get("sidlo") or {}
+
+    street = sidlo.get("nazevUlice") or sidlo.get("nazevCastiObce") or ""
+
+    house_number = sidlo.get("cisloDomovni")
+    orientation_number = sidlo.get("cisloOrientacni")
+
+    number_parts = []
+
+    if house_number:
+        number_parts.append(str(house_number))
+
+    if orientation_number:
+        if number_parts:
+            number_parts[-1] += f"/{orientation_number}"
+        else:
+            number_parts.append(str(orientation_number))
+
+    address_line = " ".join(
+        part for part in [street, " ".join(number_parts)] if part
+    )
+
+    return JsonResponse(
+        {
+            "success": True,
+            "company": {
+                "ico": data.get("ico", ico),
+                "dic": data.get("dic", ""),
+                "name": data.get("obchodniJmeno", ""),
+                "street": address_line,
+                "city": sidlo.get("nazevObce", ""),
+                "postal_code": str(sidlo.get("psc") or ""),
+                "country": sidlo.get("nazevStatu", "Česká republika"),
+            },
+        }
+    )
+
+
 def order_payment_simulation(request, order_id):
     order = get_object_or_404(
         Order,
@@ -195,21 +306,262 @@ def order_payment_simulation(request, order_id):
 
 
 def order_payment_success(request, order_id):
-    order = get_object_or_404(
-        Order,
-        id=order_id,
-    )
+    with transaction.atomic():
+        order = get_object_or_404(
+            Order.objects.select_for_update(),
+            id=order_id,
+        )
 
-    if order.status != "paid":
-        order.status = "paid"
-        order.paid_at = timezone.now()
-        order.save()
+        if order.status != "paid":
+            order.status = "paid"
+            order.paid_at = timezone.now()
+            order.save(
+                update_fields=[
+                    "status",
+                    "paid_at",
+                ]
+            )
+
+        participants = list(
+            order.participants
+            .select_for_update()
+            .order_by("id")
+        )
+
+        for participant in participants:
+            if participant.registration_number:
+                continue
+
+            participant.registration_number = (
+                generate_registration_number(
+                    order.course_type
+                )
+            )
+            participant.save(
+                update_fields=[
+                    "registration_number",
+                ]
+            )
+
+    activation_links = [
+        {
+            "participant": participant,
+            "url": request.build_absolute_uri(
+                reverse(
+                    "participant_activation",
+                    kwargs={
+                        "token": participant.activation_token,
+                    },
+                )
+            ),
+        }
+        for participant in participants
+    ]
 
     return render(
         request,
         "registration/order_payment_success.html",
         {
             "order": order,
+            "participants": participants,
+            "activation_links": activation_links,
+        },
+    )
+
+
+def participant_activation(request, token):
+    participant = get_object_or_404(
+        OrderParticipant.objects.select_related(
+            "order",
+            "user",
+        ),
+        activation_token=token,
+    )
+
+    if participant.activation_completed_at:
+        return render(
+            request,
+            "registration/participant_activation_used.html",
+            {
+                "participant": participant,
+            },
+        )
+
+    if participant.order.status != "paid":
+        return render(
+            request,
+            "registration/participant_activation_unavailable.html",
+            {
+                "participant": participant,
+            },
+            status=403,
+        )
+
+    country_names = {
+        "CZ": "Česká republika",
+        "SK": "Slovensko",
+    }
+    employer_country = country_names.get(
+        participant.order.country,
+        participant.order.country,
+    )
+
+    employer_address = ", ".join(
+        part
+        for part in [
+            participant.order.street,
+            " ".join(
+                part
+                for part in [
+                    participant.order.zip_code,
+                    participant.order.city,
+                ]
+                if part
+            ),
+            employer_country,
+        ]
+        if part
+    )
+
+    initial_data = {
+        "employer_name": participant.order.company_name,
+        "employer_address": employer_address,
+    }
+
+    temporary_user = User(
+        username=participant.email,
+        email=participant.email,
+        first_name=participant.first_name,
+        last_name=participant.last_name,
+    )
+
+    if request.method == "POST":
+        form = ParticipantActivationForm(
+            request.POST,
+            user=temporary_user,
+        )
+
+        if form.is_valid():
+            with transaction.atomic():
+                participant = (
+                    OrderParticipant.objects
+                    .select_for_update()
+                    .select_related("order", "user")
+                    .get(pk=participant.pk)
+                )
+
+                if participant.activation_completed_at:
+                    return redirect(
+                        "participant_activation",
+                        token=participant.activation_token,
+                    )
+
+                if participant.order.status != "paid":
+                    return render(
+                        request,
+                        "registration/participant_activation_unavailable.html",
+                        {
+                            "participant": participant,
+                        },
+                        status=403,
+                    )
+
+                existing_user = (
+                    User.objects
+                    .filter(
+                        Q(email__iexact=participant.email)
+                        | Q(username__iexact=participant.email)
+                    )
+                    .order_by("id")
+                    .first()
+                )
+
+                if existing_user:
+                    user = existing_user
+
+                    if (
+                        participant.user_id
+                        and participant.user_id != user.id
+                    ):
+                        form.add_error(
+                            None,
+                            "Tento účastník je již propojen s jiným účtem.",
+                        )
+                        return render(
+                            request,
+                            "registration/participant_activation.html",
+                            {
+                                "form": form,
+                                "participant": participant,
+                            },
+                        )
+                else:
+                    user = User(
+                        username=participant.email,
+                        email=participant.email,
+                    )
+
+                user.username = participant.email
+                user.email = participant.email
+                user.first_name = participant.first_name
+                user.last_name = participant.last_name
+                user.is_active = True
+                user.is_paid = True
+                user.set_password(
+                    form.cleaned_data["password1"]
+                )
+                user.save()
+
+                ParticipantProfile.objects.update_or_create(
+                    participant=participant,
+                    defaults={
+                        "birth_date": form.cleaned_data[
+                            "birth_date"
+                        ],
+                        "birth_place": form.cleaned_data[
+                            "birth_place"
+                        ],
+                        "permanent_address": form.cleaned_data[
+                            "permanent_address"
+                        ],
+                        "employer_name": form.cleaned_data[
+                            "employer_name"
+                        ],
+                        "employer_address": form.cleaned_data[
+                            "employer_address"
+                        ],
+                    },
+                )
+
+                participant.user = user
+                participant.activation_completed_at = timezone.now()
+                participant.save(
+                    update_fields=[
+                        "user",
+                        "activation_completed_at",
+                    ]
+                )
+
+            login(
+                request,
+                user,
+                backend="django.contrib.auth.backends.ModelBackend",
+            )
+
+            return redirect("dashboard")
+
+    else:
+        form = ParticipantActivationForm(
+            initial=initial_data,
+            user=temporary_user,
+        )
+
+    return render(
+        request,
+        "registration/participant_activation.html",
+        {
+            "form": form,
+            "participant": participant,
         },
     )
 

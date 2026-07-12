@@ -775,3 +775,251 @@ body.legal-modal-open {
     padding: 12px 16px;
     transition: all 0.2s ease;
 }
+
+/* ===== ARES ===== */
+
+.ares-input-group {
+    display: flex;
+    gap: 12px;
+    align-items: stretch;
+}
+
+.ares-input-group input,
+.ares-input-group select {
+    flex: 1;
+}
+
+.ares-button {
+    flex-shrink: 0;
+    min-width: 170px;
+    white-space: nowrap;
+}
+
+.ares-status {
+    display: block;
+    margin-top: 8px;
+    min-height: 20px;
+    font-size: 0.9rem;
+}
+
+.ares-status.loading {
+    color: #0d6efd;
+}
+
+.ares-status.success {
+    color: #198754;
+}
+
+.ares-status.error {
+    color: #dc3545;
+}
+
+.activation-card {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.activation-header {
+    margin-bottom: 28px;
+}
+
+.activation-header h1 {
+    margin-bottom: 8px;
+}
+
+.activation-section {
+    margin-top: 28px;
+    padding-top: 24px;
+    border-top: 1px solid #d8deea;
+}
+
+.activation-section h2 {
+    margin: 0 0 18px;
+}
+
+.activation-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.activation-field-full {
+    grid-column: 1 / -1;
+}
+
+.activation-form input[readonly] {
+    background: #eef2f7;
+    color: #526078;
+    cursor: not-allowed;
+}
+
+@media (max-width: 700px) {
+    .activation-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .activation-field-full {
+        grid-column: auto;
+    }
+}
+
+/* =========================================================
+   Aktivace účtu
+   ========================================================= */
+
+.activation-page {
+    padding-top: 22px;
+    padding-bottom: 22px;
+}
+
+.activation-card {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 26px 30px;
+}
+
+.activation-header {
+    margin-bottom: 18px;
+}
+
+.activation-header h1 {
+    margin: 0 0 4px;
+    font-size: 2rem;
+    line-height: 1.1;
+}
+
+.activation-header p {
+    margin: 0;
+    color: #5f6f89;
+}
+
+.activation-layout {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.activation-section {
+    padding: 18px;
+    border: 1px solid #d8deea;
+    border-radius: 16px;
+    background: #ffffff;
+}
+
+.activation-section--full {
+    grid-column: 1 / -1;
+}
+
+.activation-section h2 {
+    margin: 0 0 14px;
+    font-size: 1.2rem;
+    line-height: 1.2;
+}
+
+.activation-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.activation-field {
+    min-width: 0;
+}
+
+.activation-field--full {
+    grid-column: 1 / -1;
+}
+
+.activation-field label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #12233f;
+}
+
+.activation-field input,
+.activation-field select,
+.activation-field textarea {
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    background: #ffffff;
+    font: inherit;
+    color: #12233f;
+    box-sizing: border-box;
+}
+
+.activation-field input:focus,
+.activation-field select:focus,
+.activation-field textarea:focus {
+    border-color: #1263eb;
+    outline: 3px solid rgba(18, 99, 235, 0.12);
+}
+
+.activation-field .readonly-field,
+.activation-field input[readonly] {
+    border-color: #d2d8e1;
+    background: #e9edf3;
+    color: #667085;
+    cursor: not-allowed;
+    box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.08);
+}
+
+.readonly-note {
+    display: block;
+    margin-top: 4px;
+    font-size: 0.76rem;
+    color: #7a8799;
+}
+
+.activation-field .errorlist {
+    margin: 5px 0 0;
+    padding-left: 18px;
+    font-size: 0.82rem;
+    color: #c62828;
+}
+
+.activation-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 18px;
+}
+
+.activation-actions .button-primary {
+    min-width: 210px;
+}
+
+@media (max-width: 900px) {
+    .activation-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .activation-section--full {
+        grid-column: auto;
+    }
+}
+
+@media (max-width: 640px) {
+    .activation-card {
+        padding: 20px 16px;
+    }
+
+    .activation-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .activation-field--full {
+        grid-column: auto;
+    }
+
+    .activation-actions {
+        justify-content: stretch;
+    }
+
+    .activation-actions .button-primary {
+        width: 100%;
+    }
+}

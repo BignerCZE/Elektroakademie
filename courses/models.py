@@ -1,3 +1,5 @@
+import uuid
+
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
@@ -27,13 +29,22 @@ class QuestionCategory(models.Model):
         related_name="question_categories",
         verbose_name="Kurz",
     )
-    name = models.CharField(max_length=255, verbose_name="Název kategorie")
-    slug = models.SlugField(max_length=100, verbose_name="Slug")
+    name = models.CharField(
+        max_length=255,
+        verbose_name="Název kategorie",
+    )
+    slug = models.SlugField(
+        max_length=100,
+        verbose_name="Slug",
+    )
     questions_per_quiz = models.PositiveIntegerField(
         default=1,
         verbose_name="Počet otázek v testu",
     )
-    order = models.PositiveIntegerField(default=0, verbose_name="Pořadí")
+    order = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Pořadí",
+    )
 
     class Meta:
         ordering = ["course", "order", "name"]
@@ -46,7 +57,10 @@ class QuestionCategory(models.Model):
 
 
 class Question(models.Model):
-    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.CASCADE,
+    )
     category = models.ForeignKey(
         QuestionCategory,
         on_delete=models.SET_NULL,
@@ -62,7 +76,10 @@ class Question(models.Model):
 
 
 class Choice(models.Model):
-    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    question = models.ForeignKey(
+        Question,
+        on_delete=models.CASCADE,
+    )
     text = models.CharField(max_length=255)
     is_correct = models.BooleanField(default=False)
 
@@ -71,9 +88,18 @@ class Choice(models.Model):
 
 
 class Payment(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    course = models.ForeignKey(Course, on_delete=models.CASCADE)
-    amount = models.DecimalField(max_digits=6, decimal_places=2)
+    user = models.ForeignKey(
+        CustomUser,
+        on_delete=models.CASCADE,
+    )
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.CASCADE,
+    )
+    amount = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+    )
     is_successful = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -93,7 +119,10 @@ class Order(models.Model):
         ("paid", "Zaplaceno"),
     ]
 
-    course_type = models.CharField(max_length=10, choices=COURSE_CHOICES)
+    course_type = models.CharField(
+        max_length=10,
+        choices=COURSE_CHOICES,
+    )
     total_price = models.PositiveIntegerField(default=0)
     status = models.CharField(
         max_length=30,
@@ -101,20 +130,95 @@ class Order(models.Model):
         default="pending_payment",
     )
 
-    ico = models.CharField(max_length=20, blank=True)
-    dic = models.CharField(max_length=20, blank=True)
-    company_name = models.CharField(max_length=255)
-    street = models.CharField(max_length=255)
-    city = models.CharField(max_length=120)
-    zip_code = models.CharField(max_length=20)
-    country = models.CharField(max_length=120)
-    note = models.TextField(blank=True)
+    ico = models.CharField(
+        max_length=20,
+        blank=True,
+        verbose_name="IČO",
+    )
+    dic = models.CharField(
+        max_length=20,
+        blank=True,
+        verbose_name="DIČ",
+    )
+    company_name = models.CharField(
+        max_length=255,
+        verbose_name="Název firmy / jméno objednatele",
+    )
+    street = models.CharField(
+        max_length=255,
+        verbose_name="Ulice a číslo",
+    )
+    city = models.CharField(
+        max_length=120,
+        verbose_name="Město",
+    )
+    zip_code = models.CharField(
+        max_length=20,
+        verbose_name="PSČ",
+    )
+    country = models.CharField(
+        max_length=120,
+        default="Česká republika",
+        verbose_name="Země",
+    )
+
+    contact_first_name = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+        verbose_name="Jméno kontaktní osoby",
+    )
+
+    contact_last_name = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+        verbose_name="Příjmení kontaktní osoby",
+    )
+
+    contact_phone_prefix = models.CharField(
+        max_length=8,
+        default="+420",
+        verbose_name="Telefonní předvolba",
+    )
+
+    contact_phone = models.CharField(
+        max_length=30,
+        blank=True,
+        default="",
+        verbose_name="Telefonní číslo",
+    )
+
+    contact_email = models.EmailField(
+        blank=True,
+        default="",
+        verbose_name="E-mail kontaktní osoby",
+    )
+
+    note = models.TextField(
+        blank=True,
+        verbose_name="Poznámka",
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
-    paid_at = models.DateTimeField(null=True, blank=True)
+    paid_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
 
     def __str__(self):
-        return f"Objednávka #{self.id} – {self.get_course_type_display()}"
+        return (
+            f"Objednávka #{self.id} – "
+            f"{self.get_course_type_display()}"
+        )
+
+    @property
+    def contact_full_name(self):
+        return f"{self.contact_first_name} {self.contact_last_name}".strip()
+
+    @property
+    def contact_full_phone(self):
+        return f"{self.contact_phone_prefix} {self.contact_phone}".strip()
 
 
 class OrderParticipant(models.Model):
@@ -122,13 +226,154 @@ class OrderParticipant(models.Model):
         Order,
         on_delete=models.CASCADE,
         related_name="participants",
+        verbose_name="Objednávka",
     )
-    first_name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length=100)
-    email = models.EmailField()
+
+    user = models.ForeignKey(
+        CustomUser,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="order_participations",
+        verbose_name="Uživatelský účet",
+    )
+
+    first_name = models.CharField(
+        max_length=100,
+        verbose_name="Jméno",
+    )
+
+    last_name = models.CharField(
+        max_length=100,
+        verbose_name="Příjmení",
+    )
+
+    email = models.EmailField(
+        verbose_name="E-mail",
+    )
+
+    registration_number = models.CharField(
+        max_length=30,
+        unique=True,
+        null=True,
+        blank=True,
+        verbose_name="Evidenční číslo",
+    )
+
+    activation_token = models.UUIDField(
+        default=uuid.uuid4,
+        unique=True,
+        editable=False,
+        verbose_name="Aktivační token",
+    )
+
+    activation_sent_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Datum odeslání aktivačního odkazu",
+    )
+
+    activation_completed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Datum dokončení aktivace",
+    )
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
+    
+
+class RegistrationNumberSequence(models.Model):
+    course_type = models.CharField(
+        max_length=10,
+        choices=Order.COURSE_CHOICES,
+        verbose_name="Typ kurzu",
+    )
+
+    year = models.PositiveIntegerField(
+        verbose_name="Rok",
+    )
+
+    month = models.PositiveSmallIntegerField(
+        verbose_name="Měsíc",
+    )
+
+    last_number = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Poslední pořadové číslo",
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    "course_type",
+                    "year",
+                    "month",
+                ],
+                name="unique_registration_sequence_month",
+            ),
+        ]
+        verbose_name = "Řada evidenčních čísel"
+        verbose_name_plural = "Řady evidenčních čísel"
+
+    def __str__(self):
+        return (
+            f"§{self.course_type} – "
+            f"{self.year}/{self.month:02d} – "
+            f"{self.last_number}"
+        )
+
+class ParticipantProfile(models.Model):
+    participant = models.OneToOneField(
+        OrderParticipant,
+        on_delete=models.CASCADE,
+        related_name="profile",
+        verbose_name="Účastník",
+    )
+
+    birth_date = models.DateField(
+        verbose_name="Datum narození",
+    )
+
+    birth_place = models.CharField(
+        max_length=150,
+        verbose_name="Místo narození",
+    )
+
+    permanent_address = models.CharField(
+        max_length=255,
+        verbose_name="Trvalé bydliště",
+    )
+
+    employer_name = models.CharField(
+        max_length=255,
+        blank=True,
+        verbose_name="Zaměstnavatel",
+    )
+
+    employer_address = models.CharField(
+        max_length=255,
+        blank=True,
+        verbose_name="Adresa zaměstnavatele",
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Vytvořeno",
+    )
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Profil účastníka"
+        verbose_name_plural = "Profily účastníků"
+
+    def __str__(self):
+        return (
+            f"{self.participant.registration_number} – "
+            f"{self.participant.first_name} "
+            f"{self.participant.last_name}"
+        )
 
 
 class QuizAttempt(models.Model):
@@ -145,7 +390,6 @@ class QuizAttempt(models.Model):
         on_delete=models.CASCADE,
         related_name="quiz_attempts",
     )
-
     course = models.ForeignKey(
         Course,
         on_delete=models.CASCADE,
@@ -155,7 +399,10 @@ class QuizAttempt(models.Model):
     attempt_number = models.PositiveIntegerField(default=1)
 
     started_at = models.DateTimeField(auto_now_add=True)
-    submitted_at = models.DateTimeField(null=True, blank=True)
+    submitted_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
 
     status = models.CharField(
         max_length=20,
@@ -173,7 +420,10 @@ class QuizAttempt(models.Model):
         blank=True,
     )
 
-    passed = models.BooleanField(null=True, blank=True)
+    passed = models.BooleanField(
+        null=True,
+        blank=True,
+    )
 
     class Meta:
         ordering = ["-started_at"]
@@ -188,6 +438,7 @@ class QuizAttempt(models.Model):
     def duration(self):
         if self.submitted_at:
             return self.submitted_at - self.started_at
+
         return timezone.now() - self.started_at
 
     @property
@@ -213,7 +464,10 @@ class QuizAttemptQuestion(models.Model):
         on_delete=models.CASCADE,
         related_name="attempt_questions",
     )
-    question = models.ForeignKey(Question, on_delete=models.PROTECT)
+    question = models.ForeignKey(
+        Question,
+        on_delete=models.PROTECT,
+    )
     selected_choice = models.ForeignKey(
         Choice,
         on_delete=models.SET_NULL,
