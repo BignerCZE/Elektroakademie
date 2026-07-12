@@ -2,13 +2,20 @@ from django import forms
 from django.contrib.auth import password_validation
 from django.core.exceptions import ValidationError
 
+from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
+from django.db.models import Q
+from django.forms import BaseFormSet
+
+User = get_user_model()
+
 class ParticipantForm(forms.Form):
     first_name = forms.CharField(
         label="Jméno",
-        max_length=100,
+        max_length=150,
         widget=forms.TextInput(
             attrs={
-                "placeholder": "Jan",
+                "placeholder": "Jméno",
                 "autocomplete": "given-name",
             }
         ),
@@ -16,10 +23,10 @@ class ParticipantForm(forms.Form):
 
     last_name = forms.CharField(
         label="Příjmení",
-        max_length=100,
+        max_length=150,
         widget=forms.TextInput(
             attrs={
-                "placeholder": "Novák",
+                "placeholder": "Příjmení",
                 "autocomplete": "family-name",
             }
         ),
@@ -29,12 +36,43 @@ class ParticipantForm(forms.Form):
         label="E-mail",
         widget=forms.EmailInput(
             attrs={
-                "placeholder": "jan.novak@email.cz",
+                "placeholder": "E-mail",
                 "autocomplete": "email",
             }
         ),
     )
 
+class BaseParticipantFormSet(BaseFormSet):
+    def clean(self):
+        super().clean()
+
+        if any(self.errors):
+            return
+
+        used_emails = set()
+
+        for form in self.forms:
+            if not form.cleaned_data:
+                continue
+
+            email = form.cleaned_data.get("email")
+
+            if not email:
+                continue
+
+            normalized_email = email.strip().lower()
+
+            if normalized_email in used_emails:
+                form.add_error(
+                    "email",
+                    (
+                        "Tato e-mailová adresa je v objednávce "
+                        "uvedena vícekrát."
+                    ),
+                )
+                continue
+
+            used_emails.add(normalized_email)
 
 class BillingForm(forms.Form):
     ico = forms.CharField(

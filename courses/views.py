@@ -1,5 +1,7 @@
 import random
 import re
+import json
+
 from datetime import date
 from io import BytesIO
 
@@ -15,14 +17,16 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import get_template
 from django.urls import reverse
 from django.utils import timezone
-from django.views.decorators.http import require_GET
+from django.views.decorators.http import require_GET, require_POST
 from xhtml2pdf import pisa
 
 from .forms import (
+    BaseParticipantFormSet,
     BillingForm,
     ParticipantActivationForm,
     ParticipantForm,
 )
+
 from .models import (
     Choice,
     Course,
@@ -102,7 +106,8 @@ def course_detail(request, course_id):
 def register(request):
     ParticipantFormSet = formset_factory(
         ParticipantForm,
-        extra=1,
+        formset=BaseParticipantFormSet,
+        extra=0,
         min_num=1,
         validate_min=True,
     )
@@ -170,7 +175,7 @@ def register(request):
                             order=order,
                             first_name=participant["first_name"],
                             last_name=participant["last_name"],
-                            email=participant["email"],
+                            email=participant["email"].strip().lower(),
                         )
                         for participant in participants
                     ]
@@ -286,6 +291,78 @@ def ares_company_detail(request, ico):
                 "postal_code": str(sidlo.get("psc") or ""),
                 "country": sidlo.get("nazevStatu", "Česká republika"),
             },
+        }
+    )
+
+@require_POST
+def check_participant_emails(request):
+    try:
+        data = json.loads(request.body)
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return JsonResponse(
+            {
+                "success": False,
+                "message": "Neplatná data požadavku.",
+            },
+            status=400,
+        )
+
+    submitted_emails = data.get("emails", [])
+
+    if not isinstance(submitted_emails, list):
+        return JsonResponse(
+            {
+                "success": False,
+                "message": "Neplatný seznam e-mailových adres.",
+            },
+            status=400,
+        )
+
+    normalized_emails = []
+    duplicate_emails = set()
+    seen_emails = set()
+
+    for submitted_email in submitted_emails:
+        if not isinstance(submitted_email, str):
+            continue
+
+        normalized_email = submitted_email.strip().lower()
+
+        if not normalized_email:
+            continue
+
+        normalized_emails.append(normalized_email)
+
+        if normalized_email in seen_emails:
+            duplicate_emails.add(normalized_email)
+        else:
+            seen_emails.add(normalized_email)
+
+    existing_users = User.objects.filter(
+        Q(email__in=normalized_emails)
+        | Q(username__in=normalized_emails)
+    ).values_list(
+        "email",
+        "username",
+    )
+
+    occupied_emails = set()
+
+    for user_email, username in existing_users:
+        normalized_user_email = (user_email or "").strip().lower()
+        normalized_username = (username or "").strip().lower()
+
+        if normalized_user_email in seen_emails:
+            occupied_emails.add(normalized_user_email)
+
+        if normalized_username in seen_emails:
+            occupied_emails.add(normalized_username)
+
+    return JsonResponse(
+        {
+            "success": True,
+            "occupied_emails": sorted(occupied_emails),
+            "duplicate_emails": sorted(duplicate_emails),
         }
     )
 
@@ -466,43 +543,43 @@ def participant_activation(request, token):
                         status=403,
                     )
 
+                normalized_email = participant.email.strip().lower()
+
                 existing_user = (
                     User.objects
                     .filter(
-                        Q(email__iexact=participant.email)
-                        | Q(username__iexact=participant.email)
+                        Q(email__iexact=normalized_email)
+                        | Q(username__iexact=normalized_email)
                     )
-                    .order_by("id")
                     .first()
                 )
 
                 if existing_user:
-                    user = existing_user
-
-                    if (
-                        participant.user_id
-                        and participant.user_id != user.id
-                    ):
-                        form.add_error(
-                            None,
-                            "Tento účastník je již propojen s jiným účtem.",
-                        )
-                        return render(
-                            request,
-                            "registration/participant_activation.html",
-                            {
-                                "form": form,
-                                "participant": participant,
-                            },
-                        )
-                else:
-                    user = User(
-                        username=participant.email,
-                        email=participant.email,
+                    form.add_error(
+                        None,
+                        (
+                            "Účet s touto e-mailovou adresou již existuje. "
+                            "Aktivaci proto nelze dokončit."
+                        ),
                     )
 
-                user.username = participant.email
-                user.email = participant.email
+                    return render(
+                        request,
+                        "registration/participant_activation.html",
+                        {
+                            "form": form,
+                            "participant": participant,
+                        },
+                        status=409,
+                    )
+
+                user = User(
+                    username=normalized_email,
+                    email=normalized_email,
+                )
+
+                user.username = normalized_email
+                user.email = normalized_email
                 user.first_name = participant.first_name
                 user.last_name = participant.last_name
                 user.is_active = True

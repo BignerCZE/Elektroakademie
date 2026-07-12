@@ -13,7 +13,14 @@ urlpatterns = [
 
     # registrace (bez hesla)
     path("registrace/", views.register, name="register"),
+    path(
+        "registrace/kontrola-emailu/",
+        views.check_participant_emails,
+        name="check_participant_emails",
+    ),
     path("registrace/odeslano/", views.password_setup_sent, name="password_setup_sent"),
+
+
 
     # nastavení hesla přes e-mail
     path(

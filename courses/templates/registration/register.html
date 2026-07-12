@@ -155,6 +155,123 @@
             grid-template-columns: 90px minmax(0, 1fr);
         }
     }
+
+    .participant-item input.field-error {
+        border-color: #c62828;
+        box-shadow: 0 0 0 1px #c62828;
+    }
+
+    .participant-card {
+        transition:
+            border-color 0.2s ease,
+            background-color 0.2s ease,
+            box-shadow 0.2s ease;
+    }
+
+    .participant-card.participant-card--error {
+        border-color: #d92d20;
+        background: #fff8f7;
+        box-shadow: 0 0 0 1px rgba(217, 45, 32, 0.08);
+    }
+
+    .participant-card.participant-card--error .participant-header h2 {
+        color: #b42318;
+    }
+
+    .participant-email-errors-row {
+        grid-column: 1 / -1;
+        width: 100%;
+        margin-top: 2px;
+    }
+
+    .participant-email-error {
+        width: 100%;
+        padding: 11px 14px;
+        border-left: 4px solid #d92d20;
+        border-radius: 8px;
+        background: #fff1f0;
+        color: #b42318;
+        font-size: 0.9rem;
+        line-height: 1.45;
+    }
+
+    .participant-email-error[hidden] {
+        display: none;
+    }
+
+    .participant-card input.field-error {
+        border-color: #d92d20;
+        box-shadow: 0 0 0 1px #d92d20;
+    }
+
+    .remove-participant-button {
+        width: auto !important;
+        min-width: 0 !important;
+        height: auto !important;
+        min-height: 0 !important;
+
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+
+        margin: 0;
+        padding: 8px 12px;
+
+        border: 1px solid transparent;
+        border-radius: 9px;
+
+        background: transparent;
+        color: #c62828;
+
+        font: inherit;
+        font-size: 0.9rem;
+        font-weight: 700;
+        line-height: 1;
+
+        cursor: pointer;
+        box-shadow: none;
+    }
+
+    .remove-participant-button:hover {
+        border-color: #efb6b2;
+        background: #fff1f0;
+        color: #a61b1b;
+    }
+
+    .remove-participant-button:focus-visible {
+        outline: 3px solid rgba(198, 40, 40, 0.2);
+        outline-offset: 2px;
+    }
+
+    .remove-participant-button[hidden] {
+        display: none !important;
+    }
+
+    .remove-participant-button .remove-participant-icon {
+        width: 18px;
+        height: 18px;
+        flex: 0 0 18px;
+
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    .remove-participant-button .remove-participant-label {
+        display: inline;
+        width: auto;
+        height: auto;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        color: inherit;
+        font: inherit;
+        line-height: inherit;
+    }
 </style>
 {% endblock %}
 
@@ -198,7 +315,9 @@
                 </div>
 
                 <div class="checkout-layout" id="checkout-layout">
-                    <form method="post" class="register-form" id="registration-form">
+                    <form method="post" class="register-form" id="registration-form"
+                        data-participant-server-errors="{{ participant_formset.errors|yesno:'true,false' }}"
+                        data-billing-server-errors="{{ billing_form.errors|yesno:'true,false' }}">
                         {% csrf_token %}
 
                         <input type="hidden" name="selected_course" id="selected-course-input" value="">
@@ -282,15 +401,31 @@
 
                             <div class="checkout-error-message" id="participants-error-message" hidden></div>
 
+                            {% if participant_formset.non_form_errors %}
+                            <div class="checkout-error-message">
+                                {{ participant_formset.non_form_errors }}
+                            </div>
+                            {% endif %}
+
                             <div id="participants-wrapper">
                                 {% for form in participant_formset %}
                                 <section class="participant-card participant-item">
                                     <div class="participant-header">
                                         <h2>Účastník {{ forloop.counter }}</h2>
 
-                                        <button type="button" class="remove-participant-button" hidden>
-                                            <span>×</span>
-                                            Smazat účastníka
+                                        <button type="button" class="remove-participant-button" hidden
+                                            aria-label="Smazat účastníka">
+                                            <svg class="remove-participant-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                                <path d="M4 7h16"></path>
+                                                <path d="M9 7V4h6v3"></path>
+                                                <path d="M7 7l1 13h8l1-13"></path>
+                                                <path d="M10 11v5"></path>
+                                                <path d="M14 11v5"></path>
+                                            </svg>
+
+                                            <span class="remove-participant-label">
+                                                Smazat
+                                            </span>
                                         </button>
                                     </div>
 
@@ -305,9 +440,21 @@
                                             {{ form.last_name.errors }}
                                         </div>
 
-                                        <div class="register-field form-field--full">
+                                        <div class="register-field">
                                             {{ form.email }}
-                                            {{ form.email.errors }}
+                                        </div>
+
+                                        <div class="participant-email-errors-row">
+                                            {% if form.email.errors %}
+                                            <div class="participant-email-error" data-participant-email-error>
+                                                {% for error in form.email.errors %}
+                                                <div>{{ error }}</div>
+                                                {% endfor %}
+                                            </div>
+                                            {% else %}
+                                            <div class="participant-email-error" data-participant-email-error hidden>
+                                            </div>
+                                            {% endif %}
                                         </div>
                                     </div>
                                 </section>
@@ -318,8 +465,6 @@
                                 <button type="button" class="add-person-button" id="add-participant-button">
                                     Přidat další osobu
                                 </button>
-
-
                             </div>
                         </section>
 
@@ -538,8 +683,8 @@
                             <span>Celkem bez DPH</span>
                             <span id="summary-total-no-vat">0 Kč</span>
                         </div>
-                        <button type="button" class="summary-submit-button" id="summary-to-billing-button">
-                            Pokračovat k údajům
+                        <button type="button" class="summary-submit-button" id="participants-to-billing-button">
+                            Pokračovat k fakturačním údajům
                         </button>
 
                         <button type="button" class="summary-submit-button" id="go-to-final-summary-button" hidden>
@@ -592,7 +737,17 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        const ORDER_DRAFT_KEY = "elektroakademie_order_draft";
+        const ORDER_DRAFT_KEY = "elektroakademie_order_draft_v2";
+        const ORDER_DRAFT_KEYS = [
+            "elektroakademie_order_draft",
+            "elektroakademie_order_draft_v2",
+            "elektroakademie_order_draft_v3"
+        ];
+        const registrationForm = document.getElementById("registration-form");
+        const hasParticipantServerErrors =
+            registrationForm.dataset.participantServerErrors === "true";
+        const hasBillingServerErrors =
+            registrationForm.dataset.billingServerErrors === "true";
 
         const courses = {
             "4": {
@@ -701,12 +856,11 @@
         const addButton = document.getElementById("add-participant-button");
         const wrapper = document.getElementById("participants-wrapper");
         const totalFormsInput = document.getElementById("id_participants-TOTAL_FORMS");
-        const nextButton = document.getElementById("next-step-button");
         const goToFinalSummaryButton = document.getElementById("go-to-final-summary-button");
         const summaryPreviousButton = document.getElementById("summary-previous-button");
         const checkoutBackButton = document.getElementById("checkout-back-button");
         const goToParticipantsButton = document.getElementById("go-to-participants-button");
-        const summaryToBillingButton = document.getElementById("summary-to-billing-button");
+        const participantsToBillingButton = document.getElementById("participants-to-billing-button");
         const participantsErrorMessage = document.getElementById("participants-error-message");
         const billingErrorMessage = document.getElementById("billing-error-message");
         const termsAgreement = document.getElementById("terms-agreement");
@@ -990,17 +1144,6 @@
         const summaryTotalVat = document.getElementById("summary-total-vat");
         const summaryTotalNoVat = document.getElementById("summary-total-no-vat");
 
-        const initialParticipants = wrapper.querySelectorAll(".participant-item");
-
-        if (initialParticipants.length > 1) {
-            initialParticipants.forEach(function (participant, index) {
-                if (index > 0) {
-                    participant.remove();
-                }
-            });
-
-            totalFormsInput.value = 1;
-        }
 
         function formatPrice(value) {
             return value.toLocaleString("cs-CZ") + " Kč";
@@ -1030,8 +1173,27 @@
 
         function getOrderDraft() {
             try {
-                return JSON.parse(localStorage.getItem(ORDER_DRAFT_KEY)) || null;
+                const rawDraft = localStorage.getItem(ORDER_DRAFT_KEY);
+
+                if (!rawDraft) {
+                    return null;
+                }
+
+                const draft = JSON.parse(rawDraft);
+
+                if (
+                    !draft
+                    || !draft.selected_course
+                    || !Array.isArray(draft.participants)
+                    || draft.participants.length < 1
+                ) {
+                    localStorage.removeItem(ORDER_DRAFT_KEY);
+                    return null;
+                }
+
+                return draft;
             } catch (error) {
+                localStorage.removeItem(ORDER_DRAFT_KEY);
                 return null;
             }
         }
@@ -1091,6 +1253,15 @@
                 errorList.remove();
             });
 
+            newParticipant.classList.remove("participant-card--error");
+
+            newParticipant
+                .querySelectorAll("[data-participant-email-error]")
+                .forEach(function (errorElement) {
+                    errorElement.textContent = "";
+                    errorElement.hidden = true;
+                });
+
             wrapper.appendChild(newParticipant);
             totalFormsInput.value = formCount + 1;
 
@@ -1114,10 +1285,29 @@
             updateCourseView(draft.selected_course);
 
             if (Array.isArray(draft.participants) && draft.participants.length) {
-                ensureParticipantCount(draft.participants.length);
+                const nonEmptyParticipants = draft.participants.filter(function (participant) {
+                    return Boolean(
+                        (participant.first_name || "").trim()
+                        || (participant.last_name || "").trim()
+                        || (participant.email || "").trim()
+                    );
+                });
+
+                const participantsToRestore = nonEmptyParticipants.length
+                    ? draft.participants
+                    : [draft.participants[0]];
+
+                ensureParticipantCount(participantsToRestore.length);
+
+                while (
+                    wrapper.querySelectorAll(".participant-item").length
+                    > participantsToRestore.length
+                ) {
+                    wrapper.lastElementChild.remove();
+                }
 
                 wrapper.querySelectorAll(".participant-item").forEach(function (participant, index) {
-                    const participantData = draft.participants[index] || {};
+                    const participantData = participantsToRestore[index] || {};
 
                     const firstNameInput = participant.querySelector("input[name$='first_name']");
                     const lastNameInput = participant.querySelector("input[name$='last_name']");
@@ -1188,6 +1378,155 @@
 
             container.hidden = true;
             container.innerHTML = "";
+        }
+
+        function clearParticipantEmailErrors() {
+            wrapper.querySelectorAll("[data-participant-email-error]").forEach(function (errorElement) {
+                errorElement.textContent = "";
+                errorElement.hidden = true;
+            });
+
+            wrapper.querySelectorAll('input[name$="-email"]').forEach(function (emailInput) {
+                emailInput.classList.remove("field-error");
+                emailInput.removeAttribute("aria-invalid");
+            });
+
+            wrapper.querySelectorAll(".participant-card--error").forEach(function (participantCard) {
+                participantCard.classList.remove("participant-card--error");
+            });
+        }
+
+        function showParticipantEmailError(emailInput, message) {
+            emailInput.classList.add("field-error");
+            emailInput.setAttribute("aria-invalid", "true");
+
+            const participantCard = emailInput.closest(".participant-card");
+
+            if (participantCard) {
+                participantCard.classList.add("participant-card--error");
+            }
+
+            const participantItem = emailInput.closest(".participant-item");
+
+            if (!participantItem) {
+                return;
+            }
+
+            const errorElement = participantItem.querySelector(
+                "[data-participant-email-error]"
+            );
+
+            if (errorElement) {
+                errorElement.textContent = message;
+                errorElement.hidden = false;
+            }
+        }
+
+        async function checkParticipantEmails() {
+            clearParticipantEmailErrors();
+            clearValidationMessage(participantsErrorMessage);
+
+            const emailInputs = Array.from(
+                wrapper.querySelectorAll('input[name$="-email"]')
+            );
+
+            const emails = emailInputs.map(function (emailInput) {
+                return emailInput.value.trim().toLowerCase();
+            });
+
+            const csrfInput = document.querySelector(
+                '#registration-form input[name="csrfmiddlewaretoken"]'
+            );
+
+            try {
+                const response = await fetch(
+                    "{% url 'check_participant_emails' %}",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": csrfInput ? csrfInput.value : "",
+                            "X-Requested-With": "XMLHttpRequest"
+                        },
+                        body: JSON.stringify({ emails: emails })
+                    }
+                );
+
+                let result;
+
+                try {
+                    result = await response.json();
+                } catch (error) {
+                    throw new Error("Server nevrátil platnou odpověď.");
+                }
+
+                if (!response.ok || !result.success) {
+                    throw new Error(
+                        result.message || "Kontrolu e-mailů se nepodařilo provést."
+                    );
+                }
+
+                const occupiedEmails = new Set(result.occupied_emails || []);
+                const duplicateEmails = new Set(result.duplicate_emails || []);
+                let firstInvalidInput = null;
+                let hasError = false;
+
+                emailInputs.forEach(function (emailInput) {
+                    const normalizedEmail = emailInput.value.trim().toLowerCase();
+
+                    if (occupiedEmails.has(normalizedEmail)) {
+                        showParticipantEmailError(
+                            emailInput,
+                            "Účet s touto e-mailovou adresou již existuje. Zadejte jinou adresu."
+                        );
+                        hasError = true;
+                        firstInvalidInput = firstInvalidInput || emailInput;
+                        return;
+                    }
+
+                    if (duplicateEmails.has(normalizedEmail)) {
+                        showParticipantEmailError(
+                            emailInput,
+                            "Tato e-mailová adresa je v objednávce uvedena vícekrát."
+                        );
+                        hasError = true;
+                        firstInvalidInput = firstInvalidInput || emailInput;
+                    }
+                });
+
+                if (hasError) {
+                    showValidationMessage(
+                        participantsErrorMessage,
+                        "Nelze pokračovat k fakturačním údajům.",
+                        ["Opravte označené e-mailové adresy účastníků."]
+                    );
+
+                    if (firstInvalidInput) {
+                        firstInvalidInput.scrollIntoView({
+                            behavior: "smooth",
+                            block: "center"
+                        });
+                        firstInvalidInput.focus();
+                    }
+
+                    return false;
+                }
+
+                return true;
+            } catch (error) {
+                console.error("Chyba při kontrole e-mailů:", error);
+
+                showValidationMessage(
+                    participantsErrorMessage,
+                    "Kontrolu e-mailů nelze dokončit.",
+                    [
+                        error.message ||
+                        "Zkuste akci opakovat. Bez ověření e-mailů nelze pokračovat."
+                    ]
+                );
+
+                return false;
+            }
         }
 
         function validateParticipants() {
@@ -1425,7 +1764,7 @@
 
             courseInfoActionCard.hidden = step !== 2;
             orderSummaryCard.hidden = !(step === 3 || step === 4);
-            summaryToBillingButton.hidden = step !== 3;
+            participantsToBillingButton.hidden = step !== 3;
             goToFinalSummaryButton.hidden = step !== 4;
 
             const deleteOrderButton = document.getElementById("delete-order-button");
@@ -1440,9 +1779,15 @@
             }
 
             if (selectedCourseInput.value && step >= 2) {
-                const draft = getOrderDraft() || {};
-                draft.current_step = step;
-                localStorage.setItem(ORDER_DRAFT_KEY, JSON.stringify(draft));
+                const draft = getOrderDraft();
+
+                if (draft) {
+                    draft.current_step = step;
+                    localStorage.setItem(
+                        ORDER_DRAFT_KEY,
+                        JSON.stringify(draft)
+                    );
+                }
             }
 
             updateOrderSummary();
@@ -1514,53 +1859,87 @@
             });
         });
 
-        goToParticipantsButton.addEventListener("click", function () {
-            saveOrderDraft();
-            showStep(3);
-            window.scrollTo({ top: 0, behavior: "smooth" });
-        });
-
-        summaryToBillingButton.addEventListener("click", function () {
-            if (!validateParticipants()) {
-                return;
-            }
-
-            saveOrderDraft();
-            showStep(4);
-            window.scrollTo({ top: 0, behavior: "smooth" });
-        });
-
-        goToFinalSummaryButton.addEventListener("click", function () {
-            if (!validateBilling()) {
-                return;
-            }
-
-            saveOrderDraft();
-            renderFinalSummary();
-            showStep(5);
-            window.scrollTo({ top: 0, behavior: "smooth" });
-        });
-
-        summaryPreviousButton.addEventListener("click", function () {
-            saveOrderDraft();
-            showStep(4);
-            window.scrollTo({ top: 0, behavior: "smooth" });
-        });
-
-        addButton.addEventListener("click", function () {
-            const newParticipant = cloneParticipant();
-
-            refreshParticipants();
-            saveOrderDraft();
-
-            newParticipant.scrollIntoView({
-                behavior: "smooth",
-                block: "center"
+        if (goToParticipantsButton) {
+            goToParticipantsButton.addEventListener("click", function () {
+                saveOrderDraft();
+                showStep(3);
+                window.scrollTo({ top: 0, behavior: "smooth" });
             });
-        });
+        }
+
+        let participantEmailCheckInProgress = false;
+
+        if (participantsToBillingButton) {
+            participantsToBillingButton.addEventListener("click", async function () {
+                if (participantEmailCheckInProgress) {
+                    return;
+                }
+
+                if (!validateParticipants()) {
+                    return;
+                }
+
+                participantEmailCheckInProgress = true;
+                participantsToBillingButton.disabled = true;
+
+                const originalButtonText = participantsToBillingButton.textContent;
+                participantsToBillingButton.textContent = "Kontroluji e-maily…";
+
+                try {
+                    const emailsAreAvailable = await checkParticipantEmails();
+
+                    if (!emailsAreAvailable) {
+                        return;
+                    }
+
+                    saveOrderDraft();
+                    showStep(4);
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                } finally {
+                    participantEmailCheckInProgress = false;
+                    participantsToBillingButton.disabled = false;
+                    participantsToBillingButton.textContent = originalButtonText;
+                }
+            });
+        }
+
+        if (goToFinalSummaryButton) {
+            goToFinalSummaryButton.addEventListener("click", function () {
+                if (!validateBilling()) {
+                    return;
+                }
+
+                saveOrderDraft();
+                renderFinalSummary();
+                showStep(5);
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            });
+        }
+
+        if (summaryPreviousButton) {
+            summaryPreviousButton.addEventListener("click", function () {
+                saveOrderDraft();
+                showStep(4);
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            });
+        }
+
+        if (addButton) {
+            addButton.addEventListener("click", function () {
+                const newParticipant = cloneParticipant();
+
+                refreshParticipants();
+                saveOrderDraft();
+
+                newParticipant.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center"
+                });
+            });
+        }
 
         stepButtons.forEach(function (button) {
-            button.addEventListener("click", function () {
+            button.addEventListener("click", async function () {
                 const step = Number(button.dataset.stepButton);
 
                 if (step > 1 && !selectedCourseInput.value) {
@@ -1568,11 +1947,22 @@
                     return;
                 }
 
-                if (step >= 4 && !validateParticipants()) {
-                    return;
+                if (step >= 4) {
+                    if (!validateParticipants()) {
+                        showStep(3);
+                        return;
+                    }
+
+                    const emailsAreAvailable = await checkParticipantEmails();
+
+                    if (!emailsAreAvailable) {
+                        showStep(3);
+                        return;
+                    }
                 }
 
                 if (step === 5 && !validateBilling()) {
+                    showStep(4);
                     return;
                 }
 
@@ -1610,11 +2000,32 @@
         });
 
         wrapper.addEventListener("input", function (event) {
-            if (event.target.matches("input")) {
-                event.target.classList.remove("field-error");
-                clearValidationMessage(participantsErrorMessage);
-                saveOrderDraft();
+            if (!event.target.matches("input")) {
+                return;
             }
+
+            event.target.classList.remove("field-error");
+            event.target.removeAttribute("aria-invalid");
+
+            const participantItem = event.target.closest(".participant-item");
+
+            if (participantItem) {
+                participantItem.classList.remove("participant-card--error");
+            }
+
+            if (event.target.matches('input[name$="-email"]')) {
+                const emailError = participantItem
+                    ? participantItem.querySelector("[data-participant-email-error]")
+                    : null;
+
+                if (emailError) {
+                    emailError.textContent = "";
+                    emailError.hidden = true;
+                }
+            }
+
+            clearValidationMessage(participantsErrorMessage);
+            saveOrderDraft();
         });
 
         document.querySelectorAll(".billing-grid input, .billing-grid textarea, .billing-grid select").forEach(function (input) {
@@ -1629,16 +2040,6 @@
             });
         });
 
-        // nextButton.addEventListener("click", function () {
-        //     if (!validateParticipants()) {
-        //         return;
-        //     }
-
-        //     saveOrderDraft();
-        //     showStep(4);
-        //     window.scrollTo({ top: 0, behavior: "smooth" });
-        // });
-
         refreshParticipants();
 
         const existingDraft = getOrderDraft();
@@ -1649,14 +2050,25 @@
             showStep(1);
         }
 
+        if (hasParticipantServerErrors) {
+            showStep(3);
+        } else if (hasBillingServerErrors) {
+            showStep(4);
+        }
+
         function deleteDraftOrder() {
-            const confirmed = confirm("Opravdu chcete zrušit rozpracovanou objednávku?");
+            const confirmed = confirm(
+                "Opravdu chcete zrušit rozpracovanou objednávku?"
+            );
 
             if (!confirmed) {
                 return;
             }
 
-            localStorage.removeItem(ORDER_DRAFT_KEY);
+            ORDER_DRAFT_KEYS.forEach(function (key) {
+                localStorage.removeItem(key);
+            });
+
             window.location.href = "{% url 'index' %}";
         }
 
@@ -1664,9 +2076,8 @@
             button.addEventListener("click", deleteDraftOrder);
         });
 
-        document
-            .getElementById("registration-form")
-            .addEventListener("submit", function (event) {
+        if (registrationForm && termsAgreement && termsAgreementLabel) {
+            registrationForm.addEventListener("submit", function (event) {
 
                 if (!termsAgreement.checked) {
                     event.preventDefault();
@@ -1685,11 +2096,12 @@
                 termsAgreementLabel.classList.remove("error");
             });
 
-        termsAgreement.addEventListener("change", function () {
-            if (termsAgreement.checked) {
-                termsAgreementLabel.classList.remove("error");
-            }
-        });
+            termsAgreement.addEventListener("change", function () {
+                if (termsAgreement.checked) {
+                    termsAgreementLabel.classList.remove("error");
+                }
+            });
+        }
 
     });
 
