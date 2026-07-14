@@ -1,15 +1,114 @@
 {% extends 'courses/dashboard_base.html' %}
+{% load static %}
 
 {% block title %}Certifikát{% endblock %}
 
-{% block dashboard_main %}
-<section class="content-card">
-    <h1>Certifikát</h1>
-    <p><strong>Kurz:</strong> {{ course.title }}</p>
-    <p><strong>Datum dokončení:</strong> {{ completion_date }}</p>
+{% block dashboard_extra_css %}
+<link rel="stylesheet" href="{% static 'courses/css/certificate.css' %}">
+{% endblock %}
 
-    <a href="{% url 'certificate_pdf' course.id %}" class="primary-button">
+{% block dashboard_main %}
+<section class="content-card certificate-page-card">
+    <h1>Certifikát</h1>
+
+    <p>
+        <strong>Číslo osvědčení:</strong>
+        {{ certificate.certificate_number }}
+    </p>
+
+    <p>
+        <strong>Datum vystavení:</strong>
+        {{ certificate.issued_at|date:"j. n. Y" }}
+    </p>
+
+    <p>
+        <strong>Platnost do:</strong>
+        {{ certificate.valid_until|date:"j. n. Y" }}
+    </p>
+
+    <button type="button" class="primary-button" id="open-certificate-preview">
+        Zobrazit náhled certifikátu
+    </button>
+
+    {% if certificate.pdf_file %}
+    <a href="{{ certificate.pdf_file.url }}" class="primary-button" target="_blank" rel="noopener">
         Otevřít PDF certifikát
     </a>
+    {% endif %}
 </section>
+
+<div class="certificate-modal-overlay" id="certificate-preview-modal" role="dialog" aria-modal="true"
+    aria-labelledby="certificate-preview-title" aria-hidden="true">
+    <div class="certificate-modal">
+        <div class="certificate-modal-header">
+            <h2 id="certificate-preview-title">
+                Náhled certifikátu
+            </h2>
+
+            <button type="button" class="certificate-modal-close" id="close-certificate-preview"
+                aria-label="Zavřít náhled certifikátu">
+                ×
+            </button>
+        </div>
+
+        <div class="certificate-modal-content">
+            <article class="certificate-preview">
+                {% include 'courses/certificate_document.html' %}
+            </article>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const modalOverlay = document.getElementById(
+            "certificate-preview-modal"
+        );
+
+        const openButton = document.getElementById(
+            "open-certificate-preview"
+        );
+
+        const closeButton = document.getElementById(
+            "close-certificate-preview"
+        );
+
+        function openModal() {
+            modalOverlay.classList.add("is-open");
+            modalOverlay.setAttribute("aria-hidden", "false");
+
+            document.body.classList.add("certificate-modal-open");
+
+            closeButton.focus();
+        }
+
+        function closeModal() {
+            modalOverlay.classList.remove("is-open");
+            modalOverlay.setAttribute("aria-hidden", "true");
+
+            document.body.classList.remove("certificate-modal-open");
+
+            openButton.focus();
+        }
+
+        openButton.addEventListener("click", openModal);
+
+        closeButton.addEventListener("click", closeModal);
+
+        modalOverlay.addEventListener("click", function (event) {
+            if (event.target === modalOverlay) {
+                closeModal();
+            }
+        });
+
+        document.addEventListener("keydown", function (event) {
+            if (
+                event.key === "Escape"
+                && modalOverlay.classList.contains("is-open")
+            ) {
+                closeModal();
+            }
+        });
+    });
+</script>
 {% endblock %}

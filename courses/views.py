@@ -3,6 +3,8 @@ import re
 import json
 
 from datetime import date
+from dateutil.relativedelta import relativedelta
+
 from io import BytesIO
 
 import requests
@@ -28,6 +30,7 @@ from .forms import (
 )
 
 from .models import (
+    Certificate,
     Choice,
     Course,
     Order,
@@ -1269,6 +1272,50 @@ def quiz_submit(request, attempt_id):
             update_fields=["passed_quiz"]
         )
 
+        participant = (
+            OrderParticipant.objects
+            .select_related("order")
+            .filter(
+                user=request.user,
+                registration_number__isnull=False,
+            )
+            .exclude(registration_number="")
+            .order_by(
+                "-activation_completed_at",
+                "-id",
+            )
+            .first()
+        )
+
+        if participant:
+            issued_date = attempt.submitted_at.date()
+
+            try:
+
+                valid_until = (
+                    issued_at.date()
+                    + relativedelta(years=3)
+                    - relativedelta(days=1)
+                )
+            except ValueError:
+                # Ošetření data 29. února.
+                valid_until = issued_date.replace(
+                    year=issued_date.year + 3,
+                    day=28,
+                )
+
+            Certificate.objects.get_or_create(
+                participant=participant,
+                defaults={
+                    "quiz_attempt": attempt,
+                    "certificate_number": (
+                        participant.registration_number
+                    ),
+                    "issued_at": attempt.submitted_at,
+                    "valid_until": valid_until,
+                },
+            )
+
     return redirect(
         "quiz_attempt_detail",
         attempt_id=attempt.id,
@@ -1390,9 +1437,33 @@ def certificate_success(request, course_id):
             course_id=course.id,
         )
 
+    participant = get_object_or_404(
+        OrderParticipant.objects.select_related(
+            "profile",
+            "order",
+        ),
+        user=request.user,
+    )
+
+    certificate = get_object_or_404(
+        Certificate.objects.select_related(
+            "quiz_attempt",
+            "participant",
+        ),
+        participant=participant,
+        quiz_attempt__course=course,
+    )
+
     context = {
         "course": course,
-        "completion_date": date.today(),
+        "certificate": certificate,
+        "participant": participant,
+        "participant_profile": getattr(
+            participant,
+            "profile",
+            None,
+        ),
+        "completion_date": certificate.issued_at,
     }
 
     context.update(
@@ -1408,7 +1479,6 @@ def certificate_success(request, course_id):
         "courses/certificate_success.html",
         context,
     )
-
 
 @login_required
 def certificate_pdf(request, course_id):

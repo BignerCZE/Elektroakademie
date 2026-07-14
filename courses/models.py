@@ -456,6 +456,67 @@ class QuizAttempt(models.Model):
             minutes += 1
 
         return f"{minutes} min"
+    
+class Certificate(models.Model):
+    participant = models.OneToOneField(
+        OrderParticipant,
+        on_delete=models.PROTECT,
+        related_name="certificate",
+        verbose_name="Účastník",
+    )
+
+    quiz_attempt = models.OneToOneField(
+        QuizAttempt,
+        on_delete=models.PROTECT,
+        related_name="certificate",
+        verbose_name="Úspěšný pokus testu",
+    )
+
+    certificate_number = models.CharField(
+        max_length=30,
+        unique=True,
+        verbose_name="Číslo osvědčení",
+    )
+
+    issued_at = models.DateTimeField(
+        default=timezone.now,
+        verbose_name="Datum vystavení",
+    )
+
+    valid_until = models.DateField(
+        verbose_name="Platnost do",
+    )
+
+    pdf_file = models.FileField(
+        upload_to="certificates/%Y/%m/",
+        null=True,
+        blank=True,
+        verbose_name="PDF soubor",
+    )
+
+    verification_token = models.UUIDField(
+        default=uuid.uuid4,
+        unique=True,
+        editable=False,
+        verbose_name="Ověřovací token",
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Vytvořeno",
+    )
+
+    class Meta:
+        ordering = ["-issued_at"]
+        verbose_name = "Osvědčení"
+        verbose_name_plural = "Osvědčení"
+
+    def __str__(self):
+        return (
+            f"{self.certificate_number} – "
+            f"{self.participant.first_name} "
+            f"{self.participant.last_name}"
+        )
 
 
 class QuizAttemptQuestion(models.Model):

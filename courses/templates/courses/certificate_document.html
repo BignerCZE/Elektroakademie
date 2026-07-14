@@ -1,0 +1,230 @@
+{% load static %}
+
+<article class="certificate-document">
+    <div class="certificate-border certificate-border--top"></div>
+    <div class="certificate-border certificate-border--left"></div>
+    <div class="certificate-border certificate-border--right"></div>
+
+    <header class="certificate-header">
+        <div class="certificate-emblem" aria-hidden="true">
+            <span class="certificate-emblem-shield">
+                <span class="certificate-emblem-bolt">ϟ</span>
+            </span>
+        </div>
+
+        <h1>OSVĚDČENÍ O ABSOLVOVÁNÍ POUČENÍ</h1>
+
+        <p>
+            o odborné způsobilosti k výkonu činností v elektrotechnice
+        </p>
+
+        <p>
+            dle § 19 zákona č. 250/2021 Sb. a § 4 NV č. 194/2022 Sb.
+        </p>
+    </header>
+
+    <section class="certificate-person-section">
+        <table class="certificate-person-table">
+            <tbody>
+                <tr>
+                    <th>Evidenční číslo</th>
+                    <td>{{ certificate.certificate_number }}</td>
+                </tr>
+
+                <tr>
+                    <th>Jméno a příjmení</th>
+                    <td>
+                        {{ participant.first_name }}
+                        {{ participant.last_name }}
+                    </td>
+                </tr>
+
+                <tr>
+                    <th>Datum a místo narození</th>
+                    <td>
+                        {% if participant_profile %}
+                        {{ participant_profile.birth_date|date:"j. n. Y" }},
+                        {{ participant_profile.birth_place }}
+                        {% endif %}
+                    </td>
+                </tr>
+
+                <tr>
+                    <th>Bydliště</th>
+                    <td>
+                        {% if participant_profile %}
+                        {{ participant_profile.permanent_address }}
+                        {% endif %}
+                    </td>
+                </tr>
+
+                <tr>
+                    <th>Zaměstnavatel</th>
+                    <td>
+                        {% if participant_profile %}
+                        {{ participant_profile.employer_name }}
+                        {% endif %}
+                    </td>
+                </tr>
+
+                <tr>
+                    <th>Adresa zaměstnavatele</th>
+                    <td>
+                        {% if participant_profile %}
+                        {{ participant_profile.employer_address }}
+                        {% endif %}
+                    </td>
+                </tr>
+
+                <tr>
+                    <th>Rozsah poučení</th>
+                    <td>§ 4 NV č. 194/2022 Sb. – osoba poučená</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <p class="certificate-summary">
+        Výše uvedená osoba absolvovala poučení a úspěšné ověření znalostí
+        z odborné způsobilosti k výkonu činností v elektrotechnice.
+    </p>
+
+    <section class="certificate-training-section">
+        <div class="certificate-section-heading">
+            <span></span>
+            <h2>Obsah poučení a ověření znalostí</h2>
+            <span></span>
+        </div>
+
+        <div class="certificate-training-grid">
+            <div class="certificate-training-item">
+                <span class="certificate-training-icon">§</span>
+
+                <p>
+                    Právní a ostatní předpisy k zajištění bezpečnosti práce
+                    na elektrických zařízeních.
+                </p>
+            </div>
+
+            <div class="certificate-training-item">
+                <span class="certificate-training-icon">!</span>
+
+                <p>
+                    Postupy při mimořádných událostech a poskytování
+                    první pomoci.
+                </p>
+            </div>
+
+            <div class="certificate-training-item">
+                <span class="certificate-training-icon">ϟ</span>
+
+                <p>
+                    Rizika související s činností na elektrických zařízeních
+                    a v jejich blízkosti.
+                </p>
+            </div>
+
+            <div class="certificate-training-item">
+                <span class="certificate-training-icon">⚙</span>
+
+                <p>
+                    Bezpečné pracovní postupy a organizace práce.
+                </p>
+            </div>
+
+            <div class="certificate-training-item">
+                <span class="certificate-training-icon">✓</span>
+
+                <p>
+                    Ochrana před úrazem elektrickým proudem.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section class="certificate-manual-section">
+        <div class="certificate-manual-fields">
+            <div class="certificate-manual-row">
+                <span class="certificate-small-icon">▦</span>
+                <strong>Specifikace pracoviště:</strong>
+                <span class="certificate-fill-line"></span>
+            </div>
+
+            <div class="certificate-manual-row">
+                <span class="certificate-small-icon">☷</span>
+                <strong>Rozsah vykonávaných činností:</strong>
+                <span class="certificate-fill-line"></span>
+            </div>
+        </div>
+
+        <div class="certificate-validity-box">
+            <span class="certificate-small-icon">▣</span>
+
+            <div>
+                <strong>Platnost osvědčení do:</strong>
+
+                <span class="certificate-validity-date">
+                    {{ certificate.valid_until|date:"j. n. Y" }}
+                </span>
+            </div>
+        </div>
+    </section>
+
+    <p class="certificate-employer-confirmation">
+        Zaměstnavatel potvrzuje, že pracovník byl seznámen s místními
+        bezpečnostními předpisy, pracovními postupy a návody k používání
+        zařízení.
+    </p>
+
+    <section class="certificate-signatures">
+        <div class="certificate-signature-box">
+            <h3>Předseda komise</h3>
+
+            <div class="certificate-signature-content">
+                <strong>Jakub Jirák – RT</strong>
+
+                <div class="certificate-signature-image-wrap">
+                    <img src="{% static 'courses/images/signature_jakub_jirak.png' %}" alt="Podpis Jakuba Jiráka"
+                        class="certificate-signature-image">
+                </div>
+
+                <span class="certificate-signature-line"></span>
+                <span class="certificate-signature-label">Podpis</span>
+            </div>
+        </div>
+
+        <div class="certificate-signature-box">
+            <h3>Odpovědná osoba zaměstnavatele</h3>
+
+            <div class="certificate-signature-content">
+                <span class="certificate-signature-spacer"></span>
+                <span class="certificate-signature-line"></span>
+                <span class="certificate-signature-label">Podpis</span>
+            </div>
+        </div>
+
+        <div class="certificate-signature-box">
+            <h3>Poučená osoba</h3>
+
+            <div class="certificate-signature-content">
+                <span class="certificate-signature-spacer"></span>
+                <span class="certificate-signature-line"></span>
+                <span class="certificate-signature-label">Podpis</span>
+            </div>
+        </div>
+    </section>
+
+    <footer class="certificate-footer">
+        <div class="certificate-footer-symbol" aria-hidden="true">ϟ</div>
+
+        <p>
+            REVITEC ELEKTRO s.r.o., Zenklova 24/54, Libeň, 180 00 Praha 8
+        </p>
+
+        <p>
+            www.elektroakademie.cz
+            <span class="certificate-footer-separator">|</span>
+            info@elektroakademie.cz
+        </p>
+    </footer>
+</article>
