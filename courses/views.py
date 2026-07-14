@@ -1290,19 +1290,11 @@ def quiz_submit(request, attempt_id):
         if participant:
             issued_date = attempt.submitted_at.date()
 
-            try:
-
-                valid_until = (
-                    issued_at.date()
-                    + relativedelta(years=3)
-                    - relativedelta(days=1)
-                )
-            except ValueError:
-                # Ošetření data 29. února.
-                valid_until = issued_date.replace(
-                    year=issued_date.year + 3,
-                    day=28,
-                )
+            valid_until = (
+                issued_date
+                + relativedelta(years=3)
+                - relativedelta(days=1)
+            )
 
             Certificate.objects.get_or_create(
                 participant=participant,
@@ -1315,12 +1307,6 @@ def quiz_submit(request, attempt_id):
                     "valid_until": valid_until,
                 },
             )
-
-    return redirect(
-        "quiz_attempt_detail",
-        attempt_id=attempt.id,
-        order=1,
-    )
 
 
 @login_required
