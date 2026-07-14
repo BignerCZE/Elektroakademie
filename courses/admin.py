@@ -1,12 +1,13 @@
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
 
 from .models import (
-    CustomUser,
-    Course,
-    QuestionCategory,
-    Question,
     Choice,
+    Course,
+    CustomUser,
     Payment,
+    Question,
+    QuestionCategory,
 )
 
 
@@ -39,10 +40,70 @@ class CourseAdmin(admin.ModelAdmin):
 
 
 @admin.register(CustomUser)
-class CustomUserAdmin(admin.ModelAdmin):
-    list_display = ("username", "email", "is_paid", "passed_quiz")
-    search_fields = ("username", "email")
-    list_filter = ("is_paid", "passed_quiz")
+class CustomUserAdmin(UserAdmin):
+    list_display = (
+        "username",
+        "email",
+        "first_name",
+        "last_name",
+        "is_active",
+        "is_paid",
+        "passed_quiz",
+        "is_staff",
+    )
+
+    search_fields = (
+        "username",
+        "email",
+        "first_name",
+        "last_name",
+    )
+
+    list_filter = (
+        "is_active",
+        "is_paid",
+        "passed_quiz",
+        "is_staff",
+        "is_superuser",
+    )
+
+    fieldsets = UserAdmin.fieldsets + (
+        (
+            "Přístup do Elektroakademie",
+            {
+                "fields": (
+                    "is_paid",
+                    "passed_quiz",
+                ),
+                "description": (
+                    "Zaškrtnutím pole Zaplaceno získá uživatel "
+                    "přístup ke studiu a testům."
+                ),
+            },
+        ),
+    )
+
+    add_fieldsets = UserAdmin.add_fieldsets + (
+        (
+            "Osobní údaje",
+            {
+                "fields": (
+                    "email",
+                    "first_name",
+                    "last_name",
+                ),
+            },
+        ),
+        (
+            "Přístup do Elektroakademie",
+            {
+                "fields": (
+                    "is_paid",
+                    "passed_quiz",
+                ),
+            },
+        ),
+    )
 
 
 @admin.register(Payment)

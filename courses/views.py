@@ -52,26 +52,63 @@ COURSE_PRICES = {
 }
 
 
-def get_dashboard_context(request, active_course=None):
-    purchased_courses = Course.objects.all()
+def get_dashboard_context(
+    request,
+    active_course=None,
+    sidebar_page=None,
+):
+    purchased_courses = Course.objects.none()
+    participant = None
+    participant_profile = None
+
+    has_paid = (
+        request.user.is_authenticated
+        and getattr(request.user, "is_paid", False)
+    )
+
+    if request.user.is_authenticated:
+        participant = (
+            OrderParticipant.objects
+            .select_related(
+                "order",
+                "profile",
+            )
+            .filter(user=request.user)
+            .order_by(
+                "-activation_completed_at",
+                "-id",
+            )
+            .first()
+        )
+
+        if participant:
+            participant_profile = getattr(
+                participant,
+                "profile",
+                None,
+            )
+
+    # V současné etapě existuje pouze kurz §4.
+    # Přístup získá aktivovaný účastník i účet
+    # ručně povolený v administraci.
+    if has_paid:
+        purchased_courses = Course.objects.all()
 
     if active_course is None:
         active_course = purchased_courses.first()
 
-    has_paid = (
-        getattr(request.user, "is_paid", False)
-        if request.user.is_authenticated
-        else False
-    )
-
     return {
+        "participant": participant,
+        "participant_profile": participant_profile,
+        "is_manual_account": (
+            has_paid and participant is None
+        ),
         "purchased_courses": purchased_courses,
         "active_course": active_course,
         "course_for_payment": active_course,
         "has_paid": has_paid,
+        "sidebar_page": sidebar_page,
     }
-
-
 def index(request):
     courses = Course.objects.all()
     return render(request, "courses/index.html", {"courses": courses})
@@ -93,6 +130,7 @@ def course_detail(request, course_id):
             get_dashboard_context(
                 request,
                 active_course=course,
+                sidebar_page="course",
             )
         )
 
@@ -652,7 +690,10 @@ def password_setup_sent(request):
 
 @login_required
 def profile(request):
-    context = get_dashboard_context(request)
+    context = get_dashboard_context(
+        request,
+        sidebar_page="profile",
+    )
 
     return render(
         request,
@@ -741,10 +782,12 @@ def video_detail(request, course_id):
     context = {
         "course": course,
     }
+
     context.update(
         get_dashboard_context(
             request,
             active_course=course,
+            sidebar_page="video",
         )
     )
 
@@ -800,6 +843,7 @@ def quiz_dashboard(request, course_id):
         get_dashboard_context(
             request,
             active_course=course,
+            sidebar_page="quiz",
         )
     )
 
@@ -1065,11 +1109,11 @@ def quiz_question(request, attempt_id, order):
         "is_first": order == 1,
         "is_last": order == total_questions,
     }
-
     context.update(
         get_dashboard_context(
             request,
             active_course=attempt.course,
+            sidebar_page="quiz",
         )
     )
 
@@ -1135,6 +1179,7 @@ def quiz_attempt(request, attempt_id):
         get_dashboard_context(
             request,
             active_course=attempt.course,
+            sidebar_page="quiz",
         )
     )
 
@@ -1354,6 +1399,7 @@ def certificate_success(request, course_id):
         get_dashboard_context(
             request,
             active_course=course,
+            sidebar_page="certificate",
         )
     )
 
@@ -1420,7 +1466,75 @@ def certificate_pdf(request, course_id):
 
 @login_required
 def dashboard(request):
-    context = get_dashboard_context(request)
+    context = get_dashboard_context(
+        request,
+        sidebar_page="dashboard",
+    )
+
+    participant = context.get("participant")
+    active_course = context.get("active_course")
+
+    if participant:
+        context["course_name"] = (
+            participant.order.get_course_type_display()
+        )
+    elif active_course:
+        # Účet vytvořený ručně v administraci.
+        context["course_name"] = active_course.title
+    else:
+        context["course_name"] = None
+
+    submitted_attempts = QuizAttempt.objects.none()
+    active_attempt = None
+    latest_attempt = None
+    best_attempt = None
+
+    if active_course:
+        active_attempt = (
+            QuizAttempt.objects
+            .filter(
+                user=request.user,
+                course=active_course,
+                status=QuizAttempt.STATUS_IN_PROGRESS,
+            )
+            .order_by("-started_at")
+            .first()
+        )
+
+        submitted_attempts = (
+            QuizAttempt.objects
+            .filter(
+                user=request.user,
+                course=active_course,
+                status=QuizAttempt.STATUS_SUBMITTED,
+            )
+        )
+
+        latest_attempt = (
+            submitted_attempts
+            .order_by(
+                "-submitted_at",
+                "-started_at",
+            )
+            .first()
+        )
+
+        best_attempt = (
+            submitted_attempts
+            .order_by(
+                "-score_percent",
+                "-submitted_at",
+                "-started_at",
+            )
+            .first()
+        )
+
+    context.update({
+        "active_attempt": active_attempt,
+        "latest_attempt": latest_attempt,
+        "best_attempt": best_attempt,
+        "submitted_attempts_count": submitted_attempts.count(),
+    })
 
     return render(
         request,

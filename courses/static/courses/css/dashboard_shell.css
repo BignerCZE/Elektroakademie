@@ -980,3 +980,702 @@
         width: 100%;
     }
 }
+
+/* =========================================================
+   KOMPAKTNÍ HLAVNÍ DASHBOARD
+   ========================================================= */
+
+.dashboard-summary-card {
+    display: grid;
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    gap: 18px;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    height: calc(100vh - 48px);
+    padding: 28px 30px;
+    overflow: hidden;
+    border-radius: 22px;
+    background: #ffffff;
+    box-shadow: 0 14px 38px rgba(3, 26, 62, 0.16);
+}
+
+
+/* Hlavička */
+
+.dashboard-summary-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    padding-bottom: 17px;
+    border-bottom: 1px solid #e4e9f0;
+}
+
+.dashboard-summary-header h1 {
+    margin: 3px 0 5px;
+    color: #13243a;
+    font-size: clamp(29px, 2.5vw, 39px);
+    line-height: 1.1;
+}
+
+.dashboard-summary-header .dashboard-eyebrow {
+    margin: 0;
+    color: #961393;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.dashboard-summary-header .dashboard-subtitle {
+    margin: 0;
+    color: #657287;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+
+/* Horní přehled */
+
+.dashboard-summary-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    border: 1px solid #e1e7ee;
+    border-radius: 16px;
+    background: #f8fafc;
+}
+
+.dashboard-stat-item {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 7px;
+    min-width: 0;
+    min-height: 82px;
+    padding: 15px 20px;
+    border-right: 1px solid #e1e7ee;
+}
+
+.dashboard-stat-item:last-child {
+    border-right: 0;
+}
+
+.dashboard-stat-label {
+    color: #687589;
+    font-size: 13px;
+    font-weight: 650;
+}
+
+.dashboard-stat-value {
+    color: #17283f;
+    font-size: 18px;
+    font-weight: 750;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+}
+
+.dashboard-stat-value--success {
+    color: #087c3d;
+}
+
+.dashboard-stat-value--warning {
+    color: #a85f00;
+}
+
+
+/* Střední část */
+
+.dashboard-summary-content {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(260px, 0.85fr);
+    gap: 18px;
+    min-height: 0;
+}
+
+.dashboard-course-panel,
+.dashboard-test-panel {
+    min-width: 0;
+    padding: 21px 23px;
+    border: 1px solid #e1e7ee;
+    border-radius: 17px;
+    background: #ffffff;
+}
+
+.dashboard-course-panel {
+    display: flex;
+    flex-direction: column;
+}
+
+.dashboard-test-panel {
+    display: flex;
+    flex-direction: column;
+    background: #f8fafc;
+}
+
+.dashboard-section-eyebrow {
+    margin: 0 0 5px;
+    color: #961393;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+.dashboard-section-heading {
+    margin: 0;
+}
+
+.dashboard-section-heading h2,
+.dashboard-test-panel h2 {
+    margin: 0;
+    color: #17283f;
+    font-size: 23px;
+    line-height: 1.2;
+}
+
+.dashboard-course-description {
+    margin: 14px 0 17px;
+    color: #59687c;
+    font-size: 14px;
+    line-height: 1.55;
+}
+
+.dashboard-test-panel p {
+    margin: 14px 0 0;
+    color: #59687c;
+    font-size: 14px;
+    line-height: 1.55;
+}
+
+.dashboard-course-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 11px;
+    margin-top: auto;
+}
+
+.dashboard-course-actions .button-primary,
+.dashboard-course-actions .button-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    padding: 0 20px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 750;
+    text-decoration: none;
+}
+
+.dashboard-course-actions .button-primary {
+    color: #ffffff;
+    border: 1px solid #00bd5b;
+    background: #00c763;
+}
+
+.dashboard-course-actions .button-secondary {
+    color: #17283f;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+}
+
+.dashboard-text-link {
+    display: inline-flex;
+    align-self: flex-start;
+    margin-top: auto;
+    padding-top: 15px;
+    color: #831784;
+    font-size: 14px;
+    font-weight: 750;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+}
+
+
+/* Spodní lišta výsledků */
+
+.dashboard-results-bar {
+    display: grid;
+    grid-template-columns:
+        repeat(3, minmax(120px, 1fr))
+        minmax(135px, auto);
+    align-items: center;
+    border: 1px solid #e1e7ee;
+    border-radius: 16px;
+    background: #f8fafc;
+}
+
+.dashboard-result-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-width: 0;
+    min-height: 67px;
+    padding: 13px 18px;
+    border-right: 1px solid #e1e7ee;
+}
+
+.dashboard-result-item span {
+    color: #687589;
+    font-size: 13px;
+    font-weight: 650;
+}
+
+.dashboard-result-item strong {
+    flex-shrink: 0;
+    color: #17283f;
+    font-size: 18px;
+}
+
+.dashboard-results-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 67px;
+    padding: 13px 18px;
+    color: #831784;
+    font-size: 14px;
+    font-weight: 750;
+    text-align: center;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+}
+
+
+/* Neaktivní účet */
+
+.dashboard-access-inactive {
+    padding: 24px;
+    border: 1px solid #e1e7ee;
+    border-radius: 16px;
+    background: #f8fafc;
+}
+
+.dashboard-access-inactive h2 {
+    margin: 0 0 10px;
+    color: #17283f;
+}
+
+.dashboard-access-inactive p {
+    margin: 0;
+    color: #657287;
+}
+
+
+/* =========================================================
+   RESPONSIVNÍ CHOVÁNÍ
+   ========================================================= */
+
+@media (max-width: 1100px) {
+    .dashboard-summary-card {
+        height: auto;
+        min-height: calc(100vh - 48px);
+        overflow: visible;
+    }
+
+    .dashboard-summary-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .dashboard-stat-item:nth-child(2) {
+        border-right: 0;
+    }
+
+    .dashboard-stat-item:nth-child(-n + 2) {
+        border-bottom: 1px solid #e1e7ee;
+    }
+
+    .dashboard-summary-content {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-results-bar {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .dashboard-results-link {
+        grid-column: 1 / -1;
+        min-height: 52px;
+        border-top: 1px solid #e1e7ee;
+    }
+}
+
+@media (max-width: 700px) {
+    .dashboard-summary-card {
+        gap: 14px;
+        padding: 21px 18px;
+        border-radius: 18px;
+    }
+
+    .dashboard-summary-header {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .dashboard-summary-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-stat-item,
+    .dashboard-stat-item:nth-child(2) {
+        min-height: auto;
+        border-right: 0;
+        border-bottom: 1px solid #e1e7ee;
+    }
+
+    .dashboard-stat-item:last-child {
+        border-bottom: 0;
+    }
+
+    .dashboard-results-bar {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-result-item {
+        border-right: 0;
+        border-bottom: 1px solid #e1e7ee;
+    }
+
+    .dashboard-course-actions {
+        flex-direction: column;
+    }
+
+    .dashboard-course-actions .button-primary,
+    .dashboard-course-actions .button-secondary {
+        width: 100%;
+    }
+}
+
+.sidebar-nav a,
+.sidebar-nav .disabled-link {
+    display: block;
+    position: relative;
+    padding: 11px 14px;
+    border-radius: 10px;
+}
+
+.sidebar-nav a {
+    color: #111827;
+    font-weight: 650;
+    text-decoration: none;
+    transition:
+        color 0.18s ease,
+        background-color 0.18s ease,
+        padding-left 0.18s ease;
+}
+
+.sidebar-nav a.active {
+    color: #ffffff;
+    background: #173f84;
+    font-weight: 700;
+    border-radius: 8px;
+}
+
+
+.sidebar-nav a.active::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 8px;
+    bottom: 8px;
+    width: 4px;
+    border-radius: 0 4px 4px 0;
+    background: #173f84;
+}
+
+.sidebar-nav a:hover {
+    color: #173f84;
+    background: rgba(23, 63, 132, 0.06);
+}
+
+.sidebar-nav .disabled-link {
+    color: #9aa3b2;
+    cursor: not-allowed;
+}
+.sidebar-nav a:hover:not(.active) {
+    background: rgba(23, 63, 132, 0.08);
+    color: #173f84;
+}
+
+.sidebar-account {
+    padding-bottom: 22px;
+    border-bottom: 1px solid #dce2ea;
+}
+
+.sidebar-account h2 {
+    margin: 0 0 16px;
+    color: #111827;
+    font-size: 22px;
+}
+
+.sidebar-account-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: 13px;
+}
+
+.sidebar-account-item:last-child {
+    margin-bottom: 0;
+}
+
+.sidebar-account-item span {
+    color: #56657a;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.sidebar-account-item strong {
+    color: #111827;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+.sidebar-nav-test {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.sidebar-status-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.sidebar-status-badge--success {
+    color: #08783b;
+    border: 1px solid #b8e3c9;
+    background: #e7f7ed;
+}
+
+.sidebar-status-badge--failed {
+    color: #a32424;
+    border: 1px solid #efc4c4;
+    background: #fbeaea;
+}
+
+.sidebar-nav-test.active .sidebar-status-badge--success,
+.sidebar-nav-test.active .sidebar-status-badge--failed {
+    background: #ffffff;
+}
+
+/* =========================================================
+   ÚDAJE ÚČASTNÍKA – JEDNOSLOUPCOVÝ PŘEHLED
+   ========================================================= */
+
+.participant-data-card {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    padding: 22px 26px;
+    overflow: hidden;
+    border-radius: 22px;
+    background: #ffffff;
+    box-shadow: 0 14px 38px rgba(3, 26, 62, 0.16);
+}
+
+.participant-data-header {
+    flex: 0 0 auto;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e1e6ed;
+}
+
+.participant-data-header h1 {
+    margin: 2px 0 5px;
+    color: #15172f;
+    font-size: 31px;
+    line-height: 1.08;
+}
+
+.participant-data-header .dashboard-eyebrow {
+    margin: 0 0 3px;
+    font-size: 12px;
+}
+
+.participant-data-subtitle {
+    margin: 0;
+    color: #59687c;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.participant-certificate-notice {
+    flex: 0 0 auto;
+    margin-top: 12px;
+    padding: 11px 15px;
+    border: 1px solid #c9d9ef;
+    border-left: 4px solid #214d91;
+    border-radius: 12px;
+    background: #f2f6fc;
+}
+
+.participant-certificate-notice strong {
+    display: block;
+    margin-bottom: 2px;
+    color: #173f7d;
+    font-size: 13px;
+}
+
+.participant-certificate-notice p {
+    margin: 0;
+    color: #536379;
+    font-size: 12px;
+    line-height: 1.35;
+}
+
+/* Seznam údajů */
+
+.participant-data-list {
+    flex: 1 1 auto;
+    min-height: 0;
+    margin-top: 12px;
+    padding: 0 4px;
+}
+
+.participant-data-row {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    align-items: center;
+    gap: 18px;
+    min-height: 38px;
+    padding: 7px 10px;
+    border-bottom: 1px solid #e7ebf0;
+}
+
+.participant-data-row:last-child {
+    border-bottom: 0;
+}
+
+.participant-data-row:nth-child(even) {
+    background: #f8fafc;
+}
+
+.participant-data-label {
+    color: #5e6d81;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.participant-data-value {
+    min-width: 0;
+    color: #17283f;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+/* Stav testu */
+
+.participant-data-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 9px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.participant-data-status--success {
+    color: #08763a;
+    border: 1px solid #b8e3c9;
+    background: #e7f7ed;
+}
+
+.participant-data-status--pending {
+    color: #a32424;
+    border: 1px solid #efc4c4;
+    background: #fbeaea;
+}
+
+/* Spodní poznámka */
+
+.participant-data-footer {
+    flex: 0 0 auto;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid #e1e6ed;
+}
+
+.participant-data-footer p {
+    margin: 0;
+    color: #657287;
+    font-size: 11px;
+    line-height: 1.35;
+}
+
+/* Prázdný stav */
+
+.participant-data-empty {
+    margin-top: 16px;
+    padding: 18px;
+    border: 1px solid #e3e8ef;
+    border-radius: 13px;
+    background: #f8fafc;
+}
+
+.participant-data-empty h2 {
+    margin: 0 0 7px;
+    color: #17283f;
+    font-size: 20px;
+}
+
+.participant-data-empty p {
+    margin: 0;
+    color: #657287;
+    line-height: 1.5;
+}
+
+/* Menší obrazovky */
+
+@media (max-width: 900px) {
+    .participant-data-card {
+        height: auto;
+        min-height: 100%;
+        overflow: visible;
+    }
+
+    .participant-data-row {
+        grid-template-columns: 180px minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .participant-data-card {
+        padding: 18px;
+    }
+
+    .participant-data-header h1 {
+        font-size: 28px;
+    }
+
+    .participant-data-row {
+        grid-template-columns: 1fr;
+        gap: 3px;
+        padding: 9px 8px;
+    }
+
+    .participant-data-label {
+        font-size: 12px;
+    }
+
+    .participant-data-value {
+        font-size: 13px;
+    }
+}

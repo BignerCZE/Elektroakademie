@@ -1,35 +1,222 @@
-{% extends 'courses/dashboard_base.html' %}
+{% extends "courses/dashboard_base.html" %}
 
-{% block title %}Dashboard{% endblock %}
+{% block title %}Přehled | Elektroakademie{% endblock %}
 
 {% block dashboard_main %}
-<section class="content-card">
-    <p class="dashboard-eyebrow">Uživatelský dashboard</p>
-    <h1>Vítej, {{ user.first_name|default:user.username }}</h1>
-    <p>
-        Tady najdeš přehled svého studia a rychlé odkazy na důležité části portálu.
-    </p>
-</section>
+<section class="dashboard-summary-card">
 
-<section class="content-card">
-    <h2>Moje kurzy</h2>
+    <header class="dashboard-summary-header">
+        <div>
+            <p class="dashboard-eyebrow">
+                Uživatelský dashboard
+            </p>
 
-    {% if purchased_courses %}
-    <div class="dashboard-list">
-        {% for course in purchased_courses %}
-        <a href="{% url 'course_detail' course.id %}" class="dashboard-list-item">
-            <div>
-                <h3>{{ course.title }}</h3>
-                <p>{{ course.description|truncatechars:120 }}</p>
-            </div>
-            <span class="dashboard-link-arrow">→</span>
-        </a>
-        {% endfor %}
+            <h1>
+                Vítejte, {{ user.first_name|default:user.username }}
+            </h1>
+
+            <p class="dashboard-subtitle">
+                Přehled vašeho kurzu, studijních materiálů a testů.
+            </p>
+        </div>
+
+        {% if has_paid %}
+        <span class="status-badge status-paid">
+            Přístup aktivní
+        </span>
+        {% endif %}
+    </header>
+
+    {% if has_paid %}
+    <div class="dashboard-summary-stats">
+        <article class="dashboard-stat-item">
+            <span class="dashboard-stat-label">
+                Evidenční číslo
+            </span>
+
+            <strong class="dashboard-stat-value">
+                {% if participant and participant.registration_number %}
+                {{ participant.registration_number }}
+                {% elif is_manual_account %}
+                Administrativní účet
+                {% else %}
+                Neuvedeno
+                {% endif %}
+            </strong>
+        </article>
+
+        <article class="dashboard-stat-item">
+            <span class="dashboard-stat-label">
+                Kurz
+            </span>
+
+            <strong class="dashboard-stat-value">
+                {% if course_name %}
+                {{ course_name }}
+                {% elif active_course %}
+                {{ active_course.title }}
+                {% else %}
+                Nepřiřazen
+                {% endif %}
+            </strong>
+        </article>
+
+        <article class="dashboard-stat-item">
+            <span class="dashboard-stat-label">
+                Stav přístupu
+            </span>
+
+            <strong class="dashboard-stat-value dashboard-stat-value--success">
+                Aktivní
+            </strong>
+        </article>
+
+        <article class="dashboard-stat-item">
+            <span class="dashboard-stat-label">
+                Stav testu
+            </span>
+
+            {% if user.passed_quiz %}
+            <strong class="dashboard-stat-value dashboard-stat-value--success">
+                Splněno
+            </strong>
+            {% elif active_attempt %}
+            <strong class="dashboard-stat-value dashboard-stat-value--warning">
+                Rozpracováno
+            </strong>
+            {% else %}
+            <strong class="dashboard-stat-value">
+                Zatím nesplněno
+            </strong>
+            {% endif %}
+        </article>
     </div>
+
+    <div class="dashboard-summary-content">
+        <article class="dashboard-course-panel">
+            <div class="dashboard-section-heading">
+                <div>
+                    <p class="dashboard-section-eyebrow">
+                        Aktuální kurz
+                    </p>
+
+                    <h2>
+                        {% if course_name %}
+                        {{ course_name }}
+                        {% elif active_course %}
+                        {{ active_course.title }}
+                        {% else %}
+                        Kurz není přiřazen
+                        {% endif %}
+                    </h2>
+                </div>
+            </div>
+
+            {% if active_course %}
+            <p class="dashboard-course-description">
+                {{ active_course.description|truncatewords:35 }}
+            </p>
+
+            <div class="dashboard-course-actions">
+                <a href="{% url 'video_detail' active_course.id %}" class="button-primary">
+                    Přejít ke studiu
+                </a>
+
+                <a href="{% url 'quiz' active_course.id %}" class="button-secondary">
+                    Přejít k testu
+                </a>
+            </div>
+            {% else %}
+            <p class="dashboard-empty-message">
+                K vašemu účtu zatím není přiřazen obsah kurzu.
+            </p>
+            {% endif %}
+        </article>
+
+        <aside class="dashboard-test-panel">
+            <p class="dashboard-section-eyebrow">
+                Test
+            </p>
+
+            <h2>Aktuální stav</h2>
+
+            {% if active_attempt %}
+            <p>
+                Máte rozpracovaný test. Můžete pokračovat tam,
+                kde jste skončili.
+            </p>
+
+            <a href="{% url 'quiz_question' active_attempt.id 1 %}" class="dashboard-text-link">
+                Pokračovat v testu
+            </a>
+            {% elif user.passed_quiz %}
+            <p>
+                Závěrečný test jste úspěšně splnili.
+            </p>
+
+            {% if latest_attempt %}
+            <a href="{% url 'quiz_attempt_detail' latest_attempt.id 1 %}" class="dashboard-text-link">
+                Zobrazit poslední výsledek
+            </a>
+            {% endif %}
+            {% else %}
+            <p>
+                Po dokončení studia můžete spustit závěrečný test.
+            </p>
+
+            {% if active_course %}
+            <a href="{% url 'quiz' active_course.id %}" class="dashboard-text-link">
+                Spustit test
+            </a>
+            {% endif %}
+            {% endif %}
+        </aside>
+    </div>
+
+    <footer class="dashboard-results-bar">
+        <div class="dashboard-result-item">
+            <span>Dokončené pokusy</span>
+            <strong>{{ submitted_attempts_count|default:0 }}</strong>
+        </div>
+
+        <div class="dashboard-result-item">
+            <span>Nejlepší výsledek</span>
+
+            <strong>
+                {% if best_attempt %}
+                {{ best_attempt.score_percent }} %
+                {% else %}
+                —
+                {% endif %}
+            </strong>
+        </div>
+
+        <div class="dashboard-result-item">
+            <span>Poslední výsledek</span>
+
+            <strong>
+                {% if latest_attempt %}
+                {{ latest_attempt.score_percent }} %
+                {% else %}
+                —
+                {% endif %}
+            </strong>
+        </div>
+
+        {% if active_course %}
+        <a href="{% url 'quiz' active_course.id %}" class="dashboard-results-link">
+            Historie testů
+        </a>
+        {% endif %}
+    </footer>
     {% else %}
-    <div class="empty-state">
-        <p>Zatím nemáš žádný kurz.</p>
-        <a href="{% url 'index' %}#courses" class="primary-button">Přejít na kurzy</a>
+    <div class="dashboard-access-inactive">
+        <h2>Přístup ke kurzu není aktivní</h2>
+
+        <p>
+            Tento účet zatím nemá povolený přístup ke studijním
+            materiálům a testům.
+        </p>
     </div>
     {% endif %}
 </section>

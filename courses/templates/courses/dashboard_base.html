@@ -12,43 +12,83 @@
         <section class="dashboard-shell">
             <aside class="dashboard-shell-sidebar">
                 <div class="dashboard-sidebar-panel">
-                    <section class="sidebar-section">
-                        <h2 class="sidebar-title">Účet</h2>
-                        <p><strong>Email:</strong> {{ user.email|default:"Neuveden" }}</p>
-                    </section>
 
-                    <hr class="sidebar-divider">
+                    <div class="sidebar-account">
+                        <h2>Účet</h2>
 
-                    <section class="sidebar-section">
-                        <h2 class="sidebar-title">Platba</h2>
+                        <div class="sidebar-account-item">
+                            <span>Email:</span>
+                            <strong>{{ user.email|default:user.username }}</strong>
+                        </div>
 
-                        {% if has_paid %}
-                        <p><strong>Platba:</strong> Uhrazeno</p>
-                        {% else %}
-                        <p><strong>Platba:</strong> Neuhrazeno</p>
+                        <div class="sidebar-account-item">
+                            <span>Jméno:</span>
+                            <strong>{{ user.first_name|default:"Neuvedeno" }}</strong>
+                        </div>
 
-                        {% if course_for_payment %}
-                        <p class="sidebar-action">
-                            <a href="{% url 'buy_course' course_for_payment.id %}">Přejít k platbě</a>
-                        </p>
-                        {% endif %}
-                        {% endif %}
-                    </section>
+                        <div class="sidebar-account-item">
+                            <span>Příjmení:</span>
+                            <strong>{{ user.last_name|default:"Neuvedeno" }}</strong>
+                        </div>
+
+                        <div class="sidebar-account-item">
+                            <span>Účastnický kód:</span>
+
+                            <strong>
+                                {% if participant and participant.registration_number %}
+                                {{ participant.registration_number }}
+                                {% elif is_manual_account %}
+                                Administrativní účet
+                                {% else %}
+                                Neuvedeno
+                                {% endif %}
+                            </strong>
+                        </div>
+                    </div>
 
                     <hr class="sidebar-divider">
 
                     <nav class="sidebar-nav">
-                        <a href="{% url 'profile' %}">Můj profil</a>
+                        <a href="{% url 'dashboard' %}" class="{% if sidebar_page == 'dashboard' %}active{% endif %}">
+                            Přehled
+                        </a>
+
+                        <a href="{% url 'profile' %}" class="{% if sidebar_page == 'profile' %}active{% endif %}">
+                            Mé údaje
+                        </a>
 
                         {% if active_course %}
-                        <a href="{% url 'course_detail' active_course.id %}">Detail kurzu</a>
+                        <a href="{% url 'course_detail' active_course.id %}"
+                            class="{% if sidebar_page == 'course' %}active{% endif %}">
+                            Detail kurzu
+                        </a>
 
                         {% if has_paid %}
-                        <a href="{% url 'video_detail' active_course.id %}">Video</a>
-                        <a href="{% url 'quiz' active_course.id %}">Test</a>
+                        <a href="{% url 'video_detail' active_course.id %}"
+                            class="{% if sidebar_page == 'video' %}active{% endif %}">
+                            Video
+                        </a>
+
+                        <a href="{% url 'quiz' active_course.id %}"
+                            class="sidebar-nav-test {% if sidebar_page == 'quiz' %}active{% endif %}">
+                            <span>Test</span>
+
+                            {% if user.passed_quiz %}
+                            <span class="sidebar-status-badge sidebar-status-badge--success">
+                                Splněno
+                            </span>
+                            {% else %}
+                            <span class="sidebar-status-badge sidebar-status-badge--failed">
+                                Nesplněno
+                            </span>
+                            {% endif %}
+                        </a>
 
                         {% if user.passed_quiz %}
-                        <a href="{% url 'certificate_success' active_course.id %}">Certifikát</a>
+                        <a href="{% url 'certificate_success' active_course.id %}"
+                            class="{% if sidebar_page == 'certificate' %}active{% endif %}">
+                            Certifikát
+                        </a>
                         {% else %}
                         <span class="disabled-link">Certifikát</span>
                         {% endif %}

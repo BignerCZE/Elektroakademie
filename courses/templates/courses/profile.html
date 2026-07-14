@@ -1,44 +1,185 @@
-{% extends 'courses/dashboard_base.html' %}
+{% extends "courses/dashboard_base.html" %}
 
-{% block title %}Můj profil | Elektroakademie{% endblock %}
+{% block title %}Mé údaje | Elektroakademie{% endblock %}
 
 {% block dashboard_main %}
-<section class="content-card">
-    <div class="page-header">
-        <p class="page-eyebrow">Uživatelský účet</p>
-        <h1 class="page-title">Profil uživatele</h1>
-        <p class="page-subtitle">Zde vidíte základní informace o svém účtu a postupu v kurzu.</p>
+<section class="participant-data-card">
+    <header class="participant-data-header">
+        <p class="dashboard-eyebrow">
+            Údaje účastníka
+        </p>
+
+        <h1>Mé údaje</h1>
+
+        <p class="participant-data-subtitle">
+            Zde jsou evidovány osobní údaje použité pro vedení kurzu
+            a vystavení certifikátu.
+        </p>
+    </header>
+
+    <div class="participant-certificate-notice">
+        <strong>Údaje pro vygenerování certifikátu</strong>
+
+        <p>
+            Níže uvedené údaje budou použity při vygenerování certifikátu
+            po úspěšném dokončení kurzu a závěrečného testu.
+            Zkontrolujte proto jejich správnost.
+        </p>
     </div>
 
-    <div class="info-grid">
-        <div class="info-item">
-            <span class="info-label">Uživatelské jméno</span>
-            <div class="info-value">{{ user.username }}</div>
+    {% if participant %}
+    <div class="participant-data-list">
+        <div class="participant-data-row">
+            <span class="participant-data-label">Jméno:</span>
+
+            <strong class="participant-data-value">
+                {{ participant.first_name|default:"Neuvedeno" }}
+            </strong>
         </div>
-        <div class="info-item">
-            <span class="info-label">E-mail</span>
-            <div class="info-value">{{ user.email|default:'Neuveden' }}</div>
+
+        <div class="participant-data-row">
+            <span class="participant-data-label">Příjmení:</span>
+
+            <strong class="participant-data-value">
+                {{ participant.last_name|default:"Neuvedeno" }}
+            </strong>
         </div>
-        <div class="info-item">
-            <span class="info-label">Platba</span>
-            <div class="info-value">
-                {% if user.is_paid %}
-                <span class="status-badge status-badge--success">Kurz uhrazen</span>
+
+        <div class="participant-data-row">
+            <span class="participant-data-label">E-mail:</span>
+
+            <strong class="participant-data-value">
+                {{ participant.email|default:"Neuvedeno" }}
+            </strong>
+        </div>
+
+        <div class="participant-data-row">
+            <span class="participant-data-label">Účastnický kód:</span>
+
+            <strong class="participant-data-value">
+                {{ participant.registration_number|default:"Neuvedeno" }}
+            </strong>
+        </div>
+
+        <div class="participant-data-row">
+            <span class="participant-data-label">Datum narození:</span>
+
+            <strong class="participant-data-value">
+                {% if participant_profile and participant_profile.birth_date %}
+                {{ participant_profile.birth_date|date:"j. n. Y" }}
                 {% else %}
-                <span class="status-badge status-badge--warning">Kurz není uhrazen</span>
+                Neuvedeno
                 {% endif %}
-            </div>
+            </strong>
         </div>
-        <div class="info-item">
-            <span class="info-label">Test</span>
-            <div class="info-value">
+
+        <div class="participant-data-row">
+            <span class="participant-data-label">Místo narození:</span>
+
+            <strong class="participant-data-value">
+                {% if participant_profile %}
+                {{ participant_profile.birth_place|default:"Neuvedeno" }}
+                {% else %}
+                Neuvedeno
+                {% endif %}
+            </strong>
+        </div>
+
+        <div class="participant-data-row">
+            <span class="participant-data-label">Trvalé bydliště:</span>
+
+            <strong class="participant-data-value">
+                {% if participant_profile %}
+                {{ participant_profile.permanent_address|default:"Neuvedeno" }}
+                {% else %}
+                Neuvedeno
+                {% endif %}
+            </strong>
+        </div>
+
+        <div class="participant-data-row">
+            <span class="participant-data-label">Zaměstnavatel:</span>
+
+            <strong class="participant-data-value">
+                {% if participant_profile %}
+                {{ participant_profile.employer_name|default:"Neuvedeno" }}
+                {% else %}
+                Neuvedeno
+                {% endif %}
+            </strong>
+        </div>
+
+        <div class="participant-data-row">
+            <span class="participant-data-label">
+                Adresa zaměstnavatele:
+            </span>
+
+            <strong class="participant-data-value">
+                {% if participant_profile %}
+                {{ participant_profile.employer_address|default:"Neuvedeno" }}
+                {% else %}
+                Neuvedeno
+                {% endif %}
+            </strong>
+        </div>
+
+        <div class="participant-data-row">
+            <span class="participant-data-label">Kurz:</span>
+
+            <strong class="participant-data-value">
+                {{ participant.order.get_course_type_display }}
+            </strong>
+        </div>
+
+        <div class="participant-data-row">
+            <span class="participant-data-label">Stav testu:</span>
+
+            <span class="participant-data-value">
                 {% if user.passed_quiz %}
-                <span class="status-badge status-badge--success">Úspěšně splněn</span>
+                <strong class="
+                                participant-data-status
+                                participant-data-status--success
+                            ">
+                    Splněno
+                </strong>
                 {% else %}
-                <span class="status-badge status-badge--neutral">Zatím nesplněn</span>
+                <strong class="
+                                participant-data-status
+                                participant-data-status--pending
+                            ">
+                    Nesplněno
+                </strong>
                 {% endif %}
-            </div>
+            </span>
         </div>
     </div>
+
+    <footer class="participant-data-footer">
+        <p>
+            Údaje jsou pouze pro čtení a nelze je v uživatelském
+            rozhraní měnit. V případě nesrovnalosti kontaktujte
+            provozovatele kurzu před vygenerováním certifikátu.
+        </p>
+    </footer>
+    {% elif is_manual_account %}
+    <div class="participant-data-empty">
+        <h2>Administrativní účet</h2>
+
+        <p>
+            Tento účet byl vytvořen ručně v administraci a není
+            propojen s evidencí účastníka. Osobní údaje potřebné
+            pro vystavení certifikátu proto nejsou k dispozici.
+        </p>
+    </div>
+    {% else %}
+    <div class="participant-data-empty">
+        <h2>Údaje účastníka nebyly nalezeny</h2>
+
+        <p>
+            K tomuto uživatelskému účtu není připojena evidence
+            účastníka kurzu.
+        </p>
+    </div>
+    {% endif %}
 </section>
 {% endblock %}
