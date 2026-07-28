@@ -1,3 +1,4 @@
+```html
 {% extends 'courses/dashboard_base.html' %}
 
 {% block title %}
@@ -10,43 +11,64 @@ Otázka {{ order }} z {{ total_questions }}
 
     <h1>
         Otázka {{ order }} z {{ total_questions }}
+
         {% if attempt_question.question.category %}
         <span class="quiz-category-label">
             {{ attempt_question.question.category.name }}
         </span>
         {% endif %}
     </h1>
+
     <div class="quiz-question-switcher">
         {% for item in question_numbers %}
-        <a href="{% url 'quiz_question' attempt.id item.number %}"
-            class="quiz-question-link {% if item.is_current %}is-active{% elif item.is_answered %}is-answered{% else %}is-empty{% endif %}">
+        <a href="{% url 'quiz_question' attempt.id item.number %}" class="
+                    quiz-question-link
+                    {% if item.is_current %}
+                        is-active
+                    {% elif item.is_answered %}
+                        is-answered
+                    {% else %}
+                        is-empty
+                    {% endif %}
+                ">
             {{ item.number }}
         </a>
         {% endfor %}
     </div>
 
-    <form method="post" id="quiz-question-form"
-        data-selected-choice="{{ attempt_question.selected_choice_id|default:'' }}">
+    <form method="post" id="quiz-question-form" action="{% url 'quiz_question' attempt.id order %}">
         {% csrf_token %}
 
         <div class="quiz-question-content">
-            <h2>{{ attempt_question.question.text }}</h2>
+            <h2>
+                {{ attempt_question.question.text }}
+            </h2>
         </div>
+
         <div class="quiz-answers">
             {% for choice in choices %}
             <label class="quiz-answer">
-                <input type="radio" name="choice" value="{{ choice.id }}" onchange="this.form.submit()">
+                <input type="radio" name="choice" value="{{ choice.id }}" {% if choice.checked %}checked{% endif %}
+                    onchange="this.form.submit()">
+
                 {{ choice.text }}
             </label>
             {% empty %}
-            <p>U této otázky nejsou žádné odpovědi.</p>
+            <p>
+                U této otázky nejsou žádné odpovědi.
+            </p>
             {% endfor %}
         </div>
 
         <div class="quiz-navigation">
             {% if is_first %}
-            <a href="{% url 'quiz' attempt.course.id %}" class="button-secondary"
-                onclick="return confirm('Opravdu chcete opustit test? Rozpracovaný test zůstane uložen a budete v něm moci pokračovat později.')">
+            <a href="{% url 'quiz' attempt.course.id %}" class="button-secondary" onclick="
+                        return confirm(
+                            'Opravdu chcete opustit test? ' +
+                            'Rozpracovaný test zůstane uložen ' +
+                            'a budete v něm moci pokračovat později.'
+                        );
+                    ">
                 Zpět
             </a>
             {% else %}
@@ -56,10 +78,11 @@ Otázka {{ order }} z {{ total_questions }}
             {% endif %}
 
             {% if is_last %}
-            <button type="submit" name="submit_test" value="1" class="button-primary" data-submit-test="true"
+            <button type="submit" name="submit_test" value="1" class="button-primary"
+                formaction="{% url 'quiz_submit' attempt.id %}" formmethod="post" data-submit-test="true"
                 data-unanswered-count="{{ unanswered_count }}"
                 data-unanswered-questions="{{ unanswered_questions|join:',' }}">
-                Další otázka
+                Odeslat test
             </button>
             {% else %}
             <a href="{% url 'quiz_question' attempt.id order|add:'1' %}" class="button-primary">
@@ -67,13 +90,13 @@ Otázka {{ order }} z {{ total_questions }}
             </a>
             {% endif %}
 
-            <button type="submit" name="submit_test" value="1" class="button-primary" data-submit-test="true"
+            <button type="submit" name="submit_test" value="1" class="button-primary"
+                formaction="{% url 'quiz_submit' attempt.id %}" formmethod="post" data-submit-test="true"
                 data-unanswered-count="{{ unanswered_count }}"
                 data-unanswered-questions="{{ unanswered_questions|join:',' }}">
                 Odeslat test
             </button>
         </div>
-
     </form>
 
 </section>
@@ -82,26 +105,18 @@ Otázka {{ order }} z {{ total_questions }}
     const quizForm = document.getElementById("quiz-question-form");
 
     if (quizForm) {
-        const selectedChoice = quizForm.dataset.selectedChoice;
-
-        if (selectedChoice) {
-            const selectedInput = quizForm.querySelector(
-                'input[name="choice"][value="' + selectedChoice + '"]'
-            );
-
-            if (selectedInput) {
-                selectedInput.checked = true;
-            }
-        }
-
         quizForm.addEventListener("submit", function (event) {
             const submitter = event.submitter;
 
             /*
              * Automatické uložení odpovědi po změně radio inputu
-             * nemá submitter, proto jej necháme proběhnout.
+             * nemá submitter. Takové odeslání necháme proběhnout
+             * na adresu aktuální otázky.
              */
-            if (!submitter || submitter.dataset.submitTest !== "true") {
+            if (
+                !submitter ||
+                submitter.dataset.submitTest !== "true"
+            ) {
                 return;
             }
 
@@ -109,11 +124,12 @@ Otázka {{ order }} z {{ total_questions }}
                 submitter.dataset.unansweredCount || 0
             );
 
-            const unansweredQuestions = submitter.dataset.unansweredQuestions
-                ? submitter.dataset.unansweredQuestions
-                    .split(",")
-                    .filter(Boolean)
-                : [];
+            const unansweredQuestions =
+                submitter.dataset.unansweredQuestions
+                    ? submitter.dataset.unansweredQuestions
+                        .split(",")
+                        .filter(Boolean)
+                    : [];
 
             if (unansweredCount > 0) {
                 event.preventDefault();
@@ -128,7 +144,8 @@ Otázka {{ order }} z {{ total_questions }}
             }
 
             const confirmed = confirm(
-                "Máte vyplněné všechny otázky. Opravdu chcete test odeslat?"
+                "Máte vyplněné všechny otázky. " +
+                "Opravdu chcete test odeslat?"
             );
 
             if (!confirmed) {

@@ -1021,22 +1021,15 @@ def quiz_question(request, attempt_id, order):
             )
 
         if "next" in request.POST:
-            if order == total_questions:
-                return redirect(
-                    "quiz_submit",
-                    attempt_id=attempt.id,
-                )
+            next_order = min(
+                order + 1,
+                total_questions,
+            )
 
             return redirect(
                 "quiz_question",
                 attempt_id=attempt.id,
-                order=order + 1,
-            )
-
-        if "submit_test" in request.POST:
-            return redirect(
-                "quiz_submit",
-                attempt_id=attempt.id,
+                order=next_order,
             )
 
         return redirect(
@@ -1112,6 +1105,7 @@ def quiz_question(request, attempt_id, order):
         "is_first": order == 1,
         "is_last": order == total_questions,
     }
+
     context.update(
         get_dashboard_context(
             request,
@@ -1125,8 +1119,6 @@ def quiz_question(request, attempt_id, order):
         "courses/quiz_question.html",
         context,
     )
-
-
 @login_required
 def quiz_attempt(request, attempt_id):
     attempt = get_object_or_404(
@@ -1194,6 +1186,7 @@ def quiz_attempt(request, attempt_id):
 
 
 @login_required
+@require_POST
 def quiz_submit(request, attempt_id):
     attempt = get_object_or_404(
         QuizAttempt,
@@ -1308,7 +1301,17 @@ def quiz_submit(request, attempt_id):
                 },
             )
 
+    detail_url = reverse(
+        "quiz_attempt_detail",
+        kwargs={
+            "attempt_id": attempt.id,
+            "order": 1,
+        },
+    )
 
+    return redirect(
+        f"{detail_url}?from=result"
+    )
 @login_required
 def quiz_result(request, attempt_id):
     attempt = get_object_or_404(

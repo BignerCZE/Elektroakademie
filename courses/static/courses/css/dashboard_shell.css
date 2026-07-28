@@ -1,7 +1,8 @@
 .dashboard-shell-page {
     height: 100%;
+    min-height: 0;
     margin: 0;
-    padding: 32px 0 48px;
+    padding: 32px 0;
     color: var(--color-dark-text);
     background: var(--page-blue-bg);
     overflow: hidden;
@@ -10,6 +11,7 @@
 
 .dashboard-shell-page .container {
     height: 100%;
+    min-height: 0;
 }
 
 .dashboard-shell {
@@ -18,19 +20,21 @@
     gap: 24px;
     align-items: stretch;
     height: 100%;
-    padding-top: 32px;
+    min-height: 0;
 }
 
 .dashboard-shell-main {
-    min-width: 0;
-    height: 100%;
-    overflow: hidden;
     display: flex;
     flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    height: 100%;
+    overflow: hidden;
     gap: 18px;
 }
 
 .dashboard-shell-sidebar {
+    min-height: 0;
     height: 100%;
 }
 
@@ -409,12 +413,21 @@
 /* Test */
 
 .quiz-card {
-    max-width: 900px;
-    min-height: 100%;
-    padding: 34px 42px 38px;
-
     display: flex;
+    flex: 1 1 auto;
     flex-direction: column;
+    width: 100%;
+    max-width: 900px;
+    min-height: 0;
+    padding: 34px 42px 38px;
+    overflow: hidden;
+}
+
+#quiz-question-form {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
 }
 
 .quiz-review-card .quiz-card {
@@ -576,9 +589,10 @@
 .quiz-navigation {
     display: flex;
     justify-content: center;
+    flex-shrink: 0;
     gap: 14px;
-
-    margin-top: 42px;
+    margin-top: auto;
+    padding-top: 24px;
 }
 
 /* Náhled odpovědí */

@@ -83,6 +83,45 @@
         color: #c62828;
     }
 
+    .ares-notice {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        margin-top: 10px;
+        padding: 12px 14px;
+        border: 1px solid #e6c768;
+        border-left: 4px solid #d9a900;
+        border-radius: 10px;
+        background: #fff9e8;
+        color: #5f4b00;
+        font-size: 0.875rem;
+        line-height: 1.45;
+    }
+
+    .ares-notice-icon {
+        display: inline-flex;
+        flex: 0 0 auto;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        margin-top: 1px;
+        border-radius: 50%;
+        background: #d9a900;
+        color: #ffffff;
+        font-size: 0.8rem;
+        font-weight: 800;
+        line-height: 1;
+    }
+
+    .ares-notice p {
+        margin: 0;
+    }
+
+    .ares-notice strong {
+        color: #493900;
+    }
+
     .ares-loading {
         cursor: progress;
         background-image:
@@ -491,6 +530,18 @@
                                         </span>
 
                                         {{ billing_form.ico.errors }}
+
+                                        <div class="ares-notice" role="note">
+                                            <span class="ares-notice-icon" aria-hidden="true">!</span>
+
+                                            <p>
+                                                <strong>Zkontrolujte načtené údaje.</strong>
+                                                Informace jsou automaticky přebírány z registru ARES.
+                                                Před odesláním objednávky ověřte jejich správnost,
+                                                úplnost a aktuálnost. Provozovatel neodpovídá za
+                                                nesprávné nebo neaktuální údaje převzaté z registru ARES.
+                                            </p>
+                                        </div>
                                     </div>
 
                                     <div class="register-field">

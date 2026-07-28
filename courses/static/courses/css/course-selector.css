@@ -1053,3 +1053,11 @@ body.legal-modal-open {
 .participant-card--error .participant-header h2 {
     color: #c62828;
 }
+
+.password-help {
+    display: block;
+    margin-top: 6px;
+    color: #667085;
+    font-size: 0.82rem;
+    line-height: 1.4;
+}

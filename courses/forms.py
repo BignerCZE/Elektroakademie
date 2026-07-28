@@ -271,6 +271,9 @@ class ParticipantActivationForm(forms.Form):
     password1 = forms.CharField(
         label="Heslo",
         strip=False,
+        error_messages={
+            "required": "Zadejte heslo.",
+        },
         widget=forms.PasswordInput(
             attrs={
                 "placeholder": "Zadejte heslo",
@@ -282,6 +285,9 @@ class ParticipantActivationForm(forms.Form):
     password2 = forms.CharField(
         label="Potvrzení hesla",
         strip=False,
+        error_messages={
+            "required": "Zadejte heslo ještě jednou.",
+        },
         widget=forms.PasswordInput(
             attrs={
                 "placeholder": "Zadejte heslo znovu",

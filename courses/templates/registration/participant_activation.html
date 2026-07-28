@@ -14,6 +14,7 @@
             <header class="activation-header">
                 <div>
                     <h1>Aktivace účtu</h1>
+
                     <p>
                         Doplňte osobní údaje a nastavte heslo pro přístup
                         do Elektroakademie.
@@ -36,10 +37,12 @@
 
                         <div class="activation-grid">
                             <div class="activation-field activation-field--full">
-                                <label for="activation-login">Login</label>
+                                <label for="activation-login">
+                                    Login
+                                </label>
 
-                                <input type="email" id="activation-login" value="{{ participant.email }}" readonly
-                                    class="readonly-field">
+                                <input type="email" id="activation-login" value="{{ participant.email }}"
+                                    class="readonly-field" readonly>
 
                                 <small class="readonly-note">
                                     Tento údaj nelze změnit.
@@ -49,12 +52,24 @@
                             <div class="activation-field">
                                 {{ form.password1.label_tag }}
                                 {{ form.password1 }}
+
+                                <small class="password-help">
+                                    Heslo musí mít alespoň 8 znaků a obsahovat
+                                    alespoň dvě z těchto možností: malé písmeno,
+                                    velké písmeno a číslo.
+                                </small>
+
                                 {{ form.password1.errors }}
                             </div>
 
                             <div class="activation-field">
                                 {{ form.password2.label_tag }}
                                 {{ form.password2 }}
+
+                                <small class="password-help">
+                                    Pro kontrolu zadejte stejné heslo ještě jednou.
+                                </small>
+
                                 {{ form.password2.errors }}
                             </div>
                         </div>
@@ -65,17 +80,21 @@
 
                         <div class="activation-grid">
                             <div class="activation-field">
-                                <label for="activation-first-name">Jméno</label>
+                                <label for="activation-first-name">
+                                    Jméno
+                                </label>
 
                                 <input type="text" id="activation-first-name" value="{{ participant.first_name }}"
-                                    readonly class="readonly-field">
+                                    class="readonly-field" readonly>
                             </div>
 
                             <div class="activation-field">
-                                <label for="activation-last-name">Příjmení</label>
+                                <label for="activation-last-name">
+                                    Příjmení
+                                </label>
 
                                 <input type="text" id="activation-last-name" value="{{ participant.last_name }}"
-                                    readonly class="readonly-field">
+                                    class="readonly-field" readonly>
                             </div>
 
                             <div class="activation-field activation-field--full">
@@ -84,7 +103,7 @@
                                 </label>
 
                                 <input type="text" id="activation-registration-number"
-                                    value="{{ participant.registration_number }}" readonly class="readonly-field">
+                                    value="{{ participant.registration_number }}" class="readonly-field" readonly>
 
                                 <small class="readonly-note">
                                     Evidenční číslo bylo vytvořeno automaticky.
