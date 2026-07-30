@@ -1,9 +1,11 @@
+import csv
 import uuid
 
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
 from django.db import transaction
 from django.db.models import Count, Exists, OuterRef, Q, Subquery
+from django.http import HttpResponse
 from django.urls import reverse
 from django.utils.html import format_html
 
@@ -734,6 +736,7 @@ class OrderParticipantAdmin(admin.ModelAdmin):
 
     actions = (
         "regenerate_activation_tokens",
+        "export_participants_to_csv",
     )
 
     def get_queryset(self, request):
@@ -1128,6 +1131,139 @@ class OrderParticipantAdmin(admin.ModelAdmin):
                 level=messages.WARNING,
             )
 
+    @admin.action(
+        description="Exportovat vybrané účastníky do CSV"
+    )
+    def export_participants_to_csv(
+        self,
+        request,
+        queryset,
+    ):
+        response = HttpResponse(
+            content_type="text/csv; charset=utf-8"
+        )
+        response["Content-Disposition"] = (
+            'attachment; filename="ucastnici.csv"'
+        )
+
+        response.write("\ufeff")
+        writer = csv.writer(
+            response,
+            delimiter=";",
+            lineterminator="\n",
+        )
+
+        writer.writerow(
+            (
+                "Evidenční číslo",
+                "Jméno",
+                "Příjmení",
+                "E-mail",
+                "Kurz",
+                "Objednávka",
+                "Objednatel",
+                "IČO",
+                "Zaplaceno",
+                "Aktivováno",
+                "Uživatelský účet",
+                "Profil vyplněn",
+                "Stav testu",
+                "Poslední skóre",
+                "Certifikát vystaven",
+                "Číslo certifikátu",
+                "Platnost certifikátu",
+            )
+        )
+
+        participants = (
+            queryset
+            .select_related(
+                "order",
+                "user",
+            )
+            .order_by(
+                "last_name",
+                "first_name",
+            )
+        )
+
+        for participant in participants:
+            try:
+                profile_exists = bool(participant.profile)
+            except ParticipantProfile.DoesNotExist:
+                profile_exists = False
+
+            try:
+                certificate = participant.certificate
+            except Certificate.DoesNotExist:
+                certificate = None
+
+            latest_attempt = None
+            if participant.user_id:
+                latest_attempt = (
+                    QuizAttempt.objects
+                    .filter(user_id=participant.user_id)
+                    .order_by("-started_at")
+                    .first()
+                )
+
+            if not latest_attempt:
+                quiz_status = "Nezahájen"
+                latest_score = ""
+            elif (
+                latest_attempt.status
+                == QuizAttempt.STATUS_IN_PROGRESS
+            ):
+                quiz_status = "Rozpracovaný"
+                latest_score = ""
+            elif latest_attempt.passed:
+                quiz_status = "Splněn"
+                latest_score = latest_attempt.score_percent
+            else:
+                quiz_status = "Nesplněn"
+                latest_score = latest_attempt.score_percent
+
+            writer.writerow(
+                (
+                    participant.registration_number or "",
+                    participant.first_name or "",
+                    participant.last_name or "",
+                    participant.email or "",
+                    participant.order.get_course_type_display(),
+                    participant.order_id,
+                    participant.order.company_name or "",
+                    participant.order.ico or "",
+                    (
+                        "Ano"
+                        if participant.order.status == "paid"
+                        else "Ne"
+                    ),
+                    (
+                        "Ano"
+                        if participant.activation_completed_at
+                        else "Ne"
+                    ),
+                    "Ano" if participant.user_id else "Ne",
+                    "Ano" if profile_exists else "Ne",
+                    quiz_status,
+                    latest_score,
+                    "Ano" if certificate else "Ne",
+                    (
+                        certificate.certificate_number
+                        if certificate
+                        else ""
+                    ),
+                    (
+                        certificate.valid_until
+                        if certificate
+                        else ""
+                    ),
+                )
+            )
+
+        return response
+
+
 
 @admin.register(ParticipantProfile)
 class ParticipantProfileAdmin(admin.ModelAdmin):
@@ -1354,6 +1490,10 @@ class QuizAttemptAdmin(admin.ModelAdmin):
     list_per_page = 50
     save_on_top = True
 
+    actions = (
+        "export_quiz_attempts_to_csv",
+    )
+
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
 
@@ -1482,6 +1622,117 @@ class QuizAttemptAdmin(admin.ModelAdmin):
             .filter(user_id=obj.user_id)
             .first()
         )
+
+
+    @admin.action(
+        description="Exportovat vybrané testové pokusy do CSV"
+    )
+    def export_quiz_attempts_to_csv(
+        self,
+        request,
+        queryset,
+    ):
+        response = HttpResponse(
+            content_type="text/csv; charset=utf-8"
+        )
+        response["Content-Disposition"] = (
+            'attachment; filename="testove_pokusy.csv"'
+        )
+
+        response.write("\ufeff")
+        writer = csv.writer(
+            response,
+            delimiter=";",
+            lineterminator="\n",
+        )
+
+        writer.writerow(
+            (
+                "ID pokusu",
+                "Evidenční číslo",
+                "Účastník",
+                "E-mail",
+                "Kurz",
+                "Číslo pokusu",
+                "Stav",
+                "Výsledek",
+                "Správné odpovědi",
+                "Počet otázek",
+                "Skóre (%)",
+                "Zahájeno",
+                "Odesláno",
+                "Délka testu",
+            )
+        )
+
+        attempts = list(
+            queryset
+            .select_related(
+                "user",
+                "course",
+            )
+            .order_by("-started_at")
+        )
+
+        participant_map = {
+            participant.user_id: participant
+            for participant in (
+                OrderParticipant.objects
+                .filter(
+                    user_id__in=[
+                        attempt.user_id
+                        for attempt in attempts
+                    ]
+                )
+            )
+        }
+
+        for attempt in attempts:
+            participant = participant_map.get(
+                attempt.user_id
+            )
+
+            full_name = attempt.user.get_full_name().strip()
+            if not full_name:
+                full_name = (
+                    attempt.user.email
+                    or attempt.user.username
+                )
+
+            if (
+                attempt.status
+                == QuizAttempt.STATUS_IN_PROGRESS
+            ):
+                result = "Rozpracovaný"
+            elif attempt.passed:
+                result = "Splněn"
+            else:
+                result = "Nesplněn"
+
+            writer.writerow(
+                (
+                    attempt.pk,
+                    (
+                        participant.registration_number
+                        if participant
+                        else ""
+                    ),
+                    full_name,
+                    attempt.user.email or "",
+                    attempt.course.title,
+                    attempt.attempt_number,
+                    attempt.get_status_display(),
+                    result,
+                    attempt.correct_answers,
+                    attempt.total_questions,
+                    attempt.score_percent,
+                    attempt.started_at,
+                    attempt.submitted_at or "",
+                    self.format_duration(attempt),
+                )
+            )
+
+        return response
 
     def format_duration(self, obj):
         if not obj.started_at:
