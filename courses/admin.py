@@ -8,6 +8,7 @@ from django.db.models import Count, Exists, OuterRef, Q, Subquery
 from django.http import HttpResponse
 from django.urls import reverse
 from django.utils.html import format_html
+from django.utils import timezone
 
 from .models import (
     Certificate,
@@ -1510,7 +1511,7 @@ class QuizAttemptAdmin(admin.ModelAdmin):
         request,
         obj=None,
     ):
-        return False
+        return True
 
     @admin.display(
         description="Účastník",
@@ -1767,3 +1768,66 @@ class QuizAttemptAdmin(admin.ModelAdmin):
             )
 
         return f"{minutes:d}:{seconds:02d}"
+
+@admin.register(Certificate)
+class CertificateAdmin(admin.ModelAdmin):
+    list_display = (
+        "certificate_number",
+        "participant",
+        "quiz_attempt",
+        "issued_at",
+        "valid_until",
+        "is_valid",
+    )
+
+    list_display_links = (
+        "certificate_number",
+        "participant",
+    )
+
+    list_filter = (
+        "issued_at",
+        "valid_until",
+        "quiz_attempt__course",
+    )
+
+    search_fields = (
+        "certificate_number",
+        "participant__registration_number",
+        "participant__first_name",
+        "participant__last_name",
+        "participant__email",
+        "quiz_attempt__user__email",
+    )
+
+    readonly_fields = (
+        "verification_token",
+        "created_at",
+    )
+
+    autocomplete_fields = (
+        "participant",
+        "quiz_attempt",
+    )
+
+    list_select_related = (
+        "participant",
+        "quiz_attempt",
+        "quiz_attempt__course",
+    )
+
+    ordering = (
+        "-issued_at",
+    )
+
+    date_hierarchy = "issued_at"
+    list_per_page = 50
+    save_on_top = True
+
+    @admin.display(
+        boolean=True,
+        description="Platné",
+        ordering="valid_until",
+    )
+    def is_valid(self, obj):
+        return obj.valid_until >= timezone.localdate()

@@ -1,17 +1,16 @@
 .dashboard-shell-page {
-    height: 100%;
-    min-height: 0;
+    min-height: calc(100vh - var(--header-height));
     margin: 0;
-    padding: 32px 0;
+    padding: 24px 0;
     color: var(--color-dark-text);
     background: var(--page-blue-bg);
     overflow: hidden;
-    box-sizing: border-box;
 }
 
 .dashboard-shell-page .container {
-    height: 100%;
-    min-height: 0;
+    min-height: calc(
+        100vh - var(--header-height) - 48px
+    );
 }
 
 .dashboard-shell {
@@ -19,8 +18,9 @@
     grid-template-columns: 320px minmax(0, 1fr);
     gap: 24px;
     align-items: stretch;
-    height: 100%;
-    min-height: 0;
+    min-height: calc(
+        100vh - var(--header-height) - 48px
+    );
 }
 
 .dashboard-shell-main {
@@ -28,18 +28,16 @@
     flex-direction: column;
     min-width: 0;
     min-height: 0;
-    height: 100%;
     overflow: hidden;
     gap: 18px;
 }
 
 .dashboard-shell-sidebar {
     min-height: 0;
-    height: 100%;
 }
 
 .dashboard-sidebar-panel {
-    height: 100%;
+    min-height: 100%;
     padding: 28px;
     border-radius: 24px;
     background: #ffffff;
@@ -1006,7 +1004,11 @@
     width: 100%;
     min-width: 0;
     min-height: 0;
-    height: calc(100vh - 48px);
+    height: calc(
+        100vh
+        - var(--header-height)
+        - 48px
+    );
     padding: 28px 30px;
     overflow: hidden;
     border-radius: 22px;
@@ -1693,3 +1695,29 @@
         font-size: 13px;
     }
 }
+
+/* Stabilní desktopové rozložení testu */
+.dashboard-shell-main > .quiz-card {
+    align-self: center;
+    width: 100%;
+    max-height: calc(
+        100vh
+        - var(--header-height)
+        - 48px
+    );
+    overflow: hidden;
+}
+
+.quiz-question-link {
+    appearance: none;
+    padding: 0;
+    cursor: pointer;
+    font: inherit;
+}
+
+.quiz-question-link:disabled {
+    opacity: 1;
+    cursor: default;
+}
+
+

@@ -487,13 +487,6 @@ class Certificate(models.Model):
         verbose_name="Platnost do",
     )
 
-    pdf_file = models.FileField(
-        upload_to="certificates/%Y/%m/",
-        null=True,
-        blank=True,
-        verbose_name="PDF soubor",
-    )
-
     verification_token = models.UUIDField(
         default=uuid.uuid4,
         unique=True,

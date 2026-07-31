@@ -26,7 +26,7 @@
             {% if active_attempt %}
             <span class="quiz-start-status">Rozpracovaný test</span>
 
-            <a href="{% url 'quiz_question' active_attempt.id 1 %}" class="button-primary">
+            <a href="{% url 'quiz_start' course.id %}">
                 Pokračovat v testu
             </a>
             {% else %}

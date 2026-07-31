@@ -146,7 +146,7 @@
                 kde jste skončili.
             </p>
 
-            <a href="{% url 'quiz_question' active_attempt.id 1 %}" class="dashboard-text-link">
+            <a href="{% url 'quiz_start' active_course.id %}" class="dashboard-text-link">
                 Pokračovat v testu
             </a>
             {% elif user.passed_quiz %}

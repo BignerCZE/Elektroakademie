@@ -2,11 +2,6 @@ import random
 import re
 import json
 
-from datetime import date
-from dateutil.relativedelta import relativedelta
-
-from io import BytesIO
-
 import requests
 from django.conf import settings
 from django.contrib.auth import get_user_model, login
@@ -16,11 +11,9 @@ from django.db.models import Max, Q
 from django.forms import formset_factory
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.template.loader import get_template
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
-from xhtml2pdf import pisa
 
 from .forms import (
     BaseParticipantFormSet,
@@ -41,8 +34,11 @@ from .models import (
     QuizAttempt,
     QuizAttemptQuestion,
 )
-from .services import generate_registration_number
-
+from .services import (
+    generate_certificate,
+    generate_certificate_pdf,
+    mark_order_as_paid,
+)
 
 User = get_user_model()
 
@@ -424,42 +420,9 @@ def order_payment_simulation(request, order_id):
 
 
 def order_payment_success(request, order_id):
-    with transaction.atomic():
-        order = get_object_or_404(
-            Order.objects.select_for_update(),
-            id=order_id,
-        )
-
-        if order.status != "paid":
-            order.status = "paid"
-            order.paid_at = timezone.now()
-            order.save(
-                update_fields=[
-                    "status",
-                    "paid_at",
-                ]
-            )
-
-        participants = list(
-            order.participants
-            .select_for_update()
-            .order_by("id")
-        )
-
-        for participant in participants:
-            if participant.registration_number:
-                continue
-
-            participant.registration_number = (
-                generate_registration_number(
-                    order.course_type
-                )
-            )
-            participant.save(
-                update_fields=[
-                    "registration_number",
-                ]
-            )
+    order, participants, _ = mark_order_as_paid(
+        order_id
+    )
 
     activation_links = [
         {
@@ -485,7 +448,6 @@ def order_payment_success(request, order_id):
             "activation_links": activation_links,
         },
     )
-
 
 def participant_activation(request, token):
     participant = get_object_or_404(
@@ -824,6 +786,21 @@ def quiz_dashboard(request, course_id):
         .first()
     )
 
+    active_attempt_resume_order = 1
+
+    if active_attempt:
+        first_unanswered_question = (
+            active_attempt.attempt_questions
+            .filter(selected_choice__isnull=True)
+            .order_by("order")
+            .first()
+        )
+
+        if first_unanswered_question:
+            active_attempt_resume_order = (
+                first_unanswered_question.order
+            )
+
     past_attempts = (
         QuizAttempt.objects
         .filter(
@@ -840,8 +817,12 @@ def quiz_dashboard(request, course_id):
     context = {
         "course": course,
         "active_attempt": active_attempt,
+        "active_attempt_resume_order": (
+            active_attempt_resume_order
+        ),
         "past_attempts": past_attempts,
     }
+
     context.update(
         get_dashboard_context(
             request,
@@ -855,7 +836,6 @@ def quiz_dashboard(request, course_id):
         "courses/quiz_dashboard.html",
         context,
     )
-
 
 @login_required
 def quiz_start(request, course_id):
@@ -881,10 +861,23 @@ def quiz_start(request, course_id):
     )
 
     if active_attempt:
+        first_unanswered_question = (
+            active_attempt.attempt_questions
+            .filter(selected_choice__isnull=True)
+            .order_by("order")
+            .first()
+        )
+
+        target_order = (
+            first_unanswered_question.order
+            if first_unanswered_question
+            else 1
+        )
+
         return redirect(
             "quiz_question",
             attempt_id=active_attempt.id,
-            order=1,
+            order=target_order,
         )
 
     category_counts = getattr(
@@ -973,17 +966,21 @@ def quiz_question(request, attempt_id, order):
             order=1,
         )
 
-    total_questions = (
-        attempt.attempt_questions.count()
-    )
+    total_questions = attempt.attempt_questions.count()
 
     attempt_question = get_object_or_404(
-        QuizAttemptQuestion,
+        QuizAttemptQuestion.objects.select_related("question"),
         attempt=attempt,
         order=order,
     )
 
     if request.method == "POST":
+        if "leave_test" in request.POST:
+            return redirect(
+                "quiz",
+                course_id=attempt.course.id,
+            )
+
         choice_id = request.POST.get("choice")
 
         if choice_id:
@@ -1002,34 +999,35 @@ def quiz_question(request, attempt_id, order):
                     update_fields=["selected_choice"]
                 )
 
-        if "leave_test" in request.POST:
-            return redirect(
-                "quiz",
-                course_id=attempt.course.id,
-            )
-
         if "previous" in request.POST:
-            previous_order = max(
-                order - 1,
-                1,
-            )
-
             return redirect(
                 "quiz_question",
                 attempt_id=attempt.id,
-                order=previous_order,
+                order=max(order - 1, 1),
             )
 
         if "next" in request.POST:
-            next_order = min(
-                order + 1,
+            return redirect(
+                "quiz_question",
+                attempt_id=attempt.id,
+                order=min(order + 1, total_questions),
+            )
+
+        if "go_to" in request.POST:
+            try:
+                target_order = int(request.POST["go_to"])
+            except (TypeError, ValueError):
+                target_order = order
+
+            target_order = min(
+                max(target_order, 1),
                 total_questions,
             )
 
             return redirect(
                 "quiz_question",
                 attempt_id=attempt.id,
-                order=next_order,
+                order=target_order,
             )
 
         return redirect(
@@ -1040,21 +1038,19 @@ def quiz_question(request, attempt_id, order):
 
     choices = []
 
-    for choice in (
-        attempt_question.question
-        .choice_set
-        .all()
-    ):
-        choices.append({
-            "id": choice.id,
-            "text": choice.text,
-            "checked": (
-                "checked"
-                if choice.id
-                == attempt_question.selected_choice_id
-                else ""
-            ),
-        })
+    for choice in attempt_question.question.choice_set.all():
+        choices.append(
+            {
+                "id": choice.id,
+                "text": choice.text,
+                "checked": (
+                    "checked"
+                    if choice.id
+                    == attempt_question.selected_choice_id
+                    else ""
+                ),
+            }
+        )
 
     answered_question_orders = set(
         attempt.attempt_questions
@@ -1074,23 +1070,21 @@ def quiz_question(request, attempt_id, order):
         if number not in answered_question_orders
     ]
 
-    unanswered_count = len(
-        unanswered_questions
-    )
-
     question_numbers = []
 
     for number in range(
         1,
         total_questions + 1,
     ):
-        question_numbers.append({
-            "number": number,
-            "is_current": number == order,
-            "is_answered": (
-                number in answered_question_orders
-            ),
-        })
+        question_numbers.append(
+            {
+                "number": number,
+                "is_current": number == order,
+                "is_answered": (
+                    number in answered_question_orders
+                ),
+            }
+        )
 
     context = {
         "attempt": attempt,
@@ -1099,11 +1093,14 @@ def quiz_question(request, attempt_id, order):
         "order": order,
         "total_questions": total_questions,
         "question_numbers": question_numbers,
-        "unanswered_count": unanswered_count,
+        "unanswered_count": len(unanswered_questions),
         "unanswered_questions": unanswered_questions,
         "choices": choices,
         "is_first": order == 1,
         "is_last": order == total_questions,
+        "current_is_answered": (
+            order in answered_question_orders
+        ),
     }
 
     context.update(
@@ -1119,6 +1116,7 @@ def quiz_question(request, attempt_id, order):
         "courses/quiz_question.html",
         context,
     )
+
 @login_required
 def quiz_attempt(request, attempt_id):
     attempt = get_object_or_404(
@@ -1195,6 +1193,40 @@ def quiz_submit(request, attempt_id):
         status=QuizAttempt.STATUS_IN_PROGRESS,
     )
 
+    current_question_id = request.POST.get(
+        "current_question_id"
+    )
+    choice_id = request.POST.get("choice")
+
+    if current_question_id and choice_id:
+        current_attempt_question = (
+            QuizAttemptQuestion.objects
+            .select_related("question")
+            .filter(
+                id=current_question_id,
+                attempt=attempt,
+            )
+            .first()
+        )
+
+        if current_attempt_question:
+            selected_choice = (
+                Choice.objects
+                .filter(
+                    id=choice_id,
+                    question=current_attempt_question.question,
+                )
+                .first()
+            )
+
+            if selected_choice:
+                current_attempt_question.selected_choice = (
+                    selected_choice
+                )
+                current_attempt_question.save(
+                    update_fields=["selected_choice"]
+                )
+
     unanswered_question = (
         attempt.attempt_questions
         .filter(selected_choice__isnull=True)
@@ -1209,9 +1241,7 @@ def quiz_submit(request, attempt_id):
             order=unanswered_question.order,
         )
 
-    total_questions = (
-        attempt.attempt_questions.count()
-    )
+    total_questions = attempt.attempt_questions.count()
 
     correct_answers = (
         attempt.attempt_questions
@@ -1223,11 +1253,7 @@ def quiz_submit(request, attempt_id):
 
     if total_questions:
         score_percent = round(
-            (
-                correct_answers
-                / total_questions
-            )
-            * 100,
+            (correct_answers / total_questions) * 100,
             2,
         )
 
@@ -1237,9 +1263,7 @@ def quiz_submit(request, attempt_id):
         70,
     )
 
-    passed = (
-        score_percent >= pass_percentage
-    )
+    passed = score_percent >= pass_percentage
 
     attempt.total_questions = total_questions
     attempt.correct_answers = correct_answers
@@ -1265,41 +1289,10 @@ def quiz_submit(request, attempt_id):
             update_fields=["passed_quiz"]
         )
 
-        participant = (
-            OrderParticipant.objects
-            .select_related("order")
-            .filter(
-                user=request.user,
-                registration_number__isnull=False,
-            )
-            .exclude(registration_number="")
-            .order_by(
-                "-activation_completed_at",
-                "-id",
-            )
-            .first()
-        )
-
-        if participant:
-            issued_date = attempt.submitted_at.date()
-
-            valid_until = (
-                issued_date
-                + relativedelta(years=3)
-                - relativedelta(days=1)
-            )
-
-            Certificate.objects.get_or_create(
-                participant=participant,
-                defaults={
-                    "quiz_attempt": attempt,
-                    "certificate_number": (
-                        participant.registration_number
-                    ),
-                    "issued_at": attempt.submitted_at,
-                    "valid_until": valid_until,
-                },
-            )
+        try:
+            generate_certificate(attempt)
+        except ValueError:
+            pass
 
     detail_url = reverse(
         "quiz_attempt_detail",
@@ -1312,6 +1305,7 @@ def quiz_submit(request, attempt_id):
     return redirect(
         f"{detail_url}?from=result"
     )
+
 @login_required
 def quiz_result(request, attempt_id):
     attempt = get_object_or_404(
@@ -1426,22 +1420,36 @@ def certificate_success(request, course_id):
             course_id=course.id,
         )
 
-    participant = get_object_or_404(
-        OrderParticipant.objects.select_related(
-            "profile",
-            "order",
-        ),
-        user=request.user,
+    certificate = (
+        Certificate.objects
+        .select_related(
+            "participant",
+            "participant__profile",
+            "participant__order",
+            "participant__user",
+            "quiz_attempt",
+            "quiz_attempt__course",
+            "quiz_attempt__user",
+        )
+        .filter(
+            Q(participant__user=request.user)
+            | Q(quiz_attempt__user=request.user),
+            quiz_attempt__course=course,
+        )
+        .order_by(
+            "-issued_at",
+            "-id",
+        )
+        .first()
     )
 
-    certificate = get_object_or_404(
-        Certificate.objects.select_related(
-            "quiz_attempt",
-            "participant",
-        ),
-        participant=participant,
-        quiz_attempt__course=course,
-    )
+    if certificate is None:
+        return HttpResponse(
+            "Pro tento kurz nebylo nalezeno žádné osvědčení.",
+            status=404,
+        )
+
+    participant = certificate.participant
 
     context = {
         "course": course,
@@ -1469,6 +1477,7 @@ def certificate_success(request, course_id):
         context,
     )
 
+
 @login_required
 def certificate_pdf(request, course_id):
     course = get_object_or_404(
@@ -1488,36 +1497,53 @@ def certificate_pdf(request, course_id):
             course_id=course.id,
         )
 
-    template = get_template(
-        "courses/certificate_pdf.html"
+    certificate = (
+        Certificate.objects
+        .select_related(
+            "participant",
+            "participant__profile",
+            "participant__order",
+            "participant__user",
+            "quiz_attempt",
+            "quiz_attempt__course",
+            "quiz_attempt__user",
+        )
+        .filter(
+            Q(participant__user=request.user)
+            | Q(quiz_attempt__user=request.user),
+            quiz_attempt__course=course,
+        )
+        .order_by(
+            "-issued_at",
+            "-id",
+        )
+        .first()
     )
 
-    html = template.render({
-        "user": request.user,
-        "course": course,
-        "completion_date": date.today(),
-    })
-
-    result = BytesIO()
-
-    pdf = pisa.CreatePDF(
-        src=html,
-        dest=result,
-    )
-
-    if pdf.err:
+    if certificate is None:
         return HttpResponse(
-            "Chyba při generování PDF certifikátu",
+            "Pro tento kurz nebylo nalezeno žádné osvědčení.",
+            status=404,
+        )
+
+    try:
+        pdf_content = generate_certificate_pdf(
+            certificate
+        )
+    except ValueError as error:
+        return HttpResponse(
+            str(error),
             status=500,
         )
 
     response = HttpResponse(
-        result.getvalue(),
+        pdf_content,
         content_type="application/pdf",
     )
 
     response["Content-Disposition"] = (
-        'inline; filename="certificate.pdf"'
+        "inline; "
+        f'filename="{certificate.certificate_number}.pdf"'
     )
 
     return response
