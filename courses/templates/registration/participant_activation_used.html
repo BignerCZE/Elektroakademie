@@ -1,0 +1,30 @@
+{% extends "courses/base.html" %}
+
+{% block title %}
+Aktivační odkaz již byl použit
+{% endblock %}
+
+{% block content %}
+
+<section class="activation-page">
+    <div class="activation-card">
+
+        <h1>Aktivační odkaz již byl použit</h1>
+
+        <p>
+            Tento aktivační odkaz již není možné znovu použít.
+        </p>
+
+        <p>
+            Pokud jste svůj účet již aktivovali, můžete se přihlásit pomocí
+            své e-mailové adresy a hesla.
+        </p>
+
+        <a href="{% url 'login' %}" class="btn btn-primary">
+            Přihlásit se
+        </a>
+
+    </div>
+</section>
+
+{% endblock %}
