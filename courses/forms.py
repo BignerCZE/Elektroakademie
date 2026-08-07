@@ -74,6 +74,17 @@ class BaseParticipantFormSet(BaseFormSet):
 
             used_emails.add(normalized_email)
 
+            if User.objects.filter(
+                email__iexact=normalized_email
+            ).exists():
+                form.add_error(
+                    "email",
+                    (
+                        "Účet s touto e-mailovou adresou "
+                        "již existuje."
+                    ),
+                )
+                
 class BillingForm(forms.Form):
     ico = forms.CharField(
         label="IČO",

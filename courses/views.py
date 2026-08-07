@@ -292,8 +292,16 @@ def ares_company_detail(request, ico):
             },
             status=502,
         )
-
-    data = response.json()
+    try:
+        data = response.json()
+    except ValueError:
+        return JsonResponse(
+            {
+                "success": False,
+                "message": "Nepodařilo se načíst údaje z ARES.",
+            },
+            status=502,
+        )
     sidlo = data.get("sidlo") or {}
 
     street = sidlo.get("nazevUlice") or sidlo.get("nazevCastiObce") or ""
