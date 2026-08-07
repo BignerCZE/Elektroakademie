@@ -1,0 +1,169 @@
+{% extends "emails/base.html" %}
+
+{% block title %}
+Platba přijata
+{% endblock %}
+
+{% block preheader %}
+Platba za objednávku č. {{ order.id }} byla přijata a účastníci mohou zahájit aktivaci.
+{% endblock %}
+
+{% block content %}
+
+<h1 style="
+        margin: 0 0 22px;
+        font-size: 26px;
+        line-height: 34px;
+        font-weight: 700;
+        color: #17232d;
+    ">
+    Platba byla úspěšně přijata
+</h1>
+
+<p style="
+        margin: 0 0 18px;
+        font-size: 16px;
+        line-height: 26px;
+        color: #3e4c57;
+    ">
+    Dobrý den{% if order.contact_first_name %}, {{ order.contact_first_name }}{% endif %},
+</p>
+
+<p style="
+        margin: 0 0 24px;
+        font-size: 16px;
+        line-height: 26px;
+        color: #3e4c57;
+    ">
+    potvrzujeme přijetí platby za objednávku
+    <strong>č. {{ order.id }}</strong>.
+</p>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="
+        width: 100%;
+        margin: 0 0 28px;
+        background-color: #f6f9fb;
+        border: 1px solid #dce5eb;
+        border-radius: 8px;
+    ">
+    <tr>
+        <td style="padding: 22px 24px 10px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                    <td width="38%" style="
+                            padding: 0 12px 12px 0;
+                            font-size: 13px;
+                            font-weight: 700;
+                            color: #6d7983;
+                        ">
+                        Objednávka
+                    </td>
+
+                    <td style="
+                            padding: 0 0 12px;
+                            font-size: 14px;
+                            color: #25323c;
+                        ">
+                        č. {{ order.id }}
+                    </td>
+                </tr>
+
+                <tr>
+                    <td width="38%" style="
+                            padding: 0 12px 12px 0;
+                            font-size: 13px;
+                            font-weight: 700;
+                            color: #6d7983;
+                        ">
+                        Kurz
+                    </td>
+
+                    <td style="
+                            padding: 0 0 12px;
+                            font-size: 14px;
+                            color: #25323c;
+                        ">
+                        {{ course_name }}
+                    </td>
+                </tr>
+
+                <tr>
+                    <td width="38%" style="
+                            padding: 0 12px 12px 0;
+                            font-size: 13px;
+                            font-weight: 700;
+                            color: #6d7983;
+                        ">
+                        Počet účastníků
+                    </td>
+
+                    <td style="
+                            padding: 0 0 12px;
+                            font-size: 14px;
+                            color: #25323c;
+                        ">
+                        {{ participants|length }}
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
+<h2 style="
+        margin: 0 0 14px;
+        font-size: 18px;
+        line-height: 26px;
+        color: #17232d;
+    ">
+    Účastníci
+</h2>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="
+        width: 100%;
+        margin: 0 0 28px;
+    ">
+    {% for participant in participants %}
+    <tr>
+        <td style="
+                padding: 12px 14px;
+                border-bottom: 1px solid #e5eaee;
+                font-size: 14px;
+                line-height: 21px;
+                color: #25323c;
+            ">
+            <strong>
+                {{ participant.first_name }}
+                {{ participant.last_name }}
+            </strong>
+
+            <br>
+
+            <span style="color: #6d7983;">
+                {{ participant.email }}
+            </span>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="
+        width: 100%;
+        background-color: #edf8f1;
+        border-left: 4px solid #3a9461;
+    ">
+    <tr>
+        <td style="
+                padding: 16px 18px;
+                font-size: 13px;
+                line-height: 21px;
+                color: #315d43;
+            ">
+            Účastníkům byly připraveny přístupy do Elektroakademie
+            a na jejich e-mailové adresy byly zpracovány aktivační e-maily.
+            Po aktivaci účtu mohou zahájit studium.
+        </td>
+    </tr>
+</table>
+
+{% endblock %}

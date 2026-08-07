@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="cs">
+
+    <head>
+        <meta charset="UTF-8">
+
+        <style>
+            html,
+            body {
+                margin: 0;
+                padding: 0;
+                width: 210mm;
+                height: 297mm;
+                background: #ffffff;
+            }
+
+            body {
+                overflow: hidden;
+            }
+
+            .certificate-document {
+                width: 210mm;
+                height: 297mm;
+                box-shadow: none;
+            }
+
+            @page {
+                size: A4;
+                margin: 0;
+            }
+        </style>
+    </head>
+
+    <body>
+        {% include "courses/certificate_document.html" %}
+    </body>
+
+</html>

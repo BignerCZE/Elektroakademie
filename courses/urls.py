@@ -1,28 +1,47 @@
-from django.urls import path
 from django.contrib.auth import views as auth_views
+from django.urls import path
 
 from . import views
 
+
 urlpatterns = [
-    # domovská stránka
-    path("", views.index, name="index"),
+    # Domovská stránka
+    path(
+        "",
+        views.index,
+        name="index",
+    ),
 
-    # kurzy
-    path("kurzy/", views.index, name="courses"),
-    path("kurz/<int:course_id>/", views.course_detail, name="course_detail"),
+    # Kurzy
+    path(
+        "kurzy/",
+        views.index,
+        name="courses",
+    ),
+    path(
+        "kurz/<int:course_id>/",
+        views.course_detail,
+        name="course_detail",
+    ),
 
-    # registrace (bez hesla)
-    path("registrace/", views.register, name="register"),
+    # Registrace
+    path(
+        "registrace/",
+        views.register,
+        name="register",
+    ),
     path(
         "registrace/kontrola-emailu/",
         views.check_participant_emails,
         name="check_participant_emails",
     ),
-    path("registrace/odeslano/", views.password_setup_sent, name="password_setup_sent"),
+    path(
+        "registrace/odeslano/",
+        views.password_setup_sent,
+        name="password_setup_sent",
+    ),
 
-
-
-    # nastavení hesla přes e-mail
+    # Nastavení hesla přes e-mail
     path(
         "heslo/nastavit/<uidb64>/<token>/",
         auth_views.PasswordResetConfirmView.as_view(
@@ -39,72 +58,171 @@ urlpatterns = [
         name="password_reset_complete",
     ),
 
-    # přihlášení / odhlášení
+    # Přihlášení / odhlášení
     path(
         "prihlaseni/",
         auth_views.LoginView.as_view(
-            template_name="registration/login.html"
+            template_name="registration/login.html",
         ),
         name="login",
     ),
     path(
         "odhlaseni/",
-        auth_views.LogoutView.as_view(next_page="index"),
+        auth_views.LogoutView.as_view(
+            next_page="index",
+        ),
         name="logout",
     ),
 
-    # uživatelská sekce
-    path("dashboard/", views.dashboard, name="dashboard"),
-    path("profil/", views.profile, name="profile"),
+    # Uživatelská sekce
+    path(
+        "dashboard/",
+        views.dashboard,
+        name="dashboard",
+    ),
+    path(
+        "profil/",
+        views.profile,
+        name="profile",
+    ),
 
-    # nákup
-    path("kurz/<int:course_id>/koupit/", views.buy_course, name="buy_course"),
-    path("kurz/<int:course_id>/zaplaceno/", views.payment_success, name="payment_success"),
-    path("vyber-kurzu/", views.course_selector, name="course_selector"),
+    # Nákup a platba
+    path(
+        "kurz/<int:course_id>/koupit/",
+        views.buy_course,
+        name="buy_course",
+    ),
+    path(
+        "kurz/<int:course_id>/zaplaceno/",
+        views.payment_success,
+        name="payment_success",
+    ),
+    path(
+        "vyber-kurzu/",
+        views.course_selector,
+        name="course_selector",
+    ),
+    path(
+        "platba/<int:order_id>/",
+        views.order_payment_simulation,
+        name="order_payment_simulation",
+    ),
+    path(
+        "platba/<int:order_id>/dokonceno/",
+        views.order_payment_success,
+        name="order_payment_success",
+    ),
 
-    # obsah kurzu
-    path("kurz/<int:course_id>/video/", views.video_detail, name="video_detail"),
-    path("kurz/<int:course_id>/test/", views.quiz_dashboard, name="quiz"),
-    path("kurz/<int:course_id>/test/spustit/", views.quiz_start, name="quiz_start"),
-    path("test/<int:attempt_id>/", views.quiz_attempt, name="quiz_attempt"),
-    path("test/<int:attempt_id>/odeslat/", views.quiz_submit, name="quiz_submit"),
-    path("test/<int:attempt_id>/vysledek/", views.quiz_result, name="quiz_result"),
-
-    path("test/<int:attempt_id>/otazka/<int:order>/", views.quiz_question, name="quiz_question"),
-    # certifikát
-    path("kurz/<int:course_id>/certifikat/", views.certificate_success, name="certificate_success"),
-    path("kurz/<int:course_id>/certifikat/pdf/", views.certificate_pdf, name="certificate_pdf"),
-
-    path("platba/<int:order_id>/", views.order_payment_simulation, name="order_payment_simulation"),
-    path("platba/<int:order_id>/dokonceno/", views.order_payment_success, name="order_payment_success"),
-    
+    # Aktivace účastníka
     path(
         "aktivace/<uuid:token>/",
         views.participant_activation,
         name="participant_activation",
     ),
 
+    # Obsah kurzu
     path(
-    "email-preview/activation/<uuid:token>/",
-    views.participant_activation_email_preview,
-    name="participant_activation_email_preview",
+        "kurz/<int:course_id>/video/",
+        views.video_detail,
+        name="video_detail",
+    ),
+    path(
+        "kurz/<int:course_id>/test/",
+        views.quiz_dashboard,
+        name="quiz",
+    ),
+    path(
+        "kurz/<int:course_id>/test/spustit/",
+        views.quiz_start,
+        name="quiz_start",
     ),
 
+    # Test
     path(
-    "email-preview/order/<int:order_id>/",
-    views.order_confirmation_email_preview,
-    name="order_confirmation_email_preview",
+        "test/<int:attempt_id>/",
+        views.quiz_attempt,
+        name="quiz_attempt",
     ),
-
-    path("obchodni-podminky/", views.terms_and_conditions, name="terms_and_conditions"),
-    path("zasady-ochrany-osobnich-udaju/", views.privacy_policy, name="privacy_policy"),
-
+    path(
+        "test/<int:attempt_id>/odeslat/",
+        views.quiz_submit,
+        name="quiz_submit",
+    ),
+    path(
+        "test/<int:attempt_id>/vysledek/",
+        views.quiz_result,
+        name="quiz_result",
+    ),
+    path(
+        "test/<int:attempt_id>/vysledek/pdf/",
+        views.quiz_result_pdf,
+        name="quiz_result_pdf",
+    ),
+    path(
+        "test/<int:attempt_id>/otazka/<int:order>/",
+        views.quiz_question,
+        name="quiz_question",
+    ),
     path(
         "test/<int:attempt_id>/nahled/<int:order>/",
         views.quiz_attempt_detail,
         name="quiz_attempt_detail",
     ),
 
+    # Certifikát
+    path(
+        "kurz/<int:course_id>/certifikat/",
+        views.certificate_success,
+        name="certificate_success",
+    ),
+    path(
+        "kurz/<int:course_id>/certifikat/pdf/",
+        views.certificate_pdf,
+        name="certificate_pdf",
+    ),
+
+    # E-mail preview
+    path(
+        "email-preview/activation/<uuid:token>/",
+        views.participant_activation_email_preview,
+        name="participant_activation_email_preview",
+    ),
+
+    path(
+        "email-preview/payment-completed/<int:order_id>/",
+        views.payment_completed_email_preview,
+        name="payment_completed_email_preview",
+    ),
+
+    path(
+        "email-preview/course-completed/<int:attempt_id>/",
+        views.course_completed_email_preview,
+        name="course_completed_email_preview",
+    ),
+
+    path(
+        (
+            "email-preview/course-completed/"
+            "<int:attempt_id>/attachment/"
+            "<int:attachment_index>/"
+        ),
+        views.course_completed_email_attachment,
+        name="course_completed_email_attachment",
+    ),
+
+    # Právní stránky
+    path(
+        "obchodni-podminky/",
+        views.terms_and_conditions,
+        name="terms_and_conditions",
+    ),
+    path(
+        "zasady-ochrany-osobnich-udaju/",
+        views.privacy_policy,
+        name="privacy_policy",
+    ),
+
+    # API
     path(
         "api/ares/<str:ico>/",
         views.ares_company_detail,

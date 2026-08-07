@@ -1,4 +1,5 @@
 from decimal import Decimal
+from unittest.mock import Mock, patch
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
@@ -7,12 +8,12 @@ from django.urls import reverse
 from courses.models import (
     Choice,
     Course,
+    EmailLog,
     Question,
     QuestionCategory,
     QuizAttempt,
     QuizAttemptQuestion,
 )
-
 
 User = get_user_model()
 
@@ -934,3 +935,115 @@ class QuizSubmitTests(QuizTestBase):
                 },
             ),
         )
+
+    @patch("courses.views.deliver_email")
+    @patch("courses.views.build_course_completed_email")
+    @patch("courses.views.generate_certificate")
+    def test_first_successful_attempt_processes_completion_email(
+        self,
+        mock_generate_certificate,
+        mock_build_email,
+        mock_deliver_email,
+    ):
+        attempt = self.create_active_attempt()
+        self.answer_all(attempt)
+
+        certificate = Mock()
+        rendered_email = Mock()
+
+        mock_generate_certificate.return_value = (
+            certificate,
+            True,
+        )
+        mock_build_email.return_value = rendered_email
+
+        response = self.submit_attempt(
+            attempt
+        )
+
+        attempt.refresh_from_db()
+
+        self.assertEqual(
+            response.status_code,
+            302,
+        )
+        self.assertTrue(
+            attempt.passed
+        )
+
+        mock_generate_certificate.assert_called_once_with(
+            attempt
+        )
+        mock_build_email.assert_called_once_with(
+            attempt
+        )
+        mock_deliver_email.assert_called_once_with(
+            rendered_email,
+            email_type=EmailLog.TYPE_COURSE_COMPLETED,
+            quiz_attempt=attempt,
+        )
+
+    @patch("courses.views.deliver_email")
+    @patch("courses.views.build_course_completed_email")
+    @patch("courses.views.generate_certificate")
+    def test_existing_certificate_does_not_process_completion_email(
+        self,
+        mock_generate_certificate,
+        mock_build_email,
+        mock_deliver_email,
+    ):
+        attempt = self.create_active_attempt()
+        self.answer_all(attempt)
+
+        certificate = Mock()
+
+        mock_generate_certificate.return_value = (
+            certificate,
+            False,
+        )
+
+        self.submit_attempt(
+            attempt
+        )
+
+        attempt.refresh_from_db()
+
+        self.assertTrue(
+            attempt.passed
+        )
+
+        mock_generate_certificate.assert_called_once_with(
+            attempt
+        )
+        mock_build_email.assert_not_called()
+        mock_deliver_email.assert_not_called()
+
+    @patch("courses.views.deliver_email")
+    @patch("courses.views.build_course_completed_email")
+    @patch("courses.views.generate_certificate")
+    def test_failed_attempt_does_not_process_completion_email(
+        self,
+        mock_generate_certificate,
+        mock_build_email,
+        mock_deliver_email,
+    ):
+        attempt = self.create_active_attempt()
+
+        self.answer_all(
+            attempt,
+            correct_orders={1, 2},
+        )
+
+        self.submit_attempt(
+            attempt
+        )
+
+        attempt.refresh_from_db()
+
+        self.assertFalse(
+            attempt.passed
+        )
+
+        mock_generate_certificate.assert_not_called()
+        mock_build_email.assert_not_called()
+        mock_deliver_email.assert_not_called()

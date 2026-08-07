@@ -204,3 +204,8 @@ ACTIVATION_LINK_VALID_DAYS = 30
 
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+EMAIL_TRANSPORT = os.getenv(
+    "EMAIL_TRANSPORT",
+    "preview",
+)

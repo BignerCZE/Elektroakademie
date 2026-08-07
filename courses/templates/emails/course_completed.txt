@@ -1,0 +1,38 @@
+ELEKTROAKADEMIE
+Odborné vzdělávání v elektrotechnice
+
+
+Dobrý den{% if user.first_name %}, {{ user.first_name }}{% endif %},
+
+úspěšně jste dokončili test kurzu {{ course.title }}.
+
+
+VÝSLEDEK
+
+Výsledek:
+SPLNĚNO
+
+Úspěšnost:
+{{ attempt.score_percent|floatformat:0 }} %
+
+Číslo certifikátu:
+{{ certificate.certificate_number }}
+
+
+PŘÍLOHY
+
+1. Certifikát
+Osvědčení o úspěšném dokončení kurzu.
+
+2. Výsledek testu
+Kompletní přehled otázek, vašich odpovědí
+a správných odpovědí.
+
+
+Oba dokumenty doporučujeme uložit pro pozdější použití.
+Certifikát zůstává dostupný také ve vašem účtu
+v Elektroakademii.
+
+
+Elektroakademie
+Odborné vzdělávání v elektrotechnice

@@ -10,6 +10,7 @@ def render_email(
     html_template,
     text_template,
     context=None,
+    attachments=(),
 ):
     context = context or {}
 
@@ -28,4 +29,5 @@ def render_email(
         recipient=recipient,
         text_body=text_body,
         html_body=html_body,
+        attachments=tuple(attachments),
     )

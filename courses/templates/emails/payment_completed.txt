@@ -1,0 +1,31 @@
+ELEKTROAKADEMIE
+Odborné vzdělávání v elektrotechnice
+
+
+Dobrý den{% if order.contact_first_name %}, {{ order.contact_first_name }}{% endif %},
+
+potvrzujeme přijetí platby za objednávku č. {{ order.id }}.
+
+
+OBJEDNÁVKA
+
+Kurz:
+{{ course_name }}
+
+Počet účastníků:
+{{ participants|length }}
+
+
+ÚČASTNÍCI
+
+{% for participant in participants %}- {{ participant.first_name }} {{ participant.last_name }}
+  {{ participant.email }}
+
+{% endfor %}Účastníkům byly připraveny přístupy do Elektroakademie
+a na jejich e-mailové adresy byly zpracovány aktivační e-maily.
+
+Po aktivaci účtu mohou zahájit studium.
+
+
+Elektroakademie
+Odborné vzdělávání v elektrotechnice

@@ -1,6 +1,7 @@
 import random
 import re
 import json
+import logging
 
 import requests
 from django.conf import settings
@@ -10,15 +11,18 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.db import transaction
 from django.db.models import Max, Q
 from django.forms import formset_factory
-from django.http import HttpResponse, JsonResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 
+from .emails.delivery import deliver_email
+
 from .emails.builders import (
-    build_order_confirmation_email,
+    build_course_completed_email,
     build_participant_activation_email,
+    build_payment_completed_email,
 )
 
 from .forms import (
@@ -32,6 +36,7 @@ from .models import (
     Certificate,
     Choice,
     Course,
+    EmailLog,
     Order,
     OrderParticipant,
     ParticipantProfile,
@@ -40,13 +45,16 @@ from .models import (
     QuizAttempt,
     QuizAttemptQuestion,
 )
+
 from .services import (
     generate_certificate,
     generate_certificate_pdf,
+    generate_quiz_result_pdf,
     mark_order_as_paid,
 )
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
 
 
 
@@ -434,9 +442,49 @@ def order_payment_simulation(request, order_id):
 
 
 def order_payment_success(request, order_id):
-    order, participants, _ = mark_order_as_paid(
+    order, participants, status_changed = mark_order_as_paid(
         order_id
     )
+
+    if status_changed:
+        for participant in participants:
+            try:
+                email = build_participant_activation_email(
+                    participant
+                )
+
+                deliver_email(
+                    email,
+                    email_type=(
+                        EmailLog.TYPE_PARTICIPANT_ACTIVATION
+                    ),
+                    order=order,
+                )
+
+            except Exception:
+                logger.exception(
+                    "Nepodařilo se zpracovat aktivační "
+                    "e-mail pro účastníka %s.",
+                    participant.id,
+                )
+        try:
+            email = build_payment_completed_email(
+                order,
+                participants,
+            )
+
+            deliver_email(
+                email,
+                email_type=EmailLog.TYPE_PAYMENT_COMPLETED,
+                order=order,
+            )
+
+        except Exception:
+            logger.exception(
+                "Nepodařilo se zpracovat potvrzení "
+                "o přijetí platby pro objednávku %s.",
+                order.id,
+            )
 
     activation_links = [
         {
@@ -478,6 +526,47 @@ def participant_activation_email_preview(request, token):
     )
 
     email = build_participant_activation_email(participant)
+
+    preview_format = request.GET.get(
+        "format",
+        "html",
+    ).lower()
+
+    if preview_format == "text":
+        return HttpResponse(
+            email.text_body,
+            content_type="text/plain; charset=utf-8",
+        )
+
+    if preview_format != "html":
+        return HttpResponse(
+            "Neplatný formát náhledu.",
+            status=400,
+            content_type="text/plain; charset=utf-8",
+        )
+
+    return HttpResponse(
+        email.html_body,
+        content_type="text/html; charset=utf-8",
+    )
+
+@staff_member_required
+@require_GET
+def payment_completed_email_preview(request, order_id):
+    order = get_object_or_404(
+        Order.objects.prefetch_related("participants"),
+        pk=order_id,
+        status="paid",
+    )
+
+    participants = list(
+        order.participants.all()
+    )
+
+    email = build_payment_completed_email(
+        order,
+        participants,
+    )
 
     preview_format = request.GET.get(
         "format",
@@ -698,38 +787,7 @@ def participant_activation(request, token):
         },
     )
 
-@staff_member_required
-@require_GET
-def order_confirmation_email_preview(request, order_id):
-    order = get_object_or_404(
-        Order.objects.prefetch_related("participants"),
-        pk=order_id,
-    )
 
-    email = build_order_confirmation_email(order)
-
-    preview_format = request.GET.get(
-        "format",
-        "html",
-    ).lower()
-
-    if preview_format == "text":
-        return HttpResponse(
-            email.text_body,
-            content_type="text/plain; charset=utf-8",
-        )
-
-    if preview_format != "html":
-        return HttpResponse(
-            "Neplatný formát náhledu.",
-            status=400,
-            content_type="text/plain; charset=utf-8",
-        )
-
-    return HttpResponse(
-        email.html_body,
-        content_type="text/html; charset=utf-8",
-    )
 
 
 def password_setup_sent(request):
@@ -1376,9 +1434,37 @@ def quiz_submit(request, attempt_id):
         )
 
         try:
-            generate_certificate(attempt)
-        except ValueError:
-            pass
+            certificate, certificate_created = (
+                generate_certificate(attempt)
+            )
+        except ValueError as error:
+            certificate = None
+            certificate_created = False
+
+            logger.warning(
+                "Certifikát pro QuizAttempt %s nebyl vytvořen: %s",
+                attempt.id,
+                error,
+            )
+
+        if certificate_created:
+            try:
+                email = build_course_completed_email(
+                    attempt
+                )
+
+                deliver_email(
+                    email,
+                    email_type=EmailLog.TYPE_COURSE_COMPLETED,
+                    quiz_attempt=attempt,
+                )
+
+            except Exception:
+                logger.exception(
+                    "Nepodařilo se zpracovat závěrečný "
+                    "e-mail pro QuizAttempt %s.",
+                    attempt.id,
+                )
 
     detail_url = reverse(
         "quiz_attempt_detail",
@@ -1733,3 +1819,228 @@ def privacy_policy(request):
         request,
         "courses/privacy_policy.html",
     )
+
+@login_required
+@require_GET
+def quiz_result_pdf(request, attempt_id):
+    attempt = get_object_or_404(
+        QuizAttempt.objects.select_related(
+            "user",
+            "course",
+        ),
+        id=attempt_id,
+        user=request.user,
+        status=QuizAttempt.STATUS_SUBMITTED,
+        passed=True,
+    )
+
+    try:
+        pdf_content = generate_quiz_result_pdf(
+            attempt
+        )
+    except ValueError as error:
+        return HttpResponse(
+            str(error),
+            status=500,
+            content_type="text/plain; charset=utf-8",
+        )
+
+    response = HttpResponse(
+        pdf_content,
+        content_type="application/pdf",
+    )
+
+    response["Content-Disposition"] = (
+        "inline; "
+        f'filename="vysledek-testu-{attempt.id}.pdf"'
+    )
+
+    return response
+
+@staff_member_required
+@require_GET
+def course_completed_email_preview(request, attempt_id):
+    attempt = get_object_or_404(
+        QuizAttempt.objects.select_related(
+            "user",
+            "course",
+        ),
+        pk=attempt_id,
+        status=QuizAttempt.STATUS_SUBMITTED,
+        passed=True,
+    )
+
+    try:
+        email = build_course_completed_email(
+            attempt
+        )
+    except ValueError as error:
+        return HttpResponse(
+            str(error),
+            status=400,
+            content_type="text/plain; charset=utf-8",
+        )
+
+    preview_format = request.GET.get(
+        "format",
+        "preview",
+    ).lower()
+
+    if preview_format == "html":
+        return HttpResponse(
+            email.html_body,
+            content_type="text/html; charset=utf-8",
+        )
+
+    if preview_format == "text":
+        return HttpResponse(
+            email.text_body,
+            content_type="text/plain; charset=utf-8",
+        )
+
+    if preview_format != "preview":
+        return HttpResponse(
+            "Neplatný formát náhledu.",
+            status=400,
+            content_type="text/plain; charset=utf-8",
+        )
+
+    attachments = []
+
+    for index, attachment in enumerate(
+        email.attachments
+    ):
+        attachments.append({
+            "index": index,
+            "filename": attachment.filename,
+            "mimetype": attachment.mimetype,
+            "size": len(attachment.content),
+        })
+
+    return render(
+        request,
+        "emails/course_completed_preview.html",
+        {
+            "attempt": attempt,
+            "email": email,
+            "attachments": attachments,
+        },
+    )
+
+@staff_member_required
+@require_GET
+def course_completed_email_attachment(
+    request,
+    attempt_id,
+    attachment_index,
+):
+    attempt = get_object_or_404(
+        QuizAttempt.objects.select_related(
+            "user",
+            "course",
+        ),
+        pk=attempt_id,
+        status=QuizAttempt.STATUS_SUBMITTED,
+        passed=True,
+    )
+
+    try:
+        email = build_course_completed_email(
+            attempt
+        )
+    except ValueError as error:
+        return HttpResponse(
+            str(error),
+            status=400,
+            content_type="text/plain; charset=utf-8",
+        )
+
+    if (
+        attachment_index < 0
+        or attachment_index >= len(email.attachments)
+    ):
+        raise Http404(
+            "Příloha nebyla nalezena."
+        )
+
+    attachment = email.attachments[attachment_index]
+
+    response = HttpResponse(
+        attachment.content,
+        content_type=attachment.mimetype,
+    )
+
+    response["Content-Disposition"] = (
+        f'inline; filename="{attachment.filename}"'
+    )
+
+    return response
+
+
+@login_required
+@require_GET
+def certificate_print_preview(request, course_id):
+    course = get_object_or_404(
+        Course,
+        id=course_id,
+    )
+
+    if not request.user.is_paid:
+        return redirect(
+            "buy_course",
+            course_id=course.id,
+        )
+
+    if not request.user.passed_quiz:
+        return redirect(
+            "quiz",
+            course_id=course.id,
+        )
+
+    certificate = (
+        Certificate.objects
+        .select_related(
+            "participant",
+            "participant__profile",
+            "participant__order",
+            "participant__user",
+            "quiz_attempt",
+            "quiz_attempt__course",
+            "quiz_attempt__user",
+        )
+        .filter(
+            Q(participant__user=request.user)
+            | Q(quiz_attempt__user=request.user),
+            quiz_attempt__course=course,
+        )
+        .order_by(
+            "-issued_at",
+            "-id",
+        )
+        .first()
+    )
+
+    if certificate is None:
+        return HttpResponse(
+            "Pro tento kurz nebylo nalezeno žádné osvědčení.",
+            status=404,
+        )
+
+    participant = certificate.participant
+
+    return render(
+        request,
+        "courses/certificate_print.html",
+        {
+            "course": course,
+            "certificate": certificate,
+            "participant": participant,
+            "participant_profile": getattr(
+                participant,
+                "profile",
+                None,
+            ),
+            "completion_date": certificate.issued_at,
+        },
+    )
+

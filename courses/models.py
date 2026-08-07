@@ -536,3 +536,84 @@ class QuizAttemptQuestion(models.Model):
 
     def __str__(self):
         return f"{self.attempt} - {self.question}"
+
+class EmailLog(models.Model):
+    STATUS_PREVIEW = "preview"
+    STATUS_SENT = "sent"
+    STATUS_FAILED = "failed"
+
+    STATUS_CHOICES = [
+        (STATUS_PREVIEW, "Náhled"),
+        (STATUS_SENT, "Odesláno"),
+        (STATUS_FAILED, "Chyba"),
+    ]
+
+    TYPE_PARTICIPANT_ACTIVATION = "participant_activation"
+    TYPE_COURSE_COMPLETED = "course_completed"
+    TYPE_PAYMENT_COMPLETED = "payment_completed"
+
+    TYPE_CHOICES = [
+        (
+            TYPE_PARTICIPANT_ACTIVATION,
+            "Aktivace účastníka",
+        ),
+        (
+            TYPE_COURSE_COMPLETED,
+            "Dokončení kurzu",
+        ),
+        (
+            TYPE_PAYMENT_COMPLETED,
+            "Platba přijata",
+        ),
+    ]
+
+    email_type = models.CharField(
+        max_length=50,
+        choices=TYPE_CHOICES,
+    )
+
+    recipient = models.EmailField()
+
+    subject = models.CharField(
+        max_length=255,
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+    )
+
+    error_message = models.TextField(
+        blank=True,
+    )
+
+    order = models.ForeignKey(
+        Order,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="email_logs",
+    )
+
+    quiz_attempt = models.ForeignKey(
+        QuizAttempt,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="email_logs",
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    sent_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    def __str__(self):
+        return (
+            f"{self.get_email_type_display()} – "
+            f"{self.recipient}"
+        )
