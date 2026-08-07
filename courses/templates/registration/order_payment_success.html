@@ -42,11 +42,22 @@
                     </div>
 
                     <input type="text" value="{{ item.url }}" readonly id="activation-link-{{ forloop.counter }}"
-                        aria-label="Aktivační odkaz pro {{ item.participant.first_name }} {{ item.participant.last_name }}">
+                        aria-label="
+            Aktivační odkaz pro
+            {{ item.participant.first_name }}
+            {{ item.participant.last_name }}
+        ">
 
-                    <button type="button" class="button-primary" data-copy-link="activation-link-{{ forloop.counter }}">
-                        Kopírovat odkaz
-                    </button>
+                    <div class="activation-link-actions">
+                        <button type="button" class="button-primary"
+                            data-copy-link="activation-link-{{ forloop.counter }}">
+                            Kopírovat odkaz
+                        </button>
+
+                        <a href="{{ item.email_preview_url }}" class="button-secondary" target="_blank" rel="noopener">
+                            Náhled aktivačního e-mailu
+                        </a>
+                    </div>
                 </article>
                 {% empty %}
                 <p>Objednávka neobsahuje žádné účastníky.</p>

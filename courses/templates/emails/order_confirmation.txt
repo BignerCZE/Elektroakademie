@@ -1,0 +1,38 @@
+ELEKTROAKADEMIE
+Odborné vzdělávání v elektrotechnice
+
+
+Dobrý den{% if order.contact_first_name %}, {{ order.contact_first_name }}{% endif %},
+
+potvrzujeme přijetí vaší objednávky v Elektroakademii.
+
+
+OBJEDNÁVKA
+
+Číslo objednávky:
+{{ order.id }}
+
+Kurz:
+{{ course_name }}
+
+Počet účastníků:
+{{ participants|length }}
+
+Celková cena:
+{{ order.total_price }} Kč
+
+
+ÚČASTNÍCI
+
+{% for participant in participants %}{{ participant.first_name }} {{ participant.last_name }}
+{{ participant.email }}
+
+{% empty %}K objednávce nejsou evidováni žádní účastníci.
+
+{% endfor %}Po úspěšném přijetí platby obdrží jednotliví účastníci
+na uvedené e-mailové adresy informace potřebné
+k aktivaci jejich přístupu.
+
+
+Elektroakademie
+Odborné vzdělávání v elektrotechnice

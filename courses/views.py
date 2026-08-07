@@ -6,6 +6,7 @@ import requests
 from django.conf import settings
 from django.contrib.auth import get_user_model, login
 from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 from django.db import transaction
 from django.db.models import Max, Q
 from django.forms import formset_factory
@@ -14,6 +15,11 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
+
+from .emails.builders import (
+    build_order_confirmation_email,
+    build_participant_activation_email,
+)
 
 from .forms import (
     BaseParticipantFormSet,
@@ -443,6 +449,12 @@ def order_payment_success(request, order_id):
                     },
                 )
             ),
+            "email_preview_url": reverse(
+                "participant_activation_email_preview",
+                kwargs={
+                    "token": participant.activation_token,
+                },
+            ),
         }
         for participant in participants
     ]
@@ -455,6 +467,39 @@ def order_payment_success(request, order_id):
             "participants": participants,
             "activation_links": activation_links,
         },
+    )
+
+@staff_member_required
+@require_GET
+def participant_activation_email_preview(request, token):
+    participant = get_object_or_404(
+        OrderParticipant.objects.select_related("order"),
+        activation_token=token,
+    )
+
+    email = build_participant_activation_email(participant)
+
+    preview_format = request.GET.get(
+        "format",
+        "html",
+    ).lower()
+
+    if preview_format == "text":
+        return HttpResponse(
+            email.text_body,
+            content_type="text/plain; charset=utf-8",
+        )
+
+    if preview_format != "html":
+        return HttpResponse(
+            "Neplatný formát náhledu.",
+            status=400,
+            content_type="text/plain; charset=utf-8",
+        )
+
+    return HttpResponse(
+        email.html_body,
+        content_type="text/html; charset=utf-8",
     )
 
 def participant_activation(request, token):
@@ -651,6 +696,39 @@ def participant_activation(request, token):
             "form": form,
             "participant": participant,
         },
+    )
+
+@staff_member_required
+@require_GET
+def order_confirmation_email_preview(request, order_id):
+    order = get_object_or_404(
+        Order.objects.prefetch_related("participants"),
+        pk=order_id,
+    )
+
+    email = build_order_confirmation_email(order)
+
+    preview_format = request.GET.get(
+        "format",
+        "html",
+    ).lower()
+
+    if preview_format == "text":
+        return HttpResponse(
+            email.text_body,
+            content_type="text/plain; charset=utf-8",
+        )
+
+    if preview_format != "html":
+        return HttpResponse(
+            "Neplatný formát náhledu.",
+            status=400,
+            content_type="text/plain; charset=utf-8",
+        )
+
+    return HttpResponse(
+        email.html_body,
+        content_type="text/html; charset=utf-8",
     )
 
 

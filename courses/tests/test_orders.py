@@ -4,6 +4,8 @@ from unittest.mock import patch
 from django.test import TestCase
 from django.utils import timezone
 
+from django.urls import reverse
+
 from courses.models import (
     Order,
     OrderParticipant,
@@ -244,4 +246,93 @@ class MarkOrderAsPaidTests(TestCase):
         self.assertEqual(
             self.participant_2.registration_number,
             "EA-04-202608-00001",
+        )
+
+class OrderPaymentSuccessEmailPreviewTests(TestCase):
+    def setUp(self):
+        self.order = Order.objects.create(
+            course_type="4",
+            total_price=990,
+            company_name="Testovací firma s.r.o.",
+            street="Testovací 1",
+            city="Praha",
+            zip_code="11000",
+            country="Česká republika",
+        )
+
+        self.participant = OrderParticipant.objects.create(
+            order=self.order,
+            first_name="Jan",
+            last_name="Novák",
+            email="jan.novak@example.com",
+        )
+
+    @patch("courses.services.timezone.localdate")
+    def test_payment_success_contains_email_preview_link(
+        self,
+        mock_localdate,
+    ):
+        mock_localdate.return_value = date(
+            2026,
+            8,
+            7,
+        )
+
+        response = self.client.get(
+            reverse(
+                "order_payment_success",
+                kwargs={
+                    "order_id": self.order.id,
+                },
+            )
+        )
+
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+
+        self.participant.refresh_from_db()
+
+        expected_preview_url = reverse(
+            "participant_activation_email_preview",
+            kwargs={
+                "token": self.participant.activation_token,
+            },
+        )
+
+        self.assertContains(
+            response,
+            expected_preview_url,
+        )
+
+        self.assertContains(
+            response,
+            "Náhled aktivačního e-mailu",
+        )
+
+    @patch("courses.services.timezone.localdate")
+    def test_payment_success_does_not_mark_email_as_sent(
+        self,
+        mock_localdate,
+    ):
+        mock_localdate.return_value = date(
+            2026,
+            8,
+            7,
+        )
+
+        self.client.get(
+            reverse(
+                "order_payment_success",
+                kwargs={
+                    "order_id": self.order.id,
+                },
+            )
+        )
+
+        self.participant.refresh_from_db()
+
+        self.assertIsNone(
+            self.participant.activation_sent_at,
         )

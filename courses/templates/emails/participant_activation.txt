@@ -1,0 +1,38 @@
+ELEKTROAKADEMIE
+Odborné vzdělávání v elektrotechnice
+
+
+Dobrý den, {{ participant.first_name }},
+
+platba za vaši účast v kurzu byla úspěšně zpracována.
+
+Nyní je potřeba dokončit aktivaci účtu do Elektroakademie.
+
+
+ÚDAJE ÚČASTNÍKA
+
+Jméno:
+{{ participant.first_name }} {{ participant.last_name }}
+
+Kurz:
+{{ course_name }}
+
+{% if participant.registration_number %}Evidenční číslo:
+{{ participant.registration_number }}
+
+{% endif %}Při aktivaci doplníte údaje potřebné pro evidenci
+účastníka a nastavíte si heslo, kterým se budete
+následně přihlašovat.
+
+
+DOKONČIT AKTIVACI
+
+{{ activation_url }}
+
+
+Aktivační odkaz je určen pouze vám.
+Nepřeposílejte jej dalším osobám.
+
+
+Elektroakademie
+Odborné vzdělávání v elektrotechnice

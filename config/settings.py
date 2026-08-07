@@ -34,6 +34,11 @@ CSRF_TRUSTED_ORIGINS = [
     "https://bignercze.pythonanywhere.com",
 ]
 
+SITE_URL = os.getenv(
+    "SITE_URL",
+    "http://127.0.0.1:8000",
+).rstrip("/")
+
 SECURE_PROXY_SSL_HEADER = (
     "HTTP_X_FORWARDED_PROTO",
     "https",

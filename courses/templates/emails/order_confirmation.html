@@ -1,0 +1,220 @@
+{% extends "emails/base.html" %}
+
+{% block title %}
+Potvrzení objednávky
+{% endblock %}
+
+{% block preheader %}
+Potvrzujeme přijetí objednávky č. {{ order.id }} v Elektroakademii.
+{% endblock %}
+
+{% block content %}
+
+<h1 class="email-heading" style="
+        margin: 0 0 22px;
+        font-size: 26px;
+        line-height: 34px;
+        font-weight: 700;
+        color: #17232d;
+    ">
+    Děkujeme za objednávku
+</h1>
+
+<p style="
+        margin: 0 0 18px;
+        font-size: 16px;
+        line-height: 26px;
+        color: #3e4c57;
+    ">
+    Dobrý den{% if order.contact_first_name %},
+    {{ order.contact_first_name }}{% endif %},
+</p>
+
+<p style="
+        margin: 0 0 26px;
+        font-size: 16px;
+        line-height: 26px;
+        color: #3e4c57;
+    ">
+    potvrzujeme přijetí vaší objednávky v Elektroakademii.
+    Níže naleznete její základní přehled.
+</p>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="
+        width: 100%;
+        margin: 0 0 28px;
+        background-color: #f6f9fb;
+        border: 1px solid #dce5eb;
+        border-radius: 8px;
+    ">
+    <tr>
+        <td style="padding: 22px 24px 10px;">
+
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                    <td class="info-label" width="38%" valign="top" style="
+                            padding: 0 12px 12px 0;
+                            font-size: 13px;
+                            line-height: 20px;
+                            font-weight: 700;
+                            color: #6d7983;
+                        ">
+                        Objednávka
+                    </td>
+
+                    <td class="info-value" valign="top" style="
+                            padding: 0 0 12px;
+                            font-size: 14px;
+                            line-height: 20px;
+                            color: #25323c;
+                        ">
+                        č. {{ order.id }}
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="info-label" width="38%" valign="top" style="
+                            padding: 0 12px 12px 0;
+                            font-size: 13px;
+                            line-height: 20px;
+                            font-weight: 700;
+                            color: #6d7983;
+                        ">
+                        Kurz
+                    </td>
+
+                    <td class="info-value" valign="top" style="
+                            padding: 0 0 12px;
+                            font-size: 14px;
+                            line-height: 20px;
+                            color: #25323c;
+                        ">
+                        {{ course_name }}
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="info-label" width="38%" valign="top" style="
+                            padding: 0 12px 12px 0;
+                            font-size: 13px;
+                            line-height: 20px;
+                            font-weight: 700;
+                            color: #6d7983;
+                        ">
+                        Počet účastníků
+                    </td>
+
+                    <td class="info-value" valign="top" style="
+                            padding: 0 0 12px;
+                            font-size: 14px;
+                            line-height: 20px;
+                            color: #25323c;
+                        ">
+                        {{ participants|length }}
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="info-label" width="38%" valign="top" style="
+                            padding: 0 12px 12px 0;
+                            font-size: 13px;
+                            line-height: 20px;
+                            font-weight: 700;
+                            color: #6d7983;
+                        ">
+                        Celková cena
+                    </td>
+
+                    <td class="info-value" valign="top" style="
+                            padding: 0 0 12px;
+                            font-size: 14px;
+                            line-height: 20px;
+                            color: #25323c;
+                        ">
+                        {{ order.total_price }} Kč
+                    </td>
+                </tr>
+            </table>
+
+        </td>
+    </tr>
+</table>
+
+<h2 style="
+        margin: 0 0 16px;
+        font-size: 18px;
+        line-height: 26px;
+        color: #17232d;
+    ">
+    Účastníci
+</h2>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="
+        width: 100%;
+        margin: 0 0 28px;
+    ">
+    {% for participant in participants %}
+    <tr>
+        <td style="
+                padding: 12px 14px;
+                border-bottom: 1px solid #e5eaee;
+                font-size: 14px;
+                line-height: 21px;
+                color: #25323c;
+            ">
+            <strong>
+                {{ participant.first_name }}
+                {{ participant.last_name }}
+            </strong>
+
+            <br>
+
+            <span style="color: #6d7983;">
+                {{ participant.email }}
+            </span>
+        </td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td style="
+                padding: 12px 14px;
+                color: #6d7983;
+                font-size: 14px;
+            ">
+            K objednávce nejsou evidováni žádní účastníci.
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+<p style="
+        margin: 0 0 18px;
+        font-size: 16px;
+        line-height: 26px;
+        color: #3e4c57;
+    ">
+    Po úspěšném přijetí platby obdrží jednotliví účastníci
+    na uvedené e-mailové adresy informace potřebné
+    k aktivaci jejich přístupu.
+</p>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="
+        width: 100%;
+        background-color: #eef6fb;
+        border-left: 4px solid #2385c7;
+    ">
+    <tr>
+        <td style="
+                padding: 16px 18px;
+                font-size: 13px;
+                line-height: 21px;
+                color: #38556a;
+            ">
+            Toto potvrzení informuje o přijetí objednávky.
+            Aktivační e-maily účastníkům budou navázány
+            na úspěšné zaplacení objednávky.
+        </td>
+    </tr>
+</table>
+
+{% endblock %}

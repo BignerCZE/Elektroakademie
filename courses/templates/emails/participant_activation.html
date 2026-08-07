@@ -1,0 +1,249 @@
+{% extends "emails/base.html" %}
+
+{% block title %}
+Aktivace přístupu do Elektroakademie
+{% endblock %}
+
+{% block preheader %}
+Dokončete aktivaci svého účtu a nastavte si přístup do Elektroakademie.
+{% endblock %}
+
+{% block content %}
+
+<h1 class="email-heading" style="
+        margin: 0 0 22px;
+        font-size: 26px;
+        line-height: 34px;
+        font-weight: 700;
+        color: #17232d;
+    ">
+    Dokončete aktivaci svého účtu
+</h1>
+
+<p style="
+        margin: 0 0 18px;
+        font-size: 16px;
+        line-height: 26px;
+        color: #3e4c57;
+    ">
+    Dobrý den, {{ participant.first_name }},
+</p>
+
+<p style="
+        margin: 0 0 26px;
+        font-size: 16px;
+        line-height: 26px;
+        color: #3e4c57;
+    ">
+    platba za vaši účast v kurzu byla úspěšně zpracována.
+    Nyní je potřeba dokončit aktivaci účtu do
+    Elektroakademie.
+</p>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="
+        width: 100%;
+        margin: 0 0 28px;
+        background-color: #f6f9fb;
+        border: 1px solid #dce5eb;
+        border-radius: 8px;
+    ">
+    <tr>
+        <td style="
+                padding: 22px 24px 10px;
+            ">
+
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+
+                <tr>
+                    <td class="info-label" width="38%" valign="top" style="
+                            padding: 0 12px 12px 0;
+                            font-size: 13px;
+                            line-height: 20px;
+                            font-weight: 700;
+                            color: #6d7983;
+                        ">
+                        Účastník
+                    </td>
+
+                    <td class="info-value" valign="top" style="
+                            padding: 0 0 12px;
+                            font-size: 14px;
+                            line-height: 20px;
+                            color: #25323c;
+                        ">
+                        {{ participant.first_name }}
+                        {{ participant.last_name }}
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="info-label" width="38%" valign="top" style="
+                            padding: 0 12px 12px 0;
+                            font-size: 13px;
+                            line-height: 20px;
+                            font-weight: 700;
+                            color: #6d7983;
+                        ">
+                        Kurz
+                    </td>
+
+                    <td class="info-value" valign="top" style="
+                            padding: 0 0 12px;
+                            font-size: 14px;
+                            line-height: 20px;
+                            color: #25323c;
+                        ">
+                        {{ course_name }}
+                    </td>
+                </tr>
+
+                {% if participant.registration_number %}
+                <tr>
+                    <td class="info-label" width="38%" valign="top" style="
+                            padding: 0 12px 12px 0;
+                            font-size: 13px;
+                            line-height: 20px;
+                            font-weight: 700;
+                            color: #6d7983;
+                        ">
+                        Evidenční číslo
+                    </td>
+
+                    <td class="info-value" valign="top" style="
+                            padding: 0 0 12px;
+                            font-size: 14px;
+                            line-height: 20px;
+                            color: #25323c;
+                        ">
+                        {{ participant.registration_number }}
+                    </td>
+                </tr>
+                {% endif %}
+
+            </table>
+
+        </td>
+    </tr>
+</table>
+
+<p style="
+        margin: 0 0 24px;
+        font-size: 16px;
+        line-height: 26px;
+        color: #3e4c57;
+    ">
+    Při aktivaci doplníte údaje potřebné pro evidenci
+    účastníka a nastavíte si heslo, kterým se budete
+    následně přihlašovat.
+</p>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="
+        width: 100%;
+        margin: 0 0 30px;
+    ">
+    <tr>
+        <td align="center" class="email-button-cell">
+
+            <!--[if mso]>
+            <v:roundrect
+                xmlns:v="urn:schemas-microsoft-com:vml"
+                xmlns:w="urn:schemas-microsoft-com:office:word"
+                href="{{ activation_url }}"
+                style="
+                    height: 48px;
+                    v-text-anchor: middle;
+                    width: 220px;
+                "
+                arcsize="10%"
+                strokecolor="#1669a5"
+                fillcolor="#1669a5"
+            >
+                <w:anchorlock/>
+                <center
+                    style="
+                        color: #ffffff;
+                        font-family: Arial, sans-serif;
+                        font-size: 16px;
+                        font-weight: bold;
+                    "
+                >
+                    Dokončit aktivaci
+                </center>
+            </v:roundrect>
+            <![endif]-->
+
+            <!--[if !mso]><!-- -->
+            <a href="{{ activation_url }}" class="email-button" style="
+                    display: inline-block;
+                    padding: 15px 28px;
+                    background-color: #1669a5;
+                    border-radius: 6px;
+                    color: #ffffff;
+                    font-size: 16px;
+                    line-height: 20px;
+                    font-weight: 700;
+                    text-decoration: none;
+                ">
+                Dokončit aktivaci
+            </a>
+            <!--<![endif]-->
+
+        </td>
+    </tr>
+</table>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="
+        width: 100%;
+        margin: 0 0 28px;
+        border-top: 1px solid #e5eaee;
+    ">
+    <tr>
+        <td style="
+                padding-top: 24px;
+            ">
+            <p style="
+                    margin: 0 0 8px;
+                    font-size: 13px;
+                    line-height: 20px;
+                    color: #74818b;
+                ">
+                Pokud tlačítko nefunguje, otevřete
+                následující adresu:
+            </p>
+
+            <p style="
+                    margin: 0;
+                    font-size: 13px;
+                    line-height: 20px;
+                    word-break: break-all;
+                ">
+                <a href="{{ activation_url }}" style="
+                        color: #1669a5;
+                        text-decoration: underline;
+                    ">
+                    {{ activation_url }}
+                </a>
+            </p>
+        </td>
+    </tr>
+</table>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="
+        width: 100%;
+        background-color: #fff9e8;
+        border-left: 4px solid #e4ad32;
+    ">
+    <tr>
+        <td style="
+                padding: 16px 18px;
+                font-size: 13px;
+                line-height: 21px;
+                color: #655426;
+            ">
+            Aktivační odkaz je určen pouze vám.
+            Nepřeposílejte jej dalším osobám.
+        </td>
+    </tr>
+</table>
+
+{% endblock %}
