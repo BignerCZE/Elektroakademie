@@ -1,0 +1,445 @@
+/* Pracovní detail účastníka */
+
+
+/* ---------------------------------------------------------
+   Full-width readonly bloky
+--------------------------------------------------------- */
+
+.field-participant_dashboard > div.flex-container,
+.field-order_summary > div.flex-container,
+.field-account_summary > div.flex-container,
+.field-activation_summary > div.flex-container,
+.field-email_history_summary > div.flex-container,
+.field-profile_summary > div.flex-container,
+.field-quiz_summary > div.flex-container,
+.field-certificate_summary > div.flex-container {
+    display: block;
+}
+
+.field-participant_dashboard label,
+.field-order_summary label,
+.field-account_summary label,
+.field-activation_summary label,
+.field-email_history_summary label,
+.field-profile_summary label,
+.field-quiz_summary label,
+.field-certificate_summary label {
+    display: none;
+}
+
+.field-participant_dashboard .readonly,
+.field-order_summary .readonly,
+.field-account_summary .readonly,
+.field-activation_summary .readonly,
+.field-email_history_summary .readonly,
+.field-profile_summary .readonly,
+.field-quiz_summary .readonly,
+.field-certificate_summary .readonly {
+    width: 100%;
+    margin-left: 0;
+}
+
+.field-order_summary,
+.field-account_summary,
+.field-activation_summary,
+.field-email_history_summary,
+.field-profile_summary,
+.field-quiz_summary,
+.field-certificate_summary {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.field-order_summary .flex-container,
+.field-account_summary .flex-container,
+.field-activation_summary .flex-container,
+.field-email_history_summary .flex-container,
+.field-profile_summary .flex-container,
+.field-quiz_summary .flex-container,
+.field-certificate_summary .flex-container {
+    gap: 0;
+}
+
+
+/* ---------------------------------------------------------
+   Pracovní dashboard
+--------------------------------------------------------- */
+
+.participant-dashboard {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.participant-dashboard__identity {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: 22px;
+}
+
+.participant-dashboard__registration {
+    margin-bottom: 3px;
+    color: #f3f3f3;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+}
+
+.participant-dashboard__name {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.participant-dashboard__email {
+    color: var(--body-quiet-color);
+    font-size: 13px;
+}
+
+
+/* ---------------------------------------------------------
+   Stavové karty
+--------------------------------------------------------- */
+
+.participant-dashboard__cards {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(150px, 1fr));
+    gap: 12px;
+}
+
+.participant-dashboard__card {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 82px;
+    padding: 14px 16px;
+    border: 1px solid var(--hairline-color);
+    border-radius: 6px;
+    background: var(--darkened-bg);
+}
+
+.participant-dashboard__card-label {
+    margin-bottom: 6px;
+    color: var(--body-quiet-color);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.participant-dashboard__card-value {
+    min-height: 22px;
+    margin-bottom: 8px;
+    overflow: hidden;
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.3;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.participant-dashboard__card-value--small {
+    font-size: 14px;
+}
+
+
+/* ---------------------------------------------------------
+   Badge
+--------------------------------------------------------- */
+
+.participant-dashboard__badge {
+    display: inline-block;
+    align-self: flex-start;
+    margin-top: auto;
+    padding: 3px 8px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.25;
+    white-space: nowrap;
+}
+
+.participant-dashboard__badge.status-success {
+    color: #b7ebc6;
+    background: rgba(40, 167, 69, 0.18);
+    border-color: rgba(40, 167, 69, 0.45);
+}
+
+.participant-dashboard__badge.status-warning {
+    color: #f2d184;
+    background: rgba(210, 160, 20, 0.18);
+    border-color: rgba(210, 160, 20, 0.45);
+}
+
+.participant-dashboard__badge.status-danger {
+    color: #f3a6ad;
+    background: rgba(186, 33, 33, 0.18);
+    border-color: rgba(186, 33, 33, 0.45);
+}
+
+.participant-dashboard__badge.status-info {
+    color: #9ecfe3;
+    background: rgba(65, 118, 144, 0.22);
+    border-color: rgba(65, 118, 144, 0.5);
+}
+
+.participant-dashboard__badge.status-neutral {
+    color: #d1d5db;
+    background: rgba(107, 114, 128, 0.18);
+    border-color: rgba(107, 114, 128, 0.45);
+}
+
+
+/* ---------------------------------------------------------
+   Doplňující informace dashboardu
+--------------------------------------------------------- */
+
+.participant-dashboard__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 22px;
+    padding: 12px 2px 0;
+    color: var(--body-quiet-color);
+    font-size: 12px;
+}
+
+.participant-dashboard__meta strong {
+    color: var(--body-fg);
+    font-weight: 600;
+}
+
+
+/* ---------------------------------------------------------
+   Duplicitní název objektu v Django adminu
+--------------------------------------------------------- */
+
+.change-form #content > h2 {
+    display: none;
+}
+
+
+/* ---------------------------------------------------------
+   Pracovní detailové karty
+--------------------------------------------------------- */
+
+.participant-detail-card {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+    padding: 16px 18px;
+    border: 1px solid var(--hairline-color);
+    border-radius: 6px;
+    background: var(--darkened-bg);
+}
+
+.participant-detail-card__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.participant-detail-card__title {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.participant-detail-card__subtitle {
+    margin-top: 3px;
+    color: var(--body-quiet-color);
+    font-size: 12px;
+}
+
+.participant-detail-card__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(220px, 1fr));
+    gap: 12px 24px;
+}
+
+.participant-detail-card__grid > div {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.participant-detail-card__grid span {
+    color: var(--body-quiet-color);
+    font-size: 11px;
+    text-transform: uppercase;
+}
+
+.participant-detail-card__grid strong {
+    overflow-wrap: anywhere;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.participant-detail-card__actions {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid var(--hairline-color);
+}
+
+.participant-detail-card__button {
+    display: inline-block;
+    padding: 6px 11px;
+    border-radius: 4px;
+    background: #417690;
+    color: #fff !important;
+    font-weight: 600;
+    text-decoration: none !important;
+}
+
+.participant-detail-card__button:hover {
+    background: #205067;
+}
+
+
+/* ---------------------------------------------------------
+   Rozestupy navazujících údajů
+--------------------------------------------------------- */
+
+.field-profile_summary {
+    margin-bottom: 10px;
+}
+
+.field-quiz_summary {
+    margin-bottom: 10px;
+}
+
+.participant-related-fieldset .form-row {
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+
+/* ---------------------------------------------------------
+   Historie testů
+--------------------------------------------------------- */
+
+.participant-test-history {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.participant-test-history table {
+    width: 100%;
+    margin: 0;
+    border-collapse: collapse;
+}
+
+.participant-test-history th {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--hairline-color);
+    color: var(--body-quiet-color);
+    font-size: 11px;
+    font-weight: 600;
+    text-align: left;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.participant-test-history td {
+    padding: 10px;
+    border-bottom: 1px solid var(--hairline-color);
+    vertical-align: middle;
+}
+
+.participant-test-history tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.participant-test-history__action {
+    text-align: right;
+    white-space: nowrap;
+}
+
+
+/* ---------------------------------------------------------
+   Responsivní zobrazení
+--------------------------------------------------------- */
+
+@media (max-width: 1250px) {
+    .participant-dashboard__cards {
+        grid-template-columns: repeat(3, minmax(150px, 1fr));
+    }
+}
+
+@media (max-width: 900px) {
+    .participant-dashboard__cards {
+        grid-template-columns: repeat(2, minmax(150px, 1fr));
+    }
+}
+
+@media (max-width: 800px) {
+    .participant-detail-card__grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 650px) {
+    .participant-dashboard__cards {
+        grid-template-columns: 1fr;
+    }
+
+    .participant-detail-card__header {
+        flex-direction: column;
+    }
+}
+
+.participant-detail-card__button--secondary {
+    margin-left: 8px;
+    background: #5b6268;
+    border: 0;
+    cursor: pointer;
+}
+
+.participant-detail-card__button--secondary:hover {
+    background: #737b82;
+}
+
+/* ---------------------------------------------------------
+   E-mailová historie
+--------------------------------------------------------- */
+
+.participant-email-history {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.participant-email-history table {
+    width: 100%;
+    margin: 0;
+    border-collapse: collapse;
+}
+
+.participant-email-history th {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--hairline-color);
+    color: var(--body-quiet-color);
+    font-size: 11px;
+    font-weight: 600;
+    text-align: left;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.participant-email-history td {
+    padding: 10px;
+    border-bottom: 1px solid var(--hairline-color);
+    vertical-align: middle;
+}
+
+.participant-email-history tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.participant-email-history__action {
+    text-align: right;
+    white-space: nowrap;
+}
+

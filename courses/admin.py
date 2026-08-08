@@ -1054,7 +1054,6 @@ class OrderAdmin(admin.ModelAdmin):
                             {}
                         </td>                        
                         <td>
-                        <td>
                             <a href="{}"
                             style="
                                     color:#ffffff;
@@ -1063,7 +1062,6 @@ class OrderAdmin(admin.ModelAdmin):
                             ">
                                 {}
                             </a>
-                        </td>                        
                         </td>
                         <td>{}</td>
                         <td>{}</td>
@@ -1386,6 +1384,12 @@ class CertificateStatusFilter(admin.SimpleListFilter):
 
 @admin.register(OrderParticipant)
 class OrderParticipantAdmin(admin.ModelAdmin):
+
+    class Media:
+        css = {
+            "all": ("courses/admin/participant_detail.css",)
+        }
+
     list_display = (
         "registration_number_display",
         "participant_name",
@@ -1436,17 +1440,30 @@ class OrderParticipantAdmin(admin.ModelAdmin):
         "activation_sent_at",
         "activation_completed_at",
         "account_link",
+        "participant_dashboard",
+        "order_summary",
+        "account_summary",
+        "activation_summary",
         "profile_summary",
         "quiz_summary",
         "certificate_summary",
+        "email_history_summary",
     )
 
     fieldsets = (
         (
+            "Pracovní souhrn",
+            {
+                "fields": (
+                    "participant_dashboard",
+                ),
+            },
+        ),
+        (
             "Účastník",
             {
                 "fields": (
-                    "order",
+                    "order_summary",
                     "registration_number",
                     (
                         "first_name",
@@ -1460,22 +1477,36 @@ class OrderParticipantAdmin(admin.ModelAdmin):
             "Aktivace a uživatelský účet",
             {
                 "fields": (
-                    "user",
-                    "account_link",
-                    "activation_link",
-                    "activation_token",
-                    "activation_sent_at",
-                    "activation_completed_at",
+                    "account_summary",
+                    "activation_summary",
+                ),
+                "classes": (
+                    "participant-account-fieldset",
                 ),
             },
         ),
         (
-            "Navazující údaje",
+            "Technické údaje aktivace",
+            {
+                "fields": (
+                    "activation_token",
+                ),
+                "classes": (
+                    "collapse",
+                ),
+            },
+        ),
+        (
+            "Výsledek kurzu",
             {
                 "fields": (
                     "profile_summary",
                     "quiz_summary",
                     "certificate_summary",
+                    "email_history_summary",
+                ),
+                "classes": (
+                    "participant-related-fieldset",
                 ),
             },
         ),
@@ -1547,6 +1578,649 @@ class OrderParticipantAdmin(admin.ModelAdmin):
                 latest_submitted_attempt.values(
                     "score_percent"
                 )[:1]
+            ),
+        )
+
+    @staticmethod
+    def _format_admin_datetime(value):
+        if not value:
+            return "—"
+
+        return timezone.localtime(
+            value
+        ).strftime("%d.%m.%Y %H:%M")
+
+    @staticmethod
+    def _render_detail_badge(label, css_class):
+        return format_html(
+            (
+                '<span class="participant-dashboard__badge {}">'
+                "{}"
+                "</span>"
+            ),
+            css_class,
+            label,
+        )
+
+    @staticmethod
+    def _render_detail_items(items):
+        if not items:
+            return ""
+
+        body = format_html_join(
+            "",
+            (
+                "<div>"
+                "<span>{}</span>"
+                "<strong>{}</strong>"
+                "</div>"
+            ),
+            items,
+        )
+
+        return format_html(
+            (
+                '<div class="participant-detail-card__grid">'
+                "{}"
+                "</div>"
+            ),
+            body,
+        )
+
+    @staticmethod
+    def _render_detail_link(url, label):
+        return format_html(
+            (
+                '<div class="participant-detail-card__actions">'
+                '<a href="{}" class="participant-detail-card__button">'
+                "{}"
+                "</a>"
+                "</div>"
+            ),
+            url,
+            label,
+        )
+
+    def _render_detail_card(
+        self,
+        *,
+        title,
+        subtitle,
+        badge_label,
+        badge_class,
+        items=(),
+        body="",
+        actions="",
+    ):
+        badge = self._render_detail_badge(
+            badge_label,
+            badge_class,
+        )
+
+        items_html = self._render_detail_items(items)
+
+        return format_html(
+            """
+            <div class="participant-detail-card">
+
+                <div class="participant-detail-card__header">
+
+                    <div>
+                        <div class="participant-detail-card__title">
+                            {}
+                        </div>
+
+                        <div class="participant-detail-card__subtitle">
+                            {}
+                        </div>
+                    </div>
+
+                    {}
+
+                </div>
+
+                {}
+
+                {}
+
+                {}
+
+            </div>
+            """,
+            title,
+            subtitle,
+            badge,
+            items_html,
+            body,
+            actions,
+        )
+
+    @staticmethod
+    def _render_dashboard_card(
+        title,
+        value,
+        badge_text,
+        badge_class,
+        *,
+        small_value=False,
+    ):
+        value_class = (
+            "participant-dashboard__card-value "
+            "participant-dashboard__card-value--small"
+            if small_value
+            else "participant-dashboard__card-value"
+        )
+
+        return format_html(
+            """
+            <div class="participant-dashboard__card">
+                <div class="participant-dashboard__card-label">
+                    {}
+                </div>
+
+                <div class="{}">
+                    {}
+                </div>
+
+                <div class="participant-dashboard__badge {}">
+                    {}
+                </div>
+            </div>
+            """,
+            title,
+            value_class,
+            value,
+            badge_class,
+            badge_text,
+        )
+
+    @admin.display(description="")
+    def order_summary(self, obj):
+        if not obj or not obj.pk or not obj.order_id:
+            return "Objednávka není přiřazena."
+
+        order = obj.order
+
+        detail_url = reverse(
+            "admin:courses_order_change",
+            args=[order.pk],
+        )
+
+        if order.status == "paid":
+            status_label = "Zaplaceno"
+            status_class = "status-success"
+        else:
+            status_label = "Čeká na platbu"
+            status_class = "status-warning"
+
+        return self._render_detail_card(
+            title="Objednávka",
+            subtitle="Objednávka, ze které účastník vznikl.",
+            badge_label=status_label,
+            badge_class=status_class,
+            items=(
+                (
+                    "Objednávka",
+                    f"#{order.pk}",
+                ),
+                (
+                    "Kurz",
+                    order.get_course_type_display(),
+                ),
+                (
+                    "Objednatel",
+                    order.company_name or "—",
+                ),
+                (
+                    "Vytvořeno",
+                    self._format_admin_datetime(
+                        order.created_at
+                    ),
+                ),
+                (
+                    "Zaplaceno",
+                    self._format_admin_datetime(
+                        order.paid_at
+                    ),
+                ),
+            ),
+            actions=self._render_detail_link(
+                detail_url,
+                "Otevřít objednávku →",
+            ),
+        )
+
+    @admin.display(description="")
+    def account_summary(self, obj):
+        if not obj or not obj.pk:
+            return "Účastníka je nejprve nutné uložit."
+
+        if not obj.user_id:
+            return self._render_detail_card(
+                title="Uživatelský účet",
+                subtitle="Účet zatím nebyl vytvořen.",
+                badge_label="Nevytvořen",
+                badge_class="status-neutral",
+            )
+
+        user = obj.user
+
+        detail_url = reverse(
+            "admin:courses_customuser_change",
+            args=[user.pk],
+        )
+
+        if user.is_active:
+            status_label = "Aktivní"
+            status_class = "status-success"
+        else:
+            status_label = "Neaktivní"
+            status_class = "status-danger"
+
+        return self._render_detail_card(
+            title="Uživatelský účet",
+            subtitle=(
+                "Účet používaný účastníkem pro přístup "
+                "do Elektroakademie."
+            ),
+            badge_label=status_label,
+            badge_class=status_class,
+            items=(
+                (
+                    "E-mail",
+                    user.email or "—",
+                ),
+                (
+                    "Uživatelské jméno",
+                    user.username or "—",
+                ),
+                (
+                    "Jméno účtu",
+                    user.get_full_name().strip() or "—",
+                ),
+                (
+                    "ID účtu",
+                    user.pk,
+                ),
+            ),
+            actions=self._render_detail_link(
+                detail_url,
+                "Otevřít účet →",
+            ),
+        )
+
+    @admin.display(description="")
+    def activation_summary(self, obj):
+        if not obj or not obj.pk:
+            return "Účastníka je nejprve nutné uložit."
+
+        order_paid = (
+            obj.order_id
+            and obj.order.status == "paid"
+        )
+
+        if obj.activation_completed_at:
+            status_label = "Dokončeno"
+            status_class = "status-success"
+            status_value = "Aktivováno"
+
+        elif not order_paid:
+            status_label = "Čeká na platbu"
+            status_class = "status-neutral"
+            status_value = "Aktivace není dostupná"
+
+        elif obj.activation_sent_at:
+            status_label = "Čeká na aktivaci"
+            status_class = "status-warning"
+            status_value = "Odkaz odeslán"
+
+        elif obj.activation_token:
+            status_label = "Čeká na aktivaci"
+            status_class = "status-warning"
+            status_value = "Odkaz připraven"
+
+        else:
+            status_label = "Bez odkazu"
+            status_class = "status-danger"
+            status_value = "Aktivační odkaz chybí"
+
+        activation_action = ""
+
+        if (
+            order_paid
+            and not obj.activation_completed_at
+            and obj.activation_token
+            and not obj.user_id
+        ):
+            relative_url = reverse(
+                "participant_activation",
+                args=[obj.activation_token],
+            )
+
+            request = getattr(
+                self,
+                "_current_request",
+                None,
+            )
+
+            activation_url = (
+                request.build_absolute_uri(relative_url)
+                if request
+                else relative_url
+            )
+
+            activation_action = format_html(
+                """
+                <div class="participant-detail-card__actions">
+                    <a href="{}"
+                       target="_blank"
+                       rel="noopener"
+                       class="participant-detail-card__button">
+                        Otevřít aktivační stránku →
+                    </a>
+
+                    <button
+                        type="button"
+                        class="participant-detail-card__button
+                               participant-detail-card__button--secondary"
+                        onclick="navigator.clipboard.writeText('{}');
+                                 this.innerText='Zkopírováno';">
+                        Kopírovat odkaz
+                    </button>
+                </div>
+                """,
+                activation_url,
+                activation_url,
+            )
+
+        return self._render_detail_card(
+            title="Aktivace",
+            subtitle=(
+                "Průběh aktivace účastníka a vytvoření přístupu."
+            ),
+            badge_label=status_label,
+            badge_class=status_class,
+            items=(
+                (
+                    "Stav aktivace",
+                    status_value,
+                ),
+                (
+                    "Aktivační odkaz odeslán",
+                    self._format_admin_datetime(
+                        obj.activation_sent_at
+                    ),
+                ),
+                (
+                    "Aktivace dokončena",
+                    self._format_admin_datetime(
+                        obj.activation_completed_at
+                    ),
+                ),
+            ),
+            actions=activation_action,
+        )
+
+    @admin.display(description="Pracovní souhrn")
+    def participant_dashboard(self, obj):
+        if not obj or not obj.pk:
+            return "Pracovní souhrn bude dostupný po uložení účastníka."
+
+        order = obj.order
+
+        full_name = (
+            f"{obj.first_name} {obj.last_name}".strip()
+            or "—"
+        )
+
+        registration_number = (
+            obj.registration_number
+            or "Bez evidenčního čísla"
+        )
+
+        is_paid = (
+            order.status == "paid"
+            if order
+            else False
+        )
+
+        if is_paid:
+            payment_label = "Zaplaceno"
+            payment_class = "status-success"
+        else:
+            payment_label = "Čeká na platbu"
+            payment_class = "status-warning"
+
+        order_card = self._render_dashboard_card(
+            "Objednávka",
+            f"#{order.pk}" if order else "—",
+            payment_label,
+            payment_class,
+        )
+
+        if not is_paid:
+            activation_value = "—"
+            activation_label = "Čeká na platbu"
+            activation_class = "status-neutral"
+
+        elif obj.activation_completed_at:
+            activation_value = self._format_admin_datetime(
+                obj.activation_completed_at
+            )
+            activation_label = "Aktivováno"
+            activation_class = "status-success"
+
+        elif obj.activation_sent_at:
+            activation_value = (
+                "Odesláno "
+                + self._format_admin_datetime(
+                    obj.activation_sent_at
+                )
+            )
+            activation_label = "Čeká na aktivaci"
+            activation_class = "status-warning"
+
+        elif obj.activation_token:
+            activation_value = "Odkaz připraven"
+            activation_label = "Čeká na aktivaci"
+            activation_class = "status-warning"
+
+        else:
+            activation_value = "Bez odkazu"
+            activation_label = "Čeká na aktivaci"
+            activation_class = "status-warning"
+
+        activation_card = self._render_dashboard_card(
+            "Aktivace",
+            activation_value,
+            activation_label,
+            activation_class,
+            small_value=True,
+        )
+
+        if obj.user_id:
+            account_value = (
+                obj.user.email
+                or obj.user.username
+                or f"ID {obj.user_id}"
+            )
+            account_label = "Existuje"
+            account_class = "status-success"
+
+        else:
+            account_value = "Bez účtu"
+
+            if obj.activation_completed_at:
+                account_label = "Chybí účet"
+                account_class = "status-danger"
+            else:
+                account_label = "Nevytvořen"
+                account_class = "status-neutral"
+
+        account_card = self._render_dashboard_card(
+            "Uživatelský účet",
+            account_value,
+            account_label,
+            account_class,
+            small_value=True,
+        )
+
+        if not obj.user_id:
+            quiz_value = "Nezahájen"
+            quiz_label = "Nedostupný"
+            quiz_class = "status-neutral"
+
+        elif obj.admin_has_passed_quiz:
+            quiz_value = (
+                f"{obj.admin_latest_score} %"
+                if obj.admin_latest_score is not None
+                else "Splněn"
+            )
+            quiz_label = "Splněn"
+            quiz_class = "status-success"
+
+        elif obj.admin_has_submitted_quiz:
+            quiz_value = (
+                f"{obj.admin_latest_score} %"
+                if obj.admin_latest_score is not None
+                else "Nesplněn"
+            )
+            quiz_label = "Nesplněn"
+            quiz_class = "status-danger"
+
+        elif obj.admin_has_in_progress_quiz:
+            quiz_value = "Probíhá"
+            quiz_label = "Rozpracovaný"
+            quiz_class = "status-info"
+
+        else:
+            quiz_value = "Nezahájen"
+            quiz_label = "Nezahájen"
+            quiz_class = "status-neutral"
+
+        quiz_card = self._render_dashboard_card(
+            "Test",
+            quiz_value,
+            quiz_label,
+            quiz_class,
+        )
+
+        try:
+            certificate = obj.certificate
+        except Certificate.DoesNotExist:
+            certificate = None
+
+        if certificate:
+            certificate_value = (
+                certificate.certificate_number
+                or "Bez čísla"
+            )
+            certificate_label = "Vystaven"
+            certificate_class = "status-success"
+
+        else:
+            certificate_value = "Nevystaven"
+
+            if obj.admin_has_passed_quiz:
+                certificate_label = "Čeká na vystavení"
+                certificate_class = "status-warning"
+            else:
+                certificate_label = "Nevystaven"
+                certificate_class = "status-neutral"
+
+        certificate_card = self._render_dashboard_card(
+            "Certifikát",
+            certificate_value,
+            certificate_label,
+            certificate_class,
+            small_value=True,
+        )
+
+        course_name = (
+            order.get_course_type_display()
+            if order
+            else "—"
+        )
+
+        company_name = (
+            order.company_name
+            if order and order.company_name
+            else "—"
+        )
+
+        return format_html(
+            """
+            <div class="participant-dashboard">
+
+                <div class="participant-dashboard__identity">
+
+                    <div class="participant-dashboard__registration">
+                        {}
+                    </div>
+
+                    <div class="participant-dashboard__name">
+                        {}
+                    </div>
+
+                    <div class="participant-dashboard__email">
+                        {}
+                    </div>
+
+                </div>
+
+                <div class="participant-dashboard__cards">
+                    {}
+                    {}
+                    {}
+                    {}
+                    {}
+                </div>
+
+                <div class="participant-dashboard__meta">
+
+                    <span>
+                        Kurz:
+                        <strong>{}</strong>
+                    </span>
+
+                    <span>
+                        Firma:
+                        <strong>{}</strong>
+                    </span>
+
+                    <span>
+                        Objednávka vytvořena:
+                        <strong>{}</strong>
+                    </span>
+
+                    <span>
+                        Zaplaceno:
+                        <strong>{}</strong>
+                    </span>
+
+                </div>
+
+            </div>
+            """,
+            registration_number,
+            full_name,
+            obj.email or "—",
+            order_card,
+            activation_card,
+            account_card,
+            quiz_card,
+            certificate_card,
+            course_name,
+            company_name,
+            self._format_admin_datetime(
+                order.created_at
+                if order
+                else None
+            ),
+            self._format_admin_datetime(
+                order.paid_at
+                if order
+                else None
             ),
         )
 
@@ -1716,7 +2390,7 @@ class OrderParticipantAdmin(admin.ModelAdmin):
             obj.user,
         )
 
-    @admin.display(description="Profil účastníka")
+    @admin.display(description="")
     def profile_summary(self, obj):
         if not obj or not obj.pk:
             return "Účastníka je nejprve nutné uložit."
@@ -1724,72 +2398,188 @@ class OrderParticipantAdmin(admin.ModelAdmin):
         try:
             profile = obj.profile
         except ParticipantProfile.DoesNotExist:
-            return "Profil zatím nebyl vyplněn."
+            return self._render_detail_card(
+                title="Profil účastníka",
+                subtitle="Osobní údaje zatím nebyly vyplněny.",
+                badge_label="Chybí profil",
+                badge_class="status-warning",
+            )
 
         url = reverse(
-            (
-                f"admin:{profile._meta.app_label}_"
-                f"{profile._meta.model_name}_change"
-            ),
+            "admin:courses_participantprofile_change",
             args=[profile.pk],
         )
 
-        return format_html(
-            (
-                '<a href="{}">Otevřít profil</a>'
-                "<br>"
-                "Datum narození: {}"
-                "<br>"
-                "Místo narození: {}"
-                "<br>"
-                "Trvalé bydliště: {}"
-            ),
-            url,
-            profile.birth_date,
-            profile.birth_place,
-            profile.permanent_address,
+        birth_date = (
+            profile.birth_date.strftime("%d.%m.%Y")
+            if profile.birth_date
+            else "—"
         )
 
-    @admin.display(description="Test")
+        return self._render_detail_card(
+            title="Profil účastníka",
+            subtitle="Osobní a zaměstnanecké údaje",
+            badge_label="Vyplněn",
+            badge_class="status-success",
+            items=(
+                (
+                    "Datum narození",
+                    birth_date,
+                ),
+                (
+                    "Místo narození",
+                    profile.birth_place or "—",
+                ),
+                (
+                    "Trvalé bydliště",
+                    profile.permanent_address or "—",
+                ),
+                (
+                    "Zaměstnavatel",
+                    profile.employer_name or "—",
+                ),
+                (
+                    "Adresa zaměstnavatele",
+                    profile.employer_address or "—",
+                ),
+            ),
+            actions=self._render_detail_link(
+                url,
+                "Otevřít profil →",
+            ),
+        )
+
+    @admin.display(description="")
     def quiz_summary(self, obj):
-        if not obj or not obj.user_id:
-            return "Účastník zatím nemá uživatelský účet."
+        if not obj or not obj.pk:
+            return "Účastníka je nejprve nutné uložit."
 
-        latest_attempt = (
+        if not obj.user_id:
+            return self._render_detail_card(
+                title="Historie testů",
+                subtitle=(
+                    "Test zatím není dostupný, protože "
+                    "účastník nemá uživatelský účet."
+                ),
+                badge_label="Nedostupné",
+                badge_class="status-neutral",
+            )
+
+        attempts = list(
             obj.user.quiz_attempts
-            .order_by("-started_at")
-            .first()
+            .select_related("course")
+            .order_by(
+                "-started_at",
+                "-pk",
+            )
         )
 
-        if not latest_attempt:
-            return "Test zatím nebyl zahájen."
+        if not attempts:
+            return self._render_detail_card(
+                title="Historie testů",
+                subtitle="Účastník zatím nezahájil žádný test.",
+                badge_label="Bez pokusů",
+                badge_class="status-neutral",
+            )
 
-        url = reverse(
-            "admin:courses_quizattempt_change",
-            args=[latest_attempt.pk],
+        rows = []
+
+        for attempt in attempts:
+            detail_url = reverse(
+                "admin:courses_quizattempt_change",
+                args=[attempt.pk],
+            )
+
+            if attempt.status == QuizAttempt.STATUS_IN_PROGRESS:
+                status = self._render_detail_badge(
+                    "Rozpracovaný",
+                    "status-info",
+                )
+                score = "—"
+
+            elif attempt.passed:
+                status = self._render_detail_badge(
+                    "Splněn",
+                    "status-success",
+                )
+                score = f"{attempt.score_percent} %"
+
+            else:
+                status = self._render_detail_badge(
+                    "Nesplněn",
+                    "status-danger",
+                )
+                score = f"{attempt.score_percent} %"
+
+            rows.append(
+                format_html(
+                    """
+                    <tr>
+                        <td>{}</td>
+                        <td>{}</td>
+                        <td>{}</td>
+                        <td>{}</td>
+                        <td>{}</td>
+                        <td class="participant-test-history__action">
+                            <a href="{}"
+                               class="participant-detail-card__button">
+                                Detail →
+                            </a>
+                        </td>
+                    </tr>
+                    """,
+                    attempt.attempt_number,
+                    self._format_admin_datetime(
+                        attempt.started_at
+                    ),
+                    self._format_admin_datetime(
+                        attempt.submitted_at
+                    ),
+                    status,
+                    score,
+                    detail_url,
+                )
+            )
+
+        body = format_html_join(
+            "",
+            "{}",
+            ((row,) for row in rows),
         )
 
-        if latest_attempt.status == QuizAttempt.STATUS_IN_PROGRESS:
-            result = "Rozpracovaný"
-        elif latest_attempt.passed:
-            result = f"Splněn – {latest_attempt.score_percent} %"
-        else:
-            result = f"Nesplněn – {latest_attempt.score_percent} %"
+        table = format_html(
+            """
+            <div class="participant-test-history">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Pokus</th>
+                            <th>Zahájeno</th>
+                            <th>Odesláno</th>
+                            <th>Výsledek</th>
+                            <th>Skóre</th>
+                            <th></th>
+                        </tr>
+                    </thead>
 
-        return format_html(
-            (
-                '<a href="{}">Otevřít poslední pokus</a>'
-                "<br>"
-                "Pokus č. {}"
-                "<br>"
-                "Výsledek: {}"
-            ),
-            url,
-            latest_attempt.attempt_number,
-            result,
+                    <tbody>
+                        {}
+                    </tbody>
+                </table>
+            </div>
+            """,
+            body,
         )
 
-    @admin.display(description="Certifikát")
+        return self._render_detail_card(
+            title="Historie testů",
+            subtitle="Všechny testové pokusy tohoto účastníka.",
+            badge_label=f"{len(attempts)} pokusů",
+            badge_class="status-info",
+            body=table,
+        )
+
+    @admin.display(description="")
     def certificate_summary(self, obj):
         if not obj or not obj.pk:
             return "Účastníka je nejprve nutné uložit."
@@ -1797,24 +2587,198 @@ class OrderParticipantAdmin(admin.ModelAdmin):
         try:
             certificate = obj.certificate
         except Certificate.DoesNotExist:
-            return "Certifikát zatím nebyl vystaven."
+            certificate = None
 
-        url = reverse(
+        if certificate is None:
+            return self._render_detail_card(
+                title="Certifikát",
+                subtitle="Certifikát zatím nebyl vystaven.",
+                badge_label="Nevystaven",
+                badge_class="status-neutral",
+            )
+
+        detail_url = reverse(
             "admin:courses_certificate_change",
             args=[certificate.pk],
         )
 
-        return format_html(
-            (
-                '<a href="{}">Otevřít certifikát</a>'
-                "<br>"
-                "Číslo: {}"
-                "<br>"
-                "Platnost do: {}"
+        valid_until = (
+            certificate.valid_until.strftime("%d.%m.%Y")
+            if certificate.valid_until
+            else "—"
+        )
+
+        is_valid = (
+            certificate.valid_until
+            and certificate.valid_until >= timezone.localdate()
+        )
+
+        if is_valid:
+            validity_label = "Platný"
+            validity_class = "status-success"
+        else:
+            validity_label = "Neplatný"
+            validity_class = "status-danger"
+
+        return self._render_detail_card(
+            title="Certifikát",
+            subtitle="Vystavený certifikát účastníka.",
+            badge_label=validity_label,
+            badge_class=validity_class,
+            items=(
+                (
+                    "Číslo certifikátu",
+                    certificate.certificate_number or "—",
+                ),
+                (
+                    "Vystaveno",
+                    self._format_admin_datetime(
+                        certificate.issued_at
+                    ),
+                ),
+                (
+                    "Platnost do",
+                    valid_until,
+                ),
             ),
-            url,
-            certificate.certificate_number,
-            certificate.valid_until,
+            actions=self._render_detail_link(
+                detail_url,
+                "Otevřít certifikát →",
+            ),
+        )
+
+    @admin.display(description="")
+    def email_history_summary(self, obj):
+        if not obj or not obj.pk:
+            return "Účastníka je nejprve nutné uložit."
+
+        email_filter = Q(
+            order_id=obj.order_id,
+            recipient__iexact=obj.email,
+        )
+
+        if obj.user_id:
+            email_filter |= Q(
+                quiz_attempt__user_id=obj.user_id,
+            )
+
+        logs = list(
+            EmailLog.objects
+            .filter(email_filter)
+            .select_related(
+                "order",
+                "quiz_attempt",
+            )
+            .order_by(
+                "-created_at",
+                "-pk",
+            )[:20]
+        )
+
+        if not logs:
+            return self._render_detail_card(
+                title="E-mailová historie",
+                subtitle=(
+                    "K tomuto účastníkovi zatím nejsou "
+                    "evidovány žádné e-maily."
+                ),
+                badge_label="Bez záznamů",
+                badge_class="status-neutral",
+            )
+
+        rows = []
+
+        for log in logs:
+            detail_url = reverse(
+                "admin:courses_emaillog_change",
+                args=[log.pk],
+            )
+
+            if log.status == EmailLog.STATUS_SENT:
+                status = self._render_detail_badge(
+                    "Odesláno",
+                    "status-success",
+                )
+
+            elif log.status == EmailLog.STATUS_FAILED:
+                status = self._render_detail_badge(
+                    "Chyba",
+                    "status-danger",
+                )
+
+            else:
+                status = self._render_detail_badge(
+                    "Náhled",
+                    "status-neutral",
+                )
+
+            rows.append(
+                format_html(
+                    """
+                    <tr>
+                        <td>{}</td>
+                        <td>{}</td>
+                        <td>{}</td>
+                        <td>{}</td>
+                        <td>{}</td>
+
+                        <td class="participant-email-history__action">
+                            <a href="{}"
+                               class="participant-detail-card__button">
+                                Detail →
+                            </a>
+                        </td>
+                    </tr>
+                    """,
+                    self._format_admin_datetime(
+                        log.created_at
+                    ),
+                    log.get_email_type_display(),
+                    log.recipient,
+                    status,
+                    self._format_admin_datetime(
+                        log.sent_at
+                    ),
+                    detail_url,
+                )
+            )
+
+        body = format_html_join(
+            "",
+            "{}",
+            ((row,) for row in rows),
+        )
+
+        table = format_html(
+            """
+            <div class="participant-email-history">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Vytvořeno</th>
+                            <th>Typ</th>
+                            <th>Příjemce</th>
+                            <th>Stav</th>
+                            <th>Odesláno</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {}
+                    </tbody>
+                </table>
+            </div>
+            """,
+            body,
+        )
+
+        return self._render_detail_card(
+            title="E-mailová historie",
+            subtitle="E-maily související s tímto účastníkem.",
+            badge_label=f"{len(logs)} záznamů",
+            badge_class="status-info",
+            body=table,
         )
 
     @admin.action(
