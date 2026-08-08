@@ -1,13 +1,14 @@
 import csv
 import uuid
 
+from django import forms
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
 from django.db import transaction
 from django.db.models import Count, Exists, OuterRef, Q, Subquery
 from django.http import HttpResponse
 from django.urls import reverse
-from django.utils.html import format_html
+from django.utils.html import format_html, format_html_join
 from django.utils import timezone
 
 from .models import (
@@ -167,45 +168,281 @@ class PaymentAdmin(admin.ModelAdmin):
     )
 
 
+
+class OrderAdminForm(forms.ModelForm):
+    class Meta:
+        model = Order
+        fields = "__all__"
+        labels = {
+            "course_type": "Typ kurzu",
+            "status": "Stav",
+            "total_price": "Cena",
+        }
+
+
 class OrderParticipantInline(admin.TabularInline):
     model = OrderParticipant
     extra = 0
-    show_change_link = True
+    show_change_link = False
     can_delete = False
 
     fields = (
         "registration_number",
-        "first_name",
-        "last_name",
+        "participant_name",
         "email",
-        "activation_status",
-        "user",
+        "participant_status",
+        "quiz_status",
+        "certificate_status",
+        "participant_detail_link",
     )
 
-    readonly_fields = (
-        "registration_number",
-        "activation_status",
-        "user",
-    )
+    readonly_fields = fields
 
     ordering = (
         "last_name",
         "first_name",
     )
 
-    @admin.display(
-        boolean=True,
-        description="Aktivován",
-    )
-    def activation_status(self, obj):
-        if not obj or not obj.pk:
-            return False
+    verbose_name = "Účastník"
+    verbose_name_plural = "Účastníci objednávky"
 
-        return bool(obj.activation_completed_at)
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def get_queryset(self, request):
+        queryset = (
+            super()
+            .get_queryset(request)
+            .select_related(
+                "order",
+                "user",
+            )
+        )
+
+        profile_queryset = ParticipantProfile.objects.filter(
+            participant_id=OuterRef("pk")
+        )
+
+        certificate_queryset = Certificate.objects.filter(
+            participant_id=OuterRef("pk")
+        )
+
+        submitted_attempts = QuizAttempt.objects.filter(
+            user_id=OuterRef("user_id"),
+            status=QuizAttempt.STATUS_SUBMITTED,
+        )
+
+        passed_attempts = submitted_attempts.filter(
+            passed=True,
+        )
+
+        in_progress_attempts = QuizAttempt.objects.filter(
+            user_id=OuterRef("user_id"),
+            status=QuizAttempt.STATUS_IN_PROGRESS,
+        )
+
+        latest_submitted_attempt = submitted_attempts.order_by(
+            "-submitted_at",
+            "-started_at",
+        )
+
+        return queryset.annotate(
+            admin_has_profile=Exists(
+                profile_queryset
+            ),
+            admin_has_certificate=Exists(
+                certificate_queryset
+            ),
+            admin_has_submitted_quiz=Exists(
+                submitted_attempts
+            ),
+            admin_has_passed_quiz=Exists(
+                passed_attempts
+            ),
+            admin_has_in_progress_quiz=Exists(
+                in_progress_attempts
+            ),
+            admin_latest_score=Subquery(
+                latest_submitted_attempt.values(
+                    "score_percent"
+                )[:1]
+            ),
+        )
+
+    @admin.display(description="Účastník")
+    def participant_name(self, obj):
+        if not obj or not obj.pk:
+            return "—"
+
+        return f"{obj.first_name} {obj.last_name}".strip()
+
+    @admin.display(description="Stav")
+    def participant_status(self, obj):
+        if not obj or not obj.pk:
+            return "—"
+
+        if obj.order.status != "paid":
+            return self._status_badge(
+                "Čeká na platbu",
+                "#6b7280",
+            )
+
+        if not obj.activation_completed_at:
+            return self._status_badge(
+                "Čeká na aktivaci",
+                "#c58a00",
+            )
+
+        if not obj.user_id:
+            return self._status_badge(
+                "Chybí účet",
+                "#ba2121",
+            )
+
+        if not obj.admin_has_profile:
+            return self._status_badge(
+                "Čeká na profil",
+                "#c58a00",
+            )
+
+        if obj.admin_has_certificate:
+            return self._status_badge(
+                "Certifikát vystaven",
+                "#417690",
+            )
+
+        if obj.admin_has_passed_quiz:
+            return self._status_badge(
+                "Test splněn",
+                "#2e7d32",
+            )
+
+        if obj.admin_has_submitted_quiz:
+            return self._status_badge(
+                "Test nesplněn",
+                "#ba2121",
+            )
+
+        if obj.admin_has_in_progress_quiz:
+            return self._status_badge(
+                "Test rozpracován",
+                "#417690",
+            )
+
+        return self._status_badge(
+            "Studuje",
+            "#417690",
+        )
+
+    @staticmethod
+    def _status_badge(label, color):
+        return format_html(
+            (
+                '<span style="'
+                'display:inline-block;'
+                'padding:4px 9px;'
+                'border-radius:12px;'
+                'background:{};'
+                'color:#fff;'
+                'font-weight:600;'
+                'font-size:12px;'
+                'line-height:1.2;'
+                'white-space:nowrap;'
+                '">{}</span>'
+            ),
+            color,
+            label,
+        )
+
+    @admin.display(description="Test")
+    def quiz_status(self, obj):
+        if not obj or not obj.pk or not obj.user_id:
+            return "—"
+
+        if obj.admin_has_passed_quiz:
+            if obj.admin_latest_score is not None:
+                return format_html(
+                    '<span style="color:#7bbf64;font-weight:600;">{}</span>',
+                    f"Splněn ({obj.admin_latest_score} %)",
+                )
+
+            return format_html(
+                '<span style="color:#7bbf64;font-weight:600;">{}</span>',
+                "Splněn",
+            )
+
+        if obj.admin_has_submitted_quiz:
+            if obj.admin_latest_score is not None:
+                return format_html(
+                    '<span style="color:#e35d6a;font-weight:600;">{}</span>',
+                    f"Nesplněn ({obj.admin_latest_score} %)",
+                )
+
+            return format_html(
+                '<span style="color:#e35d6a;font-weight:600;">{}</span>',
+                "Nesplněn",
+            )
+
+        if obj.admin_has_in_progress_quiz:
+            return "Rozpracovaný"
+
+        return "Nezahájen"
+
+    @admin.display(description="Certifikát")
+    def certificate_status(self, obj):
+        if not obj or not obj.pk:
+            return "—"
+
+        if obj.admin_has_certificate:
+            return format_html(
+                '<span style="color:#7bbf64;font-weight:700;">{}</span>',
+                "✓ Ano",
+            )
+
+        return format_html(
+            '<span style="color:#e35d6a;">{}</span>',
+            "✕ Ne",
+        )
+
+    @admin.display(description="")
+    def participant_detail_link(self, obj):
+        if not obj or not obj.pk:
+            return "—"
+
+        url = reverse(
+            "admin:courses_orderparticipant_change",
+            args=[obj.pk],
+        )
+
+        return format_html(
+            (
+                '<a href="{}" '
+                'style="'
+                'display:inline-block;'
+                'padding:5px 10px;'
+                'border-radius:4px;'
+                'background:#417690;'
+                'color:#fff;'
+                'font-weight:600;'
+                'text-decoration:none;'
+                'white-space:nowrap;'
+                '">'
+                "Detail →"
+                "</a>"
+            ),
+            url,
+        )
 
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
+    class Media:
+        css = {
+            "all": (
+                "courses/admin/order_detail.css",
+            )
+        }
+    form = OrderAdminForm
     list_display = (
         "id",
         "created_at",
@@ -248,22 +485,34 @@ class OrderAdmin(admin.ModelAdmin):
 
     readonly_fields = (
         "status",
+        "order_dashboard",
         "created_at",
         "paid_at",
+        "participants_overview",
         "participant_summary",
+        "total_price_detail",
     )
 
     fieldsets = (
         (
-            "Objednávka",
+            "Pracovní souhrn",
             {
                 "fields": (
-                    "course_type",
-                    "status",
-                    "total_price",
-                    "created_at",
-                    "paid_at",
-                    "participant_summary",
+                    "order_dashboard",
+                ),
+                "classes": (
+                    "order-dashboard-fieldset",
+                ),
+            },
+        ),
+        (
+            "Účastníci objednávky",
+            {
+                "fields": (
+                    "participants_overview",
+                ),
+                "classes": (
+                    "participants-overview-fieldset",
                 ),
             },
         ),
@@ -307,7 +556,6 @@ class OrderAdmin(admin.ModelAdmin):
         ),
     )
 
-    inlines = [OrderParticipantInline]
 
     actions = [
         "mark_selected_orders_as_paid",
@@ -334,6 +582,41 @@ class OrderAdmin(admin.ModelAdmin):
                 distinct=True,
             ),
         )
+
+    def get_fieldsets(self, request, obj=None):
+        fieldsets = list(
+            super().get_fieldsets(request, obj)
+        )
+
+        if obj and obj.status == "paid":
+            order_fields = (
+                "course_type",
+                "total_price_detail",
+            )
+        else:
+            order_fields = (
+                "course_type",
+                "total_price",
+            )
+
+        order_fieldset = (
+            "Údaje objednávky",
+            {
+                "fields": (
+                    order_fields,
+                ),
+                "classes": (
+                    "order-summary-fieldset",
+                ),
+            },
+        )
+
+        fieldsets.insert(
+            1,
+            order_fieldset,
+        )
+
+        return fieldsets
 
     def get_readonly_fields(self, request, obj=None):
         readonly_fields = list(
@@ -394,6 +677,463 @@ class OrderAdmin(admin.ModelAdmin):
     )
     def status_display(self, obj):
         return obj.get_status_display()
+
+    @admin.display(description="Cena")
+    def total_price_detail(self, obj):
+        if not obj or obj.total_price is None:
+            return "—"
+
+        return f"{obj.total_price:,} Kč".replace(",", " ")
+
+    @admin.display(description="")
+    def order_dashboard(self, obj):
+        if not obj or not obj.pk:
+            return "Souhrn bude dostupný po vytvoření objednávky."
+
+        participants = obj.participants.all()
+
+        total_participants = participants.count()
+
+        activated_count = participants.filter(
+            activation_completed_at__isnull=False
+        ).count()
+
+        waiting_activation_count = (
+            total_participants - activated_count
+        )
+
+        certificate_count = Certificate.objects.filter(
+            participant__order=obj
+        ).count()
+
+        if obj.status == "paid":
+            status_text = "Zaplaceno"
+            status_color = "#2e7d32"
+        else:
+            status_text = "Čeká na platbu"
+            status_color = "#c58a00"
+
+        course_name = obj.get_course_type_display()
+
+        created_at = (
+            obj.created_at.strftime("%d.%m.%Y %H:%M")
+            if obj.created_at
+            else "—"
+        )
+
+        paid_at = (
+            obj.paid_at.strftime("%d.%m.%Y %H:%M")
+            if obj.paid_at
+            else "—"
+        )
+
+        return format_html(
+            """
+            <div style="
+                display:grid;
+                grid-template-columns:repeat(4, minmax(150px, 1fr));
+                gap:12px;
+                margin:2px 0 6px 0;
+            ">
+
+                <div style="
+                    padding:14px 16px;
+                    background:#202020;
+                    border:1px solid #333;
+                    border-radius:6px;
+                ">
+                    <div style="
+                        color:#aaa;
+                        font-size:11px;
+                        text-transform:uppercase;
+                        margin-bottom:5px;
+                    ">
+                        Kurz
+                    </div>
+                    <div style="
+                        font-size:15px;
+                        font-weight:600;
+                    ">
+                        {}
+                    </div>
+                </div>
+
+                <div style="
+                    padding:14px 16px;
+                    background:#202020;
+                    border:1px solid #333;
+                    border-radius:6px;
+                ">
+                    <div style="
+                        color:#aaa;
+                        font-size:11px;
+                        text-transform:uppercase;
+                        margin-bottom:5px;
+                    ">
+                        Stav objednávky
+                    </div>
+                    <span style="
+                        display:inline-block;
+                        padding:4px 9px;
+                        border-radius:12px;
+                        background:{};
+                        color:#fff;
+                        font-size:12px;
+                        font-weight:600;
+                    ">
+                        {}
+                    </span>
+                </div>
+
+                <div style="
+                    padding:14px 16px;
+                    background:#202020;
+                    border:1px solid #333;
+                    border-radius:6px;
+                ">
+                    <div style="
+                        color:#aaa;
+                        font-size:11px;
+                        text-transform:uppercase;
+                        margin-bottom:5px;
+                    ">
+                        Účastníci
+                    </div>
+                    <div style="
+                        font-size:18px;
+                        font-weight:600;
+                    ">
+                        {}
+                    </div>
+                    <div style="
+                        color:#aaa;
+                        font-size:12px;
+                        margin-top:3px;
+                    ">
+                        Aktivováno {} / {}
+                    </div>
+                </div>
+
+                <div style="
+                    padding:14px 16px;
+                    background:#202020;
+                    border:1px solid #333;
+                    border-radius:6px;
+                ">
+                    <div style="
+                        color:#aaa;
+                        font-size:11px;
+                        text-transform:uppercase;
+                        margin-bottom:5px;
+                    ">
+                        Certifikáty
+                    </div>
+                    <div style="
+                        font-size:18px;
+                        font-weight:600;
+                    ">
+                        {} / {}
+                    </div>
+                </div>
+
+            </div>
+
+            <div style="
+                display:flex;
+                flex-wrap:wrap;
+                gap:18px;
+                padding:10px 2px 0 2px;
+                color:#aaa;
+                font-size:12px;
+            ">
+                <span>
+                    Vytvořeno:
+                    <strong style="color:#ddd;">{}</strong>
+                </span>
+
+                <span>
+                    Zaplaceno:
+                    <strong style="color:#ddd;">{}</strong>
+                </span>
+
+                <span>
+                    Čeká na aktivaci:
+                    <strong style="color:#ddd;">{}</strong>
+                </span>
+            </div>
+            """,
+            course_name,
+            status_color,
+            status_text,
+            total_participants,
+            activated_count,
+            total_participants,
+            certificate_count,
+            total_participants,
+            created_at,
+            paid_at,
+            waiting_activation_count,
+        )
+
+    @admin.display(description="")
+    def participants_overview(self, obj):
+        if not obj or not obj.pk:
+            return "Účastníci budou dostupní po vytvoření objednávky."
+
+        participants = (
+            obj.participants
+            .select_related(
+                "user",
+            )
+            .annotate(
+                admin_has_profile=Exists(
+                    ParticipantProfile.objects.filter(
+                        participant_id=OuterRef("pk")
+                    )
+                ),
+                admin_has_certificate=Exists(
+                    Certificate.objects.filter(
+                        participant_id=OuterRef("pk")
+                    )
+                ),
+                admin_has_submitted_quiz=Exists(
+                    QuizAttempt.objects.filter(
+                        user_id=OuterRef("user_id"),
+                        status=QuizAttempt.STATUS_SUBMITTED,
+                    )
+                ),
+                admin_has_passed_quiz=Exists(
+                    QuizAttempt.objects.filter(
+                        user_id=OuterRef("user_id"),
+                        status=QuizAttempt.STATUS_SUBMITTED,
+                        passed=True,
+                    )
+                ),
+                admin_has_in_progress_quiz=Exists(
+                    QuizAttempt.objects.filter(
+                        user_id=OuterRef("user_id"),
+                        status=QuizAttempt.STATUS_IN_PROGRESS,
+                    )
+                ),
+                admin_latest_score=Subquery(
+                    QuizAttempt.objects.filter(
+                        user_id=OuterRef("user_id"),
+                        status=QuizAttempt.STATUS_SUBMITTED,
+                    )
+                    .order_by(
+                        "-submitted_at",
+                        "-started_at",
+                    )
+                    .values("score_percent")[:1]
+                ),
+            )
+            .order_by(
+                "last_name",
+                "first_name",
+            )
+        )
+
+        rows = []
+
+        for participant in participants:
+            if obj.status != "paid":
+                status = self._participant_badge(
+                    "Čeká na platbu",
+                    "#6b7280",
+                )
+            elif not participant.activation_completed_at:
+                status = self._participant_badge(
+                    "Čeká na aktivaci",
+                    "#c58a00",
+                )
+            elif not participant.user_id:
+                status = self._participant_badge(
+                    "Chybí účet",
+                    "#ba2121",
+                )
+            elif not participant.admin_has_profile:
+                status = self._participant_badge(
+                    "Čeká na profil",
+                    "#c58a00",
+                )
+            elif participant.admin_has_certificate:
+                status = self._participant_badge(
+                    "Certifikát vystaven",
+                    "#2e7d32",
+                )
+            elif participant.admin_has_passed_quiz:
+                status = self._participant_badge(
+                    "Test splněn",
+                    "#2e7d32",
+                )
+            elif participant.admin_has_submitted_quiz:
+                status = self._participant_badge(
+                    "Test nesplněn",
+                    "#ba2121",
+                )
+            elif participant.admin_has_in_progress_quiz:
+                status = self._participant_badge(
+                    "Test rozpracován",
+                    "#417690",
+                )
+            else:
+                status = self._participant_badge(
+                    "Studuje",
+                    "#417690",
+                )
+
+            if not participant.user_id:
+                quiz = self._participant_badge(
+                    "Nedostupný",
+                    "#6b7280",
+                )
+
+            elif participant.admin_has_passed_quiz:
+                if participant.admin_latest_score is not None:
+                    quiz = self._participant_badge(
+                        f"Splněn ({participant.admin_latest_score} %)",
+                        "#2e7d32",
+                    )
+                else:
+                    quiz = self._participant_badge(
+                        "Splněn",
+                        "#2e7d32",
+                    )
+
+            elif participant.admin_has_submitted_quiz:
+                if participant.admin_latest_score is not None:
+                    quiz = self._participant_badge(
+                        f"Nesplněn ({participant.admin_latest_score} %)",
+                        "#ba2121",
+                    )
+                else:
+                    quiz = self._participant_badge(
+                        "Nesplněn",
+                        "#ba2121",
+                    )
+
+            elif participant.admin_has_in_progress_quiz:
+                quiz = self._participant_badge(
+                    "Rozpracován",
+                    "#417690",
+                )
+
+            else:
+                quiz = self._participant_badge(
+                    "Nezahájen",
+                    "#6b7280",
+                )
+
+            if participant.admin_has_certificate:
+                certificate = format_html(
+                    '<span style="color:#7bbf64;font-weight:600;">{}</span>',
+                    "✓ Ano",
+                )
+            else:
+                certificate = format_html(
+                    '<span style="color:#e35d6a;">{}</span>',
+                    "✕ Ne",
+                )
+
+            detail_url = reverse(
+                "admin:courses_orderparticipant_change",
+                args=[participant.pk],
+            )
+
+            rows.append(
+                format_html(
+                    """
+                    <tr>
+                        <td style="
+                            white-space:nowrap;
+                            font-weight:700;
+                            font-family:Consolas, 'Courier New', monospace;
+                            letter-spacing:0.4px;
+                            color:#f3f3f3;
+                        ">
+                            {}
+                        </td>                        
+                        <td>
+                        <td>
+                            <a href="{}"
+                            style="
+                                    color:#ffffff;
+                                    font-weight:700;
+                                    text-decoration:none;
+                            ">
+                                {}
+                            </a>
+                        </td>                        
+                        </td>
+                        <td>{}</td>
+                        <td>{}</td>
+                        <td>{}</td>
+                        <td>{}</td>
+                        <td style="text-align:right;">
+                            <a href="{}"
+                            style="
+                                display:inline-block;
+                                padding:6px 11px;
+                                border-radius:4px;
+                                background:#417690;
+                                color:#fff;
+                                font-weight:600;
+                                text-decoration:none;
+                                white-space:nowrap;
+                            ">
+                                Detail →
+                            </a>
+                        </td>
+                    </tr>
+                    """,
+                    participant.registration_number or "—",
+                    detail_url,
+                    f"{participant.first_name} {participant.last_name}".strip(),
+                    participant.email,
+                    status,
+                    quiz,
+                    certificate,
+                    detail_url,
+                )
+            )
+
+        if not rows:
+            body = format_html(
+                '<tr><td colspan="7" style="padding:16px;">{}</td></tr>',
+                "Objednávka nemá žádné účastníky.",
+            )
+        else:
+            body = format_html_join(
+                "",
+                "{}",
+                ((row,) for row in rows),
+            )
+
+        return format_html(
+            """
+            <div style="width:100%;overflow-x:auto;">
+                <table style="
+                    width:100%;
+                    border-collapse:collapse;
+                    margin:0;
+                ">
+                    <thead>
+                        <tr style="color:#bbb;font-size:11px;text-transform:uppercase;">
+                            <th style="text-align:left;padding:8px 10px;">Evidenční číslo</th>
+                            <th style="text-align:left;padding:8px 10px;">Účastník</th>
+                            <th style="text-align:left;padding:8px 10px;">E-mail</th>
+                            <th style="text-align:left;padding:8px 10px;">Stav</th>
+                            <th style="text-align:left;padding:8px 10px;">Test</th>
+                            <th style="text-align:left;padding:8px 10px;">Certifikát</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>{}</tbody>
+                </table>
+            </div>
+            """,
+            body,
+        )
 
     @admin.display(description="Souhrn účastníků")
     def participant_summary(self, obj):
@@ -478,6 +1218,24 @@ class OrderAdmin(admin.ModelAdmin):
                 ),
                 level=messages.ERROR,
             )
+    @staticmethod
+    def _participant_badge(label, color):
+        return format_html(
+            """
+            <span style="
+                display:inline-block;
+                padding:4px 9px;
+                border-radius:12px;
+                background:{};
+                color:#fff;
+                font-weight:600;
+                font-size:12px;
+                white-space:nowrap;
+            ">{}</span>
+            """,
+            color,
+            label,
+        )
 
 
 class ActivationStatusFilter(admin.SimpleListFilter):

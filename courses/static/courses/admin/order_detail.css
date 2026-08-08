@@ -1,0 +1,89 @@
+/*
+ * Detail objednávky – pracovní rozhraní.
+ * Platí pouze tam, kde OrderAdmin používá třídy:
+ *   order-dashboard-fieldset
+ *   participants-overview-fieldset
+ */
+
+/* Readonly pole v těchto dvou fieldsetech nemají vlastní textový label.
+   Django ale pro label stále rezervuje levý sloupec a zobrazí dvojtečku. */
+.order-dashboard-fieldset .form-row > div,
+.participants-overview-fieldset .form-row > div {
+    display: block;
+}
+
+/* Skryje prázdný label i jeho dvojtečku. */
+.order-dashboard-fieldset .form-row label,
+.participants-overview-fieldset .form-row label {
+    display: none !important;
+}
+
+/* Zruší odsazení hodnoty za standardním 160px admin labelem. */
+.order-dashboard-fieldset .readonly,
+.participants-overview-fieldset .readonly {
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+}
+
+/* Celý řádek vlastního readonly pole má využít dostupnou šířku. */
+.order-dashboard-fieldset .form-row,
+.participants-overview-fieldset .form-row {
+    padding: 16px 12px;
+}
+
+.order-dashboard-fieldset .form-row > div,
+.participants-overview-fieldset .form-row > div,
+.order-dashboard-fieldset .field-order_dashboard,
+.participants-overview-fieldset .field-participants_overview {
+    width: 100% !important;
+    max-width: none !important;
+}
+
+/* Dashboard karty roztáhneme přes dostupnou šířku. */
+.order-dashboard-fieldset .readonly > div:first-child {
+    width: 100%;
+    grid-template-columns: repeat(4, minmax(180px, 1fr)) !important;
+}
+
+/* Přehled účastníků má zabrat celý fieldset. */
+.participants-overview-fieldset .readonly > div {
+    width: 100% !important;
+    max-width: none !important;
+}
+
+.participants-overview-fieldset table {
+    width: 100% !important;
+    table-layout: auto;
+}
+
+/* Jemné oddělení řádků bez změny barev brandingu adminu. */
+.participants-overview-fieldset tbody tr {
+    border-top: 1px solid var(--hairline-color);
+}
+
+.participants-overview-fieldset tbody td {
+    padding: 10px !important;
+    vertical-align: middle;
+}
+
+/* Na menších displejích se karty skládají místo horizontálního přetékání. */
+@media (max-width: 1100px) {
+    .order-dashboard-fieldset .readonly > div:first-child {
+        grid-template-columns: repeat(2, minmax(180px, 1fr)) !important;
+    }
+}
+
+@media (max-width: 700px) {
+    .order-dashboard-fieldset .readonly > div:first-child {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* Cena */
+.order-summary-fieldset .field-total_price_detail .readonly{
+    font-size:16px;
+    font-weight:700;
+    text-align:right;
+}
