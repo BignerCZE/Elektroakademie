@@ -6,32 +6,6 @@ from .transport import send_email
 from .types import RenderedEmail
 
 
-def record_email_failure(
-    *,
-    email_type,
-    recipient,
-    subject,
-    error,
-    order=None,
-    quiz_attempt=None,
-):
-    """
-    Zapíše neúspěšný e-mailový krok do společné EmailLog historie.
-
-    Používá se jak pro chyby transportu, tak pro chyby přípravy
-    e-mailu před samotným transportem (například generování PDF).
-    """
-    return EmailLog.objects.create(
-        email_type=email_type,
-        recipient=recipient,
-        subject=subject,
-        status=EmailLog.STATUS_FAILED,
-        error_message=str(error),
-        order=order,
-        quiz_attempt=quiz_attempt,
-    )
-
-
 def deliver_email(
     email: RenderedEmail,
     *,
@@ -46,17 +20,21 @@ def deliver_email(
     Samotný obsah e-mailu ani přílohy se do databáze
     neukládají.
     """
+
     try:
         result = send_email(email)
+
     except Exception as exc:
-        record_email_failure(
+        EmailLog.objects.create(
             email_type=email_type,
             recipient=email.recipient,
             subject=email.subject,
-            error=exc,
+            status=EmailLog.STATUS_FAILED,
+            error_message=str(exc),
             order=order,
             quiz_attempt=quiz_attempt,
         )
+
         raise
 
     if result.status == "preview":
@@ -68,18 +46,9 @@ def deliver_email(
         sent_at = timezone.now()
 
     else:
-        error = ValueError(
+        raise ValueError(
             f"Neznámý stav doručení e-mailu: {result.status}"
         )
-        record_email_failure(
-            email_type=email_type,
-            recipient=email.recipient,
-            subject=email.subject,
-            error=error,
-            order=order,
-            quiz_attempt=quiz_attempt,
-        )
-        raise error
 
     log = EmailLog.objects.create(
         email_type=email_type,

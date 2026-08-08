@@ -43,28 +43,7 @@ def build_participant_activation_email(participant):
 
 
 
-COURSE_COMPLETED_SUBJECT = (
-    "Úspěšné dokončení kurzu – "
-    "certifikát a výsledek testu"
-)
-
-
-def build_course_completed_email(
-    attempt,
-    *,
-    certificate=None,
-    certificate_pdf=None,
-    quiz_result_pdf=None,
-):
-    """
-    Sestaví závěrečný e-mail.
-
-    Pokud PDF přílohy nejsou předané, vygeneruje je builder sám.
-    To zachovává funkčnost administrátorských preview view.
-
-    Workflow dokončení kurzu naopak předává již připravené PDF,
-    aby bylo možné každý krok samostatně zachytit a auditovat.
-    """
+def build_course_completed_email(attempt):
     if attempt.status != attempt.STATUS_SUBMITTED:
         raise ValueError(
             "Závěrečný e-mail lze vytvořit pouze "
@@ -77,39 +56,31 @@ def build_course_completed_email(
             "pro úspěšně dokončený test."
         )
 
-    if certificate is None:
-        certificate = (
-            Certificate.objects
-            .select_related(
-                "participant",
-                "quiz_attempt",
-                "quiz_attempt__course",
-            )
-            .filter(
-                quiz_attempt=attempt,
-            )
-            .first()
+    certificate = (
+        Certificate.objects
+        .select_related(
+            "participant",
+            "quiz_attempt",
+            "quiz_attempt__course",
         )
+        .filter(
+            quiz_attempt=attempt,
+        )
+        .first()
+    )
 
     if certificate is None:
         raise ValueError(
             "K úspěšnému testu nebyl nalezen certifikát."
         )
 
-    if certificate.quiz_attempt_id != attempt.pk:
-        raise ValueError(
-            "Certifikát nepatří k zadanému testovému pokusu."
-        )
+    certificate_pdf = generate_certificate_pdf(
+        certificate
+    )
 
-    if certificate_pdf is None:
-        certificate_pdf = generate_certificate_pdf(
-            certificate
-        )
-
-    if quiz_result_pdf is None:
-        quiz_result_pdf = generate_quiz_result_pdf(
-            attempt
-        )
+    quiz_result_pdf = generate_quiz_result_pdf(
+        attempt
+    )
 
     certificate_attachment = EmailAttachment(
         filename=(
@@ -119,6 +90,7 @@ def build_course_completed_email(
         content=certificate_pdf,
         mimetype="application/pdf",
     )
+
     quiz_result_attachment = EmailAttachment(
         filename=(
             f"vysledek-testu-"
@@ -136,7 +108,10 @@ def build_course_completed_email(
     }
 
     return render_email(
-        subject=COURSE_COMPLETED_SUBJECT,
+        subject=(
+            "Úspěšné dokončení kurzu – "
+            "certifikát a výsledek testu"
+        ),
         recipient=attempt.user.email,
         html_template="emails/course_completed.html",
         text_template="emails/course_completed.txt",
@@ -146,7 +121,6 @@ def build_course_completed_email(
             quiz_result_attachment,
         ),
     )
-
 
 def build_payment_completed_email(
     order,

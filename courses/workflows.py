@@ -4,13 +4,22 @@ from dataclasses import dataclass
 from django.conf import settings
 
 from .emails.builders import (
+    COURSE_COMPLETED_SUBJECT,
     build_course_completed_email,
     build_participant_activation_email,
     build_payment_completed_email,
 )
-from .emails.delivery import deliver_email
+from .emails.delivery import (
+    deliver_email,
+    record_email_failure,
+)
 from .models import EmailLog, QuizAttempt
-from .services import generate_certificate, mark_order_as_paid
+from .services import (
+    generate_certificate,
+    generate_certificate_pdf,
+    generate_quiz_result_pdf,
+    mark_order_as_paid,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -162,13 +171,52 @@ def process_order_payment(order_id):
     )
 
 
+def _validate_pdf_content(content, label):
+    if not isinstance(content, (bytes, bytearray)):
+        raise ValueError(
+            f"{label} nebylo vygenerováno jako binární PDF."
+        )
+
+    content = bytes(content)
+
+    if not content.startswith(b"%PDF"):
+        raise ValueError(
+            f"{label} nemá platnou PDF hlavičku."
+        )
+
+    return content
+
+
+def _record_course_completion_failure(
+    attempt,
+    error_message,
+):
+    return record_email_failure(
+        email_type=EmailLog.TYPE_COURSE_COMPLETED,
+        recipient=attempt.user.email,
+        subject=COURSE_COMPLETED_SUBJECT,
+        error=error_message,
+        quiz_attempt=attempt,
+    )
+
+
 def process_quiz_completion(attempt):
     """
     Dokončí workflow úspěšně odeslaného testu.
 
-    Vytvoření certifikátu je idempotentní. Závěrečný e-mail se
-    posuzuje samostatně podle EmailLog, takže předchozí FAILED stav
-    neblokuje další pokus.
+    Jednotlivé kroky jsou idempotentní na úrovni výsledného
+    e-mailového workflow:
+
+    1. vytvoření / načtení certifikátu,
+    2. PDF certifikátu,
+    3. PDF výsledku testu,
+    4. sestavení závěrečného e-mailu,
+    5. předání aktivnímu transportu,
+    6. záznam výsledku do EmailLog.
+
+    PREVIEW/SENT záznam další běh zastaví. FAILED záznam další
+    pokus neblokuje, takže je možné bezpečně opravit dočasné
+    selhání generování PDF nebo e-mailového transportu.
     """
     attempt = (
         QuizAttempt.objects
@@ -192,8 +240,8 @@ def process_quiz_completion(attempt):
 
     # Současný model dovoluje účastníkovi právě jeden certifikát.
     # Pokud už existuje certifikát navázaný na jiný pokus,
-    # tento pozdější pokus nesmí vytvořit závěrečný e-mail
-    # s nesouvisejícím certifikátem.
+    # tento pozdější pokus nesmí pracovat s nesouvisejícím
+    # certifikátem.
     if certificate.quiz_attempt_id != attempt.pk:
         return QuizCompletionWorkflowResult(
             attempt=attempt,
@@ -219,17 +267,33 @@ def process_quiz_completion(attempt):
         )
 
     try:
+        certificate_pdf = _validate_pdf_content(
+            generate_certificate_pdf(certificate),
+            "PDF certifikátu",
+        )
+        quiz_result_pdf = _validate_pdf_content(
+            generate_quiz_result_pdf(attempt),
+            "PDF výsledku testu",
+        )
+
         email = build_course_completed_email(
-            attempt
+            attempt,
+            certificate=certificate,
+            certificate_pdf=certificate_pdf,
+            quiz_result_pdf=quiz_result_pdf,
         )
-        log = deliver_email(
-            email,
-            email_type=EmailLog.TYPE_COURSE_COMPLETED,
-            quiz_attempt=attempt,
-        )
+
     except Exception as exc:
+        error_message = (
+            "Příprava závěrečného e-mailu selhala: "
+            f"{exc}"
+        )
+        _record_course_completion_failure(
+            attempt,
+            error_message,
+        )
         logger.exception(
-            "Nepodařilo se zpracovat závěrečný e-mail "
+            "Nepodařilo se připravit závěrečný e-mail "
             "pro QuizAttempt %s.",
             attempt.pk,
         )
@@ -238,7 +302,33 @@ def process_quiz_completion(attempt):
             certificate=certificate,
             certificate_created=certificate_created,
             email_log=None,
-            errors=(str(exc),),
+            errors=(error_message,),
+        )
+
+    try:
+        log = deliver_email(
+            email,
+            email_type=EmailLog.TYPE_COURSE_COMPLETED,
+            quiz_attempt=attempt,
+        )
+    except Exception as exc:
+        # deliver_email zapisuje FAILED záznam samo, takže zde
+        # chybu pouze vracíme volajícímu a nevytváříme duplicitu.
+        error_message = (
+            "Doručení závěrečného e-mailu selhalo: "
+            f"{exc}"
+        )
+        logger.exception(
+            "Nepodařilo se doručit závěrečný e-mail "
+            "pro QuizAttempt %s.",
+            attempt.pk,
+        )
+        return QuizCompletionWorkflowResult(
+            attempt=attempt,
+            certificate=certificate,
+            certificate_created=certificate_created,
+            email_log=None,
+            errors=(error_message,),
         )
 
     return QuizCompletionWorkflowResult(
