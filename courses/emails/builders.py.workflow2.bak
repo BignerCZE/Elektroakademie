@@ -64,7 +64,12 @@ def build_course_completed_email(attempt):
             "quiz_attempt__course",
         )
         .filter(
-            quiz_attempt=attempt,
+            participant__user=attempt.user,
+            quiz_attempt__course=attempt.course,
+        )
+        .order_by(
+            "-issued_at",
+            "-id",
         )
         .first()
     )

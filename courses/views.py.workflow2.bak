@@ -17,6 +17,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 
+from .emails.delivery import deliver_email
 
 from .emails.builders import (
     build_course_completed_email,
@@ -46,12 +47,10 @@ from .models import (
 )
 
 from .services import (
+    generate_certificate,
     generate_certificate_pdf,
     generate_quiz_result_pdf,
-)
-from .workflows import (
-    process_order_payment,
-    process_quiz_completion,
+    mark_order_as_paid,
 )
 
 User = get_user_model()
@@ -443,11 +442,49 @@ def order_payment_simulation(request, order_id):
 
 
 def order_payment_success(request, order_id):
-    workflow_result = process_order_payment(
+    order, participants, status_changed = mark_order_as_paid(
         order_id
     )
-    order = workflow_result.order
-    participants = workflow_result.participants
+
+    if status_changed:
+        for participant in participants:
+            try:
+                email = build_participant_activation_email(
+                    participant
+                )
+
+                deliver_email(
+                    email,
+                    email_type=(
+                        EmailLog.TYPE_PARTICIPANT_ACTIVATION
+                    ),
+                    order=order,
+                )
+
+            except Exception:
+                logger.exception(
+                    "Nepodařilo se zpracovat aktivační "
+                    "e-mail pro účastníka %s.",
+                    participant.id,
+                )
+        try:
+            email = build_payment_completed_email(
+                order,
+                participants,
+            )
+
+            deliver_email(
+                email,
+                email_type=EmailLog.TYPE_PAYMENT_COMPLETED,
+                order=order,
+            )
+
+        except Exception:
+            logger.exception(
+                "Nepodařilo se zpracovat potvrzení "
+                "o přijetí platby pro objednávku %s.",
+                order.id,
+            )
 
     activation_links = [
         {
@@ -479,7 +516,6 @@ def order_payment_success(request, order_id):
             "activation_links": activation_links,
         },
     )
-
 
 @staff_member_required
 @require_GET
@@ -1398,28 +1434,37 @@ def quiz_submit(request, attempt_id):
         )
 
         try:
-            workflow_result = process_quiz_completion(
-                attempt
+            certificate, certificate_created = (
+                generate_certificate(attempt)
             )
-            if workflow_result.errors:
-                logger.warning(
-                    "Workflow dokončení QuizAttempt %s skončil "
-                    "s chybami e-mailu: %s",
-                    attempt.id,
-                    "; ".join(workflow_result.errors),
-                )
         except ValueError as error:
+            certificate = None
+            certificate_created = False
+
             logger.warning(
-                "Workflow dokončení QuizAttempt %s nebyl dokončen: %s",
+                "Certifikát pro QuizAttempt %s nebyl vytvořen: %s",
                 attempt.id,
                 error,
             )
-        except Exception:
-            logger.exception(
-                "Neočekávaná chyba workflow dokončení "
-                "QuizAttempt %s.",
-                attempt.id,
-            )
+
+        if certificate_created:
+            try:
+                email = build_course_completed_email(
+                    attempt
+                )
+
+                deliver_email(
+                    email,
+                    email_type=EmailLog.TYPE_COURSE_COMPLETED,
+                    quiz_attempt=attempt,
+                )
+
+            except Exception:
+                logger.exception(
+                    "Nepodařilo se zpracovat závěrečný "
+                    "e-mail pro QuizAttempt %s.",
+                    attempt.id,
+                )
 
     detail_url = reverse(
         "quiz_attempt_detail",

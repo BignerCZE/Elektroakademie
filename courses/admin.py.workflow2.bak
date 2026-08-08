@@ -28,11 +28,9 @@ from .models import (
     QuizAttemptQuestion,
 )
 
-from .workflows import process_order_payment
-
 from .services import (
     generate_certificate_pdf,
-
+    mark_order_as_paid,
 )
 
 
@@ -1175,11 +1173,10 @@ class OrderAdmin(admin.ModelAdmin):
         newly_paid_count = 0
         already_paid_count = 0
         error_count = 0
-        email_error_count = 0
 
         for order in queryset.order_by("id"):
             try:
-                workflow_result = process_order_payment(
+                _, _, status_changed = mark_order_as_paid(
                     order.pk
                 )
             except Order.DoesNotExist:
@@ -1189,14 +1186,10 @@ class OrderAdmin(admin.ModelAdmin):
                 error_count += 1
                 continue
 
-            if workflow_result.status_changed:
+            if status_changed:
                 newly_paid_count += 1
             else:
                 already_paid_count += 1
-
-            email_error_count += len(
-                workflow_result.errors
-            )
 
         if newly_paid_count:
             self.message_user(
@@ -1218,18 +1211,6 @@ class OrderAdmin(admin.ModelAdmin):
                 level=messages.INFO,
             )
 
-        if email_error_count:
-            self.message_user(
-                request,
-                (
-                    "Workflow dokončil platbu, ale počet "
-                    "e-mailových operací s chybou je "
-                    f"{email_error_count}. Podrobnosti jsou "
-                    "v E-mailové historii."
-                ),
-                level=messages.WARNING,
-            )
-
         if error_count:
             self.message_user(
                 request,
@@ -1239,7 +1220,6 @@ class OrderAdmin(admin.ModelAdmin):
                 ),
                 level=messages.ERROR,
             )
-
     @staticmethod
     def _participant_badge(label, color):
         return format_html(
