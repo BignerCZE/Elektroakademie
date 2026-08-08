@@ -15,6 +15,7 @@ from .models import (
     Choice,
     Course,
     CustomUser,
+    EmailLog,
     Order,
     OrderParticipant,
     Payment,
@@ -1831,3 +1832,428 @@ class CertificateAdmin(admin.ModelAdmin):
     )
     def is_valid(self, obj):
         return obj.valid_until >= timezone.localdate()
+
+@admin.register(EmailLog)
+class EmailLogAdmin(admin.ModelAdmin):
+    list_display = (
+        "created_at_display",
+        "email_type_display",
+        "recipient_display",
+        "status_display",
+        "order_link",
+        "quiz_attempt_link",
+        "sent_at_display",
+        "preview_list_link",
+    )
+
+    list_display_links = (
+        "created_at_display",
+        "recipient_display",
+    )
+
+    list_filter = (
+        "email_type",
+        "status",
+        "created_at",
+        "sent_at",
+    )
+
+    search_fields = (
+        "recipient",
+        "subject",
+        "=order__id",
+        "=quiz_attempt__id",
+        "quiz_attempt__user__email",
+        "quiz_attempt__user__first_name",
+        "quiz_attempt__user__last_name",
+    )
+
+    readonly_fields = (
+        "email_type",
+        "recipient",
+        "subject",
+        "status",
+        "error_message",
+        "order_link",
+        "quiz_attempt_link",
+        "created_at",
+        "sent_at",
+        "preview_link",
+    )
+
+    fieldsets = (
+        (
+            "E-mail",
+            {
+                "fields": (
+                    "email_type",
+                    "recipient",
+                    "subject",
+                    "status",
+                    "created_at",
+                    "sent_at",
+                ),
+            },
+        ),
+        (
+            "Vazby",
+            {
+                "fields": (
+                    "order_link",
+                    "quiz_attempt_link",
+                ),
+            },
+        ),
+        (
+            "Náhled",
+            {
+                "fields": (
+                    "preview_link",
+                ),
+            },
+        ),
+        (
+            "Chyba",
+            {
+                "fields": (
+                    "error_message",
+                ),
+                "classes": (
+                    "collapse",
+                ),
+            },
+        ),
+    )
+
+    ordering = (
+        "-created_at",
+        "-id",
+    )
+
+    date_hierarchy = "created_at"
+    list_per_page = 50
+
+    def has_view_permission(
+        self,
+        request,
+        obj=None,
+    ):
+        return bool(
+            request.user
+            and request.user.is_active
+            and request.user.is_staff
+        )
+
+    def has_add_permission(
+        self,
+        request,
+    ):
+        return False
+
+    def has_change_permission(
+        self,
+        request,
+        obj=None,
+    ):
+        return False
+
+    def has_delete_permission(
+        self,
+        request,
+        obj=None,
+    ):
+        return False
+
+    @admin.display(
+        description="Typ",
+        ordering="email_type",
+    )
+    def email_type_display(self, obj):
+        colors = {
+            EmailLog.TYPE_PARTICIPANT_ACTIVATION: (
+                "#0d6efd",
+                "Aktivace účastníka",
+            ),
+            EmailLog.TYPE_PAYMENT_COMPLETED: (
+                "#0f766e",
+                "Platba přijata",
+            ),
+            EmailLog.TYPE_COURSE_COMPLETED: (
+                "#7c3aed",
+                "Dokončení kurzu",
+            ),
+        }
+
+        color, label = colors.get(
+            obj.email_type,
+            (
+                "#6c757d",
+                obj.get_email_type_display(),
+            ),
+        )
+
+        return format_html(
+            (
+                '<span style="'
+                "display:inline-block;"
+                "padding:3px 8px;"
+                "border-radius:10px;"
+                "background:{};"
+                "color:#fff;"
+                'font-weight:600;">'
+                "{}"
+                "</span>"
+            ),
+            color,
+            label,
+        )
+
+    @admin.display(
+        description="Datum",
+        ordering="created_at",
+    )
+    def created_at_display(self, obj):
+        return timezone.localtime(
+            obj.created_at
+        ).strftime("%d. %m. %Y %H:%M")
+
+    @admin.display(
+        description="Příjemce",
+        ordering="recipient",
+    )
+    def recipient_display(self, obj):
+        return obj.recipient
+
+    @admin.display(
+        description="Odesláno",
+        ordering="sent_at",
+    )
+    def sent_at_display(self, obj):
+        if not obj.sent_at:
+            return "—"
+
+        return timezone.localtime(
+            obj.sent_at
+        ).strftime("%d. %m. %Y %H:%M")
+
+    @admin.display(description="Náhled")
+    def preview_list_link(self, obj):
+        if not obj or not obj.pk:
+            return "—"
+
+        if (
+            obj.email_type == EmailLog.TYPE_PAYMENT_COMPLETED
+            and obj.order_id
+        ):
+            url = reverse(
+                "payment_completed_email_preview",
+                kwargs={
+                    "order_id": obj.order_id,
+                },
+            )
+
+        elif (
+            obj.email_type == EmailLog.TYPE_COURSE_COMPLETED
+            and obj.quiz_attempt_id
+        ):
+            url = reverse(
+                "course_completed_email_preview",
+                kwargs={
+                    "attempt_id": obj.quiz_attempt_id,
+                },
+            )
+
+        elif (
+            obj.email_type == EmailLog.TYPE_PARTICIPANT_ACTIVATION
+            and obj.order_id
+        ):
+            participant = (
+                obj.order.participants
+                .filter(
+                    email__iexact=obj.recipient,
+                )
+                .first()
+            )
+
+            if participant is None:
+                return "Účastník nenalezen."
+
+            url = reverse(
+                "participant_activation_email_preview",
+                kwargs={
+                    "token": participant.activation_token,
+                },
+            )
+
+        else:
+            return "—"
+
+        return format_html(
+            '<a href="{}" target="_blank" rel="noopener">Otevřít</a>',
+            url,
+        )
+
+    @admin.display(
+        description="Stav",
+        ordering="status",
+    )
+    def status_display(self, obj):
+        colors = {
+            EmailLog.STATUS_PREVIEW: (
+                "#6c757d",
+                "Náhled",
+            ),
+            EmailLog.STATUS_SENT: (
+                "#198754",
+                "Odesláno",
+            ),
+            EmailLog.STATUS_FAILED: (
+                "#dc3545",
+                "Chyba",
+            ),
+        }
+
+        color, label = colors.get(
+            obj.status,
+            (
+                "#6c757d",
+                obj.get_status_display(),
+            ),
+        )
+
+        return format_html(
+            (
+                '<span style="'
+                "display:inline-block;"
+                "padding:3px 8px;"
+                "border-radius:10px;"
+                "background:{};"
+                "color:#fff;"
+                'font-weight:600;">'
+                "{}"
+                "</span>"
+            ),
+            color,
+            label,
+        )
+
+    @admin.display(description="Objednávka")
+    def order_link(self, obj):
+        if not obj.order_id:
+            return "—"
+
+        url = reverse(
+            "admin:courses_order_change",
+            args=[obj.order_id],
+        )
+
+        return format_html(
+            '<a href="{}">Objednávka #{}</a>',
+            url,
+            obj.order_id,
+        )
+
+    @admin.display(description="Pokus testu")
+    def quiz_attempt_link(self, obj):
+        if not obj.quiz_attempt_id:
+            return "—"
+
+        url = reverse(
+            "admin:courses_quizattempt_change",
+            args=[obj.quiz_attempt_id],
+        )
+
+        return format_html(
+            '<a href="{}">Pokus #{}</a>',
+            url,
+            obj.quiz_attempt_id,
+        )
+
+    @admin.display(description="Náhled e-mailu")
+    def preview_link(self, obj):
+        if not obj or not obj.pk:
+            return "—"
+
+        if (
+            obj.email_type
+            == EmailLog.TYPE_PAYMENT_COMPLETED
+            and obj.order_id
+        ):
+            url = reverse(
+                "payment_completed_email_preview",
+                kwargs={
+                    "order_id": obj.order_id,
+                },
+            )
+
+        elif (
+            obj.email_type
+            == EmailLog.TYPE_COURSE_COMPLETED
+            and obj.quiz_attempt_id
+        ):
+            url = reverse(
+                "course_completed_email_preview",
+                kwargs={
+                    "attempt_id": obj.quiz_attempt_id,
+                },
+            )
+
+        elif (
+            obj.email_type
+            == EmailLog.TYPE_PARTICIPANT_ACTIVATION
+            and obj.order_id
+        ):
+            participant = (
+                obj.order.participants
+                .filter(
+                    email__iexact=obj.recipient,
+                )
+                .first()
+            )
+
+            if participant is None:
+                return (
+                    "Účastník pro tento e-mail "
+                    "již nebyl nalezen."
+                )
+
+            url = reverse(
+                "participant_activation_email_preview",
+                kwargs={
+                    "token": participant.activation_token,
+                },
+            )
+
+        else:
+            return "Náhled není dostupný."
+
+        return format_html(
+            (
+                '<a href="{}" '
+                'target="_blank" '
+                'rel="noopener">'
+                "Otevřít náhled"
+                "</a>"
+            ),
+            url,
+        )
+
+    def get_queryset(self, request):
+        return (
+            super()
+            .get_queryset(request)
+            .select_related(
+                "order",
+                "quiz_attempt",
+                "quiz_attempt__user",
+            )
+            .prefetch_related(
+                "order__participants",
+            )
+        )
+
+
+
+admin.site.site_header = "Elektroakademie – Administrace"
+admin.site.site_title = "Elektroakademie"
+admin.site.index_title = "Správa systému"

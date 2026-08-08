@@ -18,6 +18,10 @@ class Course(models.Model):
     description = models.TextField()
     video_url = models.URLField()
 
+    class Meta:
+        verbose_name = "Kurz"
+        verbose_name_plural = "Kurzy"
+
     def __str__(self):
         return self.title
 
@@ -71,6 +75,11 @@ class Question(models.Model):
     )
     text = models.CharField(max_length=255)
 
+    class Meta:
+        ordering = ["course", "category", "id"]
+        verbose_name = "Otázka"
+        verbose_name_plural = "Otázky"
+
     def __str__(self):
         return self.text
 
@@ -82,6 +91,10 @@ class Choice(models.Model):
     )
     text = models.CharField(max_length=255)
     is_correct = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name = "Odpověď"
+        verbose_name_plural = "Odpovědi"
 
     def __str__(self):
         return self.text
@@ -102,6 +115,11 @@ class Payment(models.Model):
     )
     is_successful = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Platba"
+        verbose_name_plural = "Platby"
 
     def __str__(self):
         return f"{self.user} - {self.course}"
@@ -206,6 +224,11 @@ class Order(models.Model):
         blank=True,
     )
 
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Objednávka"
+        verbose_name_plural = "Objednávky"
+
     def __str__(self):
         return (
             f"Objednávka #{self.id} – "
@@ -278,6 +301,11 @@ class OrderParticipant(models.Model):
         blank=True,
         verbose_name="Datum dokončení aktivace",
     )
+
+    class Meta:
+        ordering = ["order", "id"]
+        verbose_name = "Účastník objednávky"
+        verbose_name_plural = "Účastníci objednávek"
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
@@ -427,6 +455,8 @@ class QuizAttempt(models.Model):
 
     class Meta:
         ordering = ["-started_at"]
+        verbose_name = "Pokus testu"
+        verbose_name_plural = "Pokusy testů"
 
     def __str__(self):
         return (
@@ -533,6 +563,8 @@ class QuizAttemptQuestion(models.Model):
     class Meta:
         ordering = ["order"]
         unique_together = ("attempt", "question")
+        verbose_name = "Otázka pokusu"
+        verbose_name_plural = "Otázky pokusů"
 
     def __str__(self):
         return f"{self.attempt} - {self.question}"
@@ -611,6 +643,11 @@ class EmailLog(models.Model):
         null=True,
         blank=True,
     )
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+        verbose_name = "E-mailový záznam"
+        verbose_name_plural = "E-mailové záznamy"
 
     def __str__(self):
         return (
