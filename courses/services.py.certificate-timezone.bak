@@ -164,9 +164,8 @@ def generate_certificate(quiz_attempt):
         )
 
     issued_at = quiz_attempt.submitted_at or timezone.now()
-    issued_date = timezone.localtime(issued_at).date()
     valid_until = (
-        issued_date
+        issued_at.date()
         + relativedelta(years=3)
         - timedelta(days=1)
     )
