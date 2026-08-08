@@ -3106,6 +3106,13 @@ class QuizAttemptQuestionInline(admin.TabularInline):
 
 @admin.register(QuizAttempt)
 class QuizAttemptAdmin(admin.ModelAdmin):
+    class Media:
+        css = {
+            "all": (
+                "courses/admin/quiz_attempt_detail.css",
+            )
+        }
+
     list_display = (
         "id",
         "participant_name",
@@ -3143,6 +3150,7 @@ class QuizAttemptAdmin(admin.ModelAdmin):
     )
 
     readonly_fields = (
+        "attempt_dashboard",
         "user",
         "participant_link",
         "registration_number_detail",
@@ -3159,6 +3167,17 @@ class QuizAttemptAdmin(admin.ModelAdmin):
     )
 
     fieldsets = (
+        (
+            "Pracovní souhrn",
+            {
+                "fields": (
+                    "attempt_dashboard",
+                ),
+                "classes": (
+                    "quiz-attempt-dashboard-fieldset",
+                ),
+            },
+        ),
         (
             "Účastník",
             {
@@ -3235,6 +3254,283 @@ class QuizAttemptAdmin(admin.ModelAdmin):
         obj=None,
     ):
         return True
+
+    @staticmethod
+    def _format_admin_datetime(value):
+        if not value:
+            return "—"
+
+        return timezone.localtime(
+            value
+        ).strftime("%d.%m.%Y %H:%M")
+
+    @staticmethod
+    def _render_dashboard_badge(label, css_class):
+        return format_html(
+            (
+                '<span class="quiz-attempt-dashboard__badge {}">'
+                "{}"
+                "</span>"
+            ),
+            css_class,
+            label,
+        )
+
+    @staticmethod
+    def _render_dashboard_card(
+        label,
+        value,
+        *,
+        badge_label=None,
+        badge_class="status-neutral",
+        small_value=False,
+    ):
+        value_class = (
+            "quiz-attempt-dashboard__card-value "
+            "quiz-attempt-dashboard__card-value--small"
+            if small_value
+            else "quiz-attempt-dashboard__card-value"
+        )
+
+        badge = ""
+        if badge_label:
+            badge = QuizAttemptAdmin._render_dashboard_badge(
+                badge_label,
+                badge_class,
+            )
+
+        return format_html(
+            """
+            <div class="quiz-attempt-dashboard__card">
+                <div class="quiz-attempt-dashboard__card-label">
+                    {}
+                </div>
+                <div class="{}">
+                    {}
+                </div>
+                {}
+            </div>
+            """,
+            label,
+            value_class,
+            value,
+            badge,
+        )
+
+    @staticmethod
+    def _render_dashboard_action(url, label, *, secondary=False):
+        css_class = "quiz-attempt-dashboard__button"
+        if secondary:
+            css_class += " quiz-attempt-dashboard__button--secondary"
+
+        return format_html(
+            '<a href="{}" class="{}">{}</a>',
+            url,
+            css_class,
+            label,
+        )
+
+    @admin.display(description="")
+    def attempt_dashboard(self, obj):
+        if not obj or not obj.pk:
+            return "Souhrn bude dostupný po vytvoření testového pokusu."
+
+        participant = self.get_participant(obj)
+        full_name = obj.user.get_full_name().strip()
+        if not full_name:
+            full_name = obj.user.email or obj.user.username
+
+        registration_number = (
+            participant.registration_number
+            if participant and participant.registration_number
+            else "—"
+        )
+
+        if obj.status == QuizAttempt.STATUS_IN_PROGRESS:
+            result_label = "Rozpracovaný"
+            result_class = "status-info"
+            score_value = "—"
+            answers_value = (
+                f"{obj.correct_answers} / {obj.total_questions}"
+                if obj.total_questions
+                else "—"
+            )
+        elif obj.passed:
+            result_label = "Splněn"
+            result_class = "status-success"
+            score_value = (
+                f"{obj.score_percent} %"
+                if obj.score_percent is not None
+                else "—"
+            )
+            answers_value = (
+                f"{obj.correct_answers} / {obj.total_questions}"
+            )
+        else:
+            result_label = "Nesplněn"
+            result_class = "status-danger"
+            score_value = (
+                f"{obj.score_percent} %"
+                if obj.score_percent is not None
+                else "—"
+            )
+            answers_value = (
+                f"{obj.correct_answers} / {obj.total_questions}"
+            )
+
+        participant_value = format_html(
+            "{}<span class=\"quiz-attempt-dashboard__subvalue\">{}</span>",
+            full_name,
+            registration_number,
+        )
+
+        cards = format_html_join(
+            "",
+            "{}",
+            (
+                (
+                    self._render_dashboard_card(
+                        "Účastník",
+                        participant_value,
+                        badge_label=(
+                            "Napojen na objednávku"
+                            if participant
+                            else "Bez vazby na účastníka"
+                        ),
+                        badge_class=(
+                            "status-success"
+                            if participant
+                            else "status-warning"
+                        ),
+                        small_value=True,
+                    ),
+                ),
+                (
+                    self._render_dashboard_card(
+                        "Kurz",
+                        obj.course.title,
+                        badge_label=f"Pokus č. {obj.attempt_number}",
+                        badge_class="status-neutral",
+                        small_value=True,
+                    ),
+                ),
+                (
+                    self._render_dashboard_card(
+                        "Výsledek",
+                        result_label,
+                        badge_label=obj.get_status_display(),
+                        badge_class=result_class,
+                    ),
+                ),
+                (
+                    self._render_dashboard_card(
+                        "Skóre",
+                        score_value,
+                        badge_label=f"Správně {answers_value}",
+                        badge_class=result_class,
+                    ),
+                ),
+                (
+                    self._render_dashboard_card(
+                        "Délka testu",
+                        self.format_duration(obj),
+                        badge_label=(
+                            "Dokončeno"
+                            if obj.submitted_at
+                            else "Probíhá"
+                        ),
+                        badge_class=(
+                            "status-success"
+                            if obj.submitted_at
+                            else "status-info"
+                        ),
+                    ),
+                ),
+            ),
+        )
+
+        actions = []
+
+        if participant:
+            participant_url = reverse(
+                "admin:courses_orderparticipant_change",
+                args=[participant.pk],
+            )
+            actions.append(
+                self._render_dashboard_action(
+                    participant_url,
+                    "Otevřít účastníka →",
+                )
+            )
+
+        user_url = reverse(
+            "admin:courses_customuser_change",
+            args=[obj.user_id],
+        )
+        actions.append(
+            self._render_dashboard_action(
+                user_url,
+                "Uživatelský účet →",
+                secondary=True,
+            )
+        )
+
+        actions_html = format_html_join(
+            "",
+            "{}",
+            ((action,) for action in actions),
+        )
+
+        return format_html(
+            """
+            <div class="quiz-attempt-dashboard">
+
+                <div class="quiz-attempt-dashboard__identity">
+                    <div class="quiz-attempt-dashboard__eyebrow">
+                        Pokus testu #{}
+                    </div>
+                    <div class="quiz-attempt-dashboard__name">
+                        {}
+                    </div>
+                    <div class="quiz-attempt-dashboard__email">
+                        {}
+                    </div>
+                </div>
+
+                <div class="quiz-attempt-dashboard__cards">
+                    {}
+                </div>
+
+                <div class="quiz-attempt-dashboard__meta">
+                    <span>
+                        Zahájeno:
+                        <strong>{}</strong>
+                    </span>
+                    <span>
+                        Odesláno:
+                        <strong>{}</strong>
+                    </span>
+                    <span>
+                        Kurz:
+                        <strong>{}</strong>
+                    </span>
+                </div>
+
+                <div class="quiz-attempt-dashboard__actions">
+                    {}
+                </div>
+
+            </div>
+            """,
+            obj.pk,
+            full_name,
+            obj.user.email or "—",
+            cards,
+            self._format_admin_datetime(obj.started_at),
+            self._format_admin_datetime(obj.submitted_at),
+            obj.course.title,
+            actions_html,
+        )
 
     @admin.display(
         description="Účastník",
@@ -3344,9 +3640,13 @@ class QuizAttemptAdmin(admin.ModelAdmin):
         return (
             OrderParticipant.objects
             .filter(user_id=obj.user_id)
+            .select_related("order")
+            .order_by(
+                "-activation_completed_at",
+                "-id",
+            )
             .first()
         )
-
 
     @admin.action(
         description="Exportovat vybrané testové pokusy do CSV"
@@ -3362,8 +3662,8 @@ class QuizAttemptAdmin(admin.ModelAdmin):
         response["Content-Disposition"] = (
             'attachment; filename="testove_pokusy.csv"'
         )
-
         response.write("\ufeff")
+
         writer = csv.writer(
             response,
             delimiter=";",
@@ -3398,18 +3698,28 @@ class QuizAttemptAdmin(admin.ModelAdmin):
             .order_by("-started_at")
         )
 
-        participant_map = {
-            participant.user_id: participant
-            for participant in (
-                OrderParticipant.objects
-                .filter(
-                    user_id__in=[
-                        attempt.user_id
-                        for attempt in attempts
-                    ]
-                )
-            )
+        user_ids = {
+            attempt.user_id
+            for attempt in attempts
         }
+
+        participants = (
+            OrderParticipant.objects
+            .filter(user_id__in=user_ids)
+            .select_related("order")
+            .order_by(
+                "user_id",
+                "-activation_completed_at",
+                "-id",
+            )
+        )
+
+        participant_map = {}
+        for participant in participants:
+            participant_map.setdefault(
+                participant.user_id,
+                participant,
+            )
 
         for attempt in attempts:
             participant = participant_map.get(
@@ -3477,7 +3787,6 @@ class QuizAttemptAdmin(admin.ModelAdmin):
             total_seconds,
             3600,
         )
-
         minutes, seconds = divmod(
             remainder,
             60,
@@ -3491,7 +3800,6 @@ class QuizAttemptAdmin(admin.ModelAdmin):
             )
 
         return f"{minutes:d}:{seconds:02d}"
-
 @admin.register(Certificate)
 class CertificateAdmin(admin.ModelAdmin):
     list_display = (

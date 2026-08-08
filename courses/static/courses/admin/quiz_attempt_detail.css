@@ -1,0 +1,259 @@
+/* Pracovní detail testového pokusu */
+
+
+/* ---------------------------------------------------------
+   Full-width pracovní souhrn
+--------------------------------------------------------- */
+
+.field-attempt_dashboard > div.flex-container {
+    display: block;
+}
+
+.field-attempt_dashboard label {
+    display: none;
+}
+
+.field-attempt_dashboard .readonly {
+    width: 100%;
+    margin-left: 0;
+}
+
+.field-attempt_dashboard {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.field-attempt_dashboard .flex-container {
+    gap: 0;
+}
+
+
+/* ---------------------------------------------------------
+   Pracovní dashboard
+--------------------------------------------------------- */
+
+.quiz-attempt-dashboard {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.quiz-attempt-dashboard__identity {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: 22px;
+}
+
+.quiz-attempt-dashboard__eyebrow {
+    margin-bottom: 3px;
+    color: var(--body-quiet-color);
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+}
+
+.quiz-attempt-dashboard__name {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.quiz-attempt-dashboard__email {
+    color: var(--body-quiet-color);
+    font-size: 13px;
+}
+
+
+/* ---------------------------------------------------------
+   Stavové karty
+--------------------------------------------------------- */
+
+.quiz-attempt-dashboard__cards {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(150px, 1fr));
+    gap: 12px;
+}
+
+.quiz-attempt-dashboard__card {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 88px;
+    padding: 14px 16px;
+    border: 1px solid var(--hairline-color);
+    border-radius: 6px;
+    background: var(--darkened-bg);
+}
+
+.quiz-attempt-dashboard__card-label {
+    margin-bottom: 6px;
+    color: var(--body-quiet-color);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.quiz-attempt-dashboard__card-value {
+    min-height: 22px;
+    margin-bottom: 8px;
+    overflow: hidden;
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.3;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.quiz-attempt-dashboard__card-value--small {
+    font-size: 14px;
+}
+
+.quiz-attempt-dashboard__subvalue {
+    display: block;
+    margin-top: 2px;
+    overflow: hidden;
+    color: var(--body-quiet-color);
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 11px;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+/* ---------------------------------------------------------
+   Badge
+--------------------------------------------------------- */
+
+.quiz-attempt-dashboard__badge {
+    display: inline-block;
+    align-self: flex-start;
+    margin-top: auto;
+    padding: 3px 8px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.25;
+    white-space: nowrap;
+}
+
+.quiz-attempt-dashboard__badge.status-success {
+    color: #b7ebc6;
+    background: rgba(40, 167, 69, 0.18);
+    border-color: rgba(40, 167, 69, 0.45);
+}
+
+.quiz-attempt-dashboard__badge.status-warning {
+    color: #f2d184;
+    background: rgba(210, 160, 20, 0.18);
+    border-color: rgba(210, 160, 20, 0.45);
+}
+
+.quiz-attempt-dashboard__badge.status-danger {
+    color: #f3a6ad;
+    background: rgba(186, 33, 33, 0.18);
+    border-color: rgba(186, 33, 33, 0.45);
+}
+
+.quiz-attempt-dashboard__badge.status-info {
+    color: #9ecfe3;
+    background: rgba(65, 118, 144, 0.22);
+    border-color: rgba(65, 118, 144, 0.5);
+}
+
+.quiz-attempt-dashboard__badge.status-neutral {
+    color: #d1d5db;
+    background: rgba(107, 114, 128, 0.18);
+    border-color: rgba(107, 114, 128, 0.45);
+}
+
+
+/* ---------------------------------------------------------
+   Meta a akce
+--------------------------------------------------------- */
+
+.quiz-attempt-dashboard__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 22px;
+    padding: 14px 2px 0;
+    color: var(--body-quiet-color);
+    font-size: 12px;
+}
+
+.quiz-attempt-dashboard__meta strong {
+    color: var(--body-fg);
+    font-weight: 600;
+}
+
+.quiz-attempt-dashboard__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid var(--hairline-color);
+}
+
+.quiz-attempt-dashboard__button {
+    display: inline-block;
+    padding: 6px 11px;
+    border-radius: 4px;
+    background: #417690;
+    color: #fff !important;
+    font-weight: 600;
+    text-decoration: none !important;
+}
+
+.quiz-attempt-dashboard__button:hover {
+    background: #205067;
+}
+
+.quiz-attempt-dashboard__button--secondary {
+    background: #5b6268;
+}
+
+.quiz-attempt-dashboard__button--secondary:hover {
+    background: #737b82;
+}
+
+
+/* ---------------------------------------------------------
+   Fieldset a standardní detail
+--------------------------------------------------------- */
+
+.quiz-attempt-dashboard-fieldset .form-row {
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+/* Django admin vypisuje objekt ještě jednou jako podnadpis. */
+.change-form #content > h2 {
+    display: none;
+}
+
+
+/* ---------------------------------------------------------
+   Responsivní zobrazení
+--------------------------------------------------------- */
+
+@media (max-width: 1250px) {
+    .quiz-attempt-dashboard__cards {
+        grid-template-columns: repeat(3, minmax(150px, 1fr));
+    }
+}
+
+@media (max-width: 900px) {
+    .quiz-attempt-dashboard__cards {
+        grid-template-columns: repeat(2, minmax(150px, 1fr));
+    }
+}
+
+@media (max-width: 650px) {
+    .quiz-attempt-dashboard__cards {
+        grid-template-columns: 1fr;
+    }
+}

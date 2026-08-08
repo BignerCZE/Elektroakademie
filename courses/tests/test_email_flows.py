@@ -220,102 +220,102 @@ class ActivationEmailFlowTests(TestCase):
                 log.sent_at,
             )
 
-def test_payment_success_creates_contact_email_log(
-    self,
-):
-    self.client.get(
-        self.success_url
-    )
+    def test_payment_success_creates_contact_email_log(
+        self,
+    ):
+        self.client.get(
+            self.success_url
+        )
 
-    log = EmailLog.objects.get(
-        email_type=EmailLog.TYPE_PAYMENT_COMPLETED,
-        order=self.order,
-    )
-
-    self.assertEqual(
-        log.recipient,
-        "kontakt@example.com",
-    )
-
-    self.assertEqual(
-        log.status,
-        EmailLog.STATUS_PREVIEW,
-    )
-
-    self.assertIsNone(
-        log.sent_at,
-    )
-
-
-def test_payment_success_creates_exactly_three_email_logs(
-    self,
-):
-    self.client.get(
-        self.success_url
-    )
-
-    logs = EmailLog.objects.filter(
-        order=self.order,
-    )
-
-    self.assertEqual(
-        logs.count(),
-        3,
-    )
-
-    self.assertEqual(
-        logs.filter(
-            email_type=(
-                EmailLog.TYPE_PARTICIPANT_ACTIVATION
-            ),
-        ).count(),
-        2,
-    )
-
-    self.assertEqual(
-        logs.filter(
-            email_type=EmailLog.TYPE_PAYMENT_COMPLETED,
-        ).count(),
-        1,
-    )
-
-
-def test_reloading_payment_success_does_not_duplicate_contact_email(
-    self,
-):
-    self.client.get(
-        self.success_url
-    )
-
-    self.client.get(
-        self.success_url
-    )
-
-    self.assertEqual(
-        EmailLog.objects.filter(
+        log = EmailLog.objects.get(
             email_type=EmailLog.TYPE_PAYMENT_COMPLETED,
             order=self.order,
-        ).count(),
-        1,
-    )
+        )
+
+        self.assertEqual(
+            log.recipient,
+            "kontakt@example.com",
+        )
+
+        self.assertEqual(
+            log.status,
+            EmailLog.STATUS_PREVIEW,
+        )
+
+        self.assertIsNone(
+            log.sent_at,
+        )
 
 
-def test_contact_email_has_expected_subject(
-    self,
-):
-    self.client.get(
-        self.success_url
-    )
+    def test_payment_success_creates_exactly_three_email_logs(
+        self,
+    ):
+        self.client.get(
+            self.success_url
+        )
 
-    log = EmailLog.objects.get(
-        email_type=EmailLog.TYPE_PAYMENT_COMPLETED,
-        order=self.order,
-    )
+        logs = EmailLog.objects.filter(
+            order=self.order,
+        )
 
-    self.assertEqual(
-        log.subject,
-        (
-            "Platba přijata – "
-            "účastníci mohou zahájit studium"
-        ),
-    )
+        self.assertEqual(
+            logs.count(),
+            3,
+        )
+
+        self.assertEqual(
+            logs.filter(
+                email_type=(
+                    EmailLog.TYPE_PARTICIPANT_ACTIVATION
+                ),
+            ).count(),
+            2,
+        )
+
+        self.assertEqual(
+            logs.filter(
+                email_type=EmailLog.TYPE_PAYMENT_COMPLETED,
+            ).count(),
+            1,
+        )
+
+
+    def test_reloading_payment_success_does_not_duplicate_contact_email(
+        self,
+    ):
+        self.client.get(
+            self.success_url
+        )
+
+        self.client.get(
+            self.success_url
+        )
+
+        self.assertEqual(
+            EmailLog.objects.filter(
+                email_type=EmailLog.TYPE_PAYMENT_COMPLETED,
+                order=self.order,
+            ).count(),
+            1,
+        )
+
+
+    def test_contact_email_has_expected_subject(
+        self,
+    ):
+        self.client.get(
+            self.success_url
+        )
+
+        log = EmailLog.objects.get(
+            email_type=EmailLog.TYPE_PAYMENT_COMPLETED,
+            order=self.order,
+        )
+
+        self.assertEqual(
+            log.subject,
+            (
+                "Platba přijata – "
+                "účastníci mohou zahájit studium"
+            ),
+        )

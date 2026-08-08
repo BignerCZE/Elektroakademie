@@ -205,3 +205,156 @@ class AdminPageTests(TestCase):
             response.status_code,
             200,
         )
+
+
+class QuizAttemptAdminDetailTests(TestCase):
+    def setUp(self):
+        self.superuser = User.objects.create_superuser(
+            username="quiz-admin@example.com",
+            email="quiz-admin@example.com",
+            password="Testheslo1",
+        )
+
+        self.participant_user = User.objects.create_user(
+            username="participant@example.com",
+            email="participant@example.com",
+            first_name="Jan",
+            last_name="Novák",
+            password="Testheslo1",
+            is_paid=True,
+        )
+
+        self.course = Course.objects.create(
+            title="§4 – osoba poučená",
+            description="Testovací kurz",
+            video_url="https://example.com/video",
+        )
+
+        self.order = Order.objects.create(
+            course_type="4",
+            total_price=990,
+            status="paid",
+            company_name="Test s.r.o.",
+            street="Testovací 1",
+            city="Praha",
+            zip_code="11000",
+        )
+
+        self.participant = OrderParticipant.objects.create(
+            order=self.order,
+            user=self.participant_user,
+            first_name="Jan",
+            last_name="Novák",
+            email="participant@example.com",
+            registration_number="EA-04-202608-00001",
+        )
+
+        self.attempt = QuizAttempt.objects.create(
+            user=self.participant_user,
+            course=self.course,
+            attempt_number=1,
+            status=QuizAttempt.STATUS_SUBMITTED,
+            total_questions=10,
+            correct_answers=8,
+            score_percent=80,
+            passed=True,
+        )
+
+        self.client.force_login(
+            self.superuser
+        )
+
+    def test_quiz_attempt_change_page_is_available(self):
+        response = self.client.get(
+            reverse(
+                "admin:courses_quizattempt_change",
+                args=[self.attempt.pk],
+            )
+        )
+
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+
+    def test_quiz_attempt_change_page_contains_work_dashboard(self):
+        response = self.client.get(
+            reverse(
+                "admin:courses_quizattempt_change",
+                args=[self.attempt.pk],
+            )
+        )
+
+        self.assertContains(
+            response,
+            "Pracovní souhrn",
+        )
+        self.assertContains(
+            response,
+            "Pokus testu",
+        )
+        self.assertContains(
+            response,
+            "Jan Novák",
+        )
+        self.assertContains(
+            response,
+            "EA-04-202608-00001",
+        )
+        self.assertContains(
+            response,
+            "Splněn",
+        )
+        self.assertContains(
+            response,
+            "80.00 %",
+        )
+
+    def test_quiz_attempt_dashboard_links_to_participant(self):
+        response = self.client.get(
+            reverse(
+                "admin:courses_quizattempt_change",
+                args=[self.attempt.pk],
+            )
+        )
+
+        participant_url = reverse(
+            "admin:courses_orderparticipant_change",
+            args=[self.participant.pk],
+        )
+
+        self.assertContains(
+            response,
+            participant_url,
+        )
+
+    def test_get_participant_prefers_latest_participation(self):
+        newer_order = Order.objects.create(
+            course_type="4",
+            total_price=990,
+            status="paid",
+            company_name="Novější objednávka s.r.o.",
+            street="Nová 2",
+            city="Brno",
+            zip_code="60200",
+        )
+
+        newer_participant = OrderParticipant.objects.create(
+            order=newer_order,
+            user=self.participant_user,
+            first_name="Jan",
+            last_name="Novák",
+            email="participant@example.com",
+            registration_number="EA-04-202608-00002",
+        )
+
+        model_admin = admin.site._registry[QuizAttempt]
+
+        selected_participant = model_admin.get_participant(
+            self.attempt
+        )
+
+        self.assertEqual(
+            selected_participant,
+            newer_participant,
+        )
