@@ -31,8 +31,7 @@ from .models import (
 from .services import (
     generate_certificate_pdf,
     mark_order_as_paid,
-)
-
+)\n
 
 class ChoiceInline(admin.TabularInline):
     model = Choice

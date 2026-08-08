@@ -161,11 +161,6 @@
             <span class="certificate-small-icon">▣</span>
 
             <div>
-                <strong>Datum vystavení:</strong>
-                <span class="certificate-validity-date">
-                    {{ certificate.issued_at|date:"j. n. Y" }}
-                </span>
-                <br>
                 <strong>Platnost osvědčení do:</strong>
 
                 <span class="certificate-validity-date">

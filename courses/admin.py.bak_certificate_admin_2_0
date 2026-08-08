@@ -1,5 +1,4 @@
 import csv
-from datetime import timedelta
 import uuid
 
 from django import forms
@@ -8,7 +7,7 @@ from django.contrib.auth.admin import UserAdmin
 from django.db import transaction
 from django.db.models import Count, Exists, OuterRef, Q, Subquery
 from django.http import HttpResponse
-from django.urls import path, reverse
+from django.urls import reverse
 from django.utils.html import format_html, format_html_join
 from django.utils import timezone
 
@@ -28,10 +27,7 @@ from .models import (
     QuizAttemptQuestion,
 )
 
-from .services import (
-    generate_certificate_pdf,
-    mark_order_as_paid,
-)
+from .services import mark_order_as_paid
 
 
 class ChoiceInline(admin.TabularInline):
@@ -3804,65 +3800,26 @@ class QuizAttemptAdmin(admin.ModelAdmin):
             )
 
         return f"{minutes:d}:{seconds:02d}"
-class CertificateValidityFilter(admin.SimpleListFilter):
-    title = "platnost"
-    parameter_name = "validity"
-
-    def lookups(self, request, model_admin):
-        return (
-            ("valid", "Platné"),
-            ("expiring", "Končí do 90 dnů"),
-            ("expired", "Neplatné"),
-        )
-
-    def queryset(self, request, queryset):
-        today = timezone.localdate()
-
-        if self.value() == "valid":
-            return queryset.filter(valid_until__gte=today)
-
-        if self.value() == "expiring":
-            return queryset.filter(
-                valid_until__gte=today,
-                valid_until__lte=today + timedelta(days=90),
-            )
-
-        if self.value() == "expired":
-            return queryset.filter(valid_until__lt=today)
-
-        return queryset
-
-
 @admin.register(Certificate)
 class CertificateAdmin(admin.ModelAdmin):
-    class Media:
-        css = {
-            "all": (
-                "courses/admin/certificate_detail.css",
-            )
-        }
-
     list_display = (
         "certificate_number",
-        "participant_name",
-        "registration_number",
-        "course_display",
+        "participant",
+        "quiz_attempt",
         "issued_at",
         "valid_until",
-        "validity_status",
-        "pdf_list_link",
+        "is_valid",
     )
 
     list_display_links = (
         "certificate_number",
-        "participant_name",
+        "participant",
     )
 
     list_filter = (
-        CertificateValidityFilter,
-        "quiz_attempt__course",
         "issued_at",
         "valid_until",
+        "quiz_attempt__course",
     )
 
     search_fields = (
@@ -3871,77 +3828,12 @@ class CertificateAdmin(admin.ModelAdmin):
         "participant__first_name",
         "participant__last_name",
         "participant__email",
-        "participant__order__company_name",
-        "=participant__order__id",
-        "=quiz_attempt__id",
         "quiz_attempt__user__email",
-        "quiz_attempt__course__title",
     )
 
     readonly_fields = (
-        "certificate_dashboard",
-        "participant_link",
-        "quiz_attempt_link",
-        "pdf_detail_link",
-        "validity_detail",
         "verification_token",
         "created_at",
-    )
-
-    fieldsets = (
-        (
-            "Pracovní souhrn",
-            {
-                "fields": (
-                    "certificate_dashboard",
-                ),
-                "classes": (
-                    "certificate-dashboard-fieldset",
-                ),
-            },
-        ),
-        (
-            "Účastník",
-            {
-                "fields": (
-                    "participant",
-                    "participant_link",
-                ),
-            },
-        ),
-        (
-            "Testový pokus",
-            {
-                "fields": (
-                    "quiz_attempt",
-                    "quiz_attempt_link",
-                ),
-            },
-        ),
-        (
-            "Osvědčení",
-            {
-                "fields": (
-                    "certificate_number",
-                    "issued_at",
-                    "valid_until",
-                    "validity_detail",
-                    "pdf_detail_link",
-                ),
-            },
-        ),
-        (
-            "Technické údaje",
-            {
-                "fields": (
-                    "verification_token",
-                    "created_at",
-                ),
-                "classes": (
-                    "collapse",
-                ),
-            },
-        ),
     )
 
     autocomplete_fields = (
@@ -3951,616 +3843,25 @@ class CertificateAdmin(admin.ModelAdmin):
 
     list_select_related = (
         "participant",
-        "participant__order",
-        "participant__user",
         "quiz_attempt",
         "quiz_attempt__course",
-        "quiz_attempt__user",
     )
 
     ordering = (
         "-issued_at",
-        "-id",
     )
 
     date_hierarchy = "issued_at"
     list_per_page = 50
     save_on_top = True
 
-    actions = (
-        "export_certificates_to_csv",
-    )
-
-    def get_queryset(self, request):
-        return (
-            super()
-            .get_queryset(request)
-            .select_related(
-                "participant",
-                "participant__order",
-                "participant__user",
-                "quiz_attempt",
-                "quiz_attempt__course",
-                "quiz_attempt__user",
-            )
-        )
-
-    def get_urls(self):
-        urls = super().get_urls()
-        custom_urls = [
-            path(
-                "<path:object_id>/pdf/",
-                self.admin_site.admin_view(
-                    self.certificate_pdf_view
-                ),
-                name="courses_certificate_pdf",
-            ),
-        ]
-        return custom_urls + urls
-
-    def certificate_pdf_view(self, request, object_id):
-        certificate = self.get_object(request, object_id)
-
-        if certificate is None:
-            return HttpResponse(
-                "Osvědčení nebylo nalezeno.",
-                status=404,
-                content_type="text/plain; charset=utf-8",
-            )
-
-        try:
-            pdf_content = generate_certificate_pdf(
-                certificate
-            )
-        except ValueError as error:
-            return HttpResponse(
-                str(error),
-                status=500,
-                content_type="text/plain; charset=utf-8",
-            )
-
-        filename = (
-            f"osvedceni-{certificate.certificate_number}.pdf"
-        )
-
-        response = HttpResponse(
-            pdf_content,
-            content_type="application/pdf",
-        )
-        response["Content-Disposition"] = (
-            f'inline; filename="{filename}"'
-        )
-        return response
-
-    @staticmethod
-    def _format_admin_datetime(value):
-        if not value:
-            return "—"
-
-        return timezone.localtime(
-            value
-        ).strftime("%d.%m.%Y %H:%M")
-
-    @staticmethod
-    def _render_dashboard_badge(label, css_class):
-        return format_html(
-            (
-                '<span class="certificate-dashboard__badge {}">'
-                "{}"
-                "</span>"
-            ),
-            css_class,
-            label,
-        )
-
-    @staticmethod
-    def _render_dashboard_card(
-        label,
-        value,
-        *,
-        badge_label=None,
-        badge_class="status-neutral",
-        small_value=False,
-        subvalue=None,
-    ):
-        value_class = (
-            "certificate-dashboard__card-value "
-            "certificate-dashboard__card-value--small"
-            if small_value
-            else "certificate-dashboard__card-value"
-        )
-
-        badge = ""
-        if badge_label:
-            badge = CertificateAdmin._render_dashboard_badge(
-                badge_label,
-                badge_class,
-            )
-
-        subvalue_html = ""
-        if subvalue:
-            subvalue_html = format_html(
-                (
-                    '<span class="certificate-dashboard__subvalue">'
-                    "{}"
-                    "</span>"
-                ),
-                subvalue,
-            )
-
-        return format_html(
-            """
-            <div class="certificate-dashboard__card">
-                <div class="certificate-dashboard__card-label">
-                    {}
-                </div>
-                <div class="{}">
-                    {}
-                </div>
-                {}
-                {}
-            </div>
-            """,
-            label,
-            value_class,
-            value,
-            subvalue_html,
-            badge,
-        )
-
-    @staticmethod
-    def _render_dashboard_action(
-        url,
-        label,
-        *,
-        secondary=False,
-        new_tab=False,
-    ):
-        css_class = "certificate-dashboard__button"
-
-        if secondary:
-            css_class += (
-                " certificate-dashboard__button--secondary"
-            )
-
-        if new_tab:
-            return format_html(
-                (
-                    '<a class="{}" href="{}" '
-                    'target="_blank" rel="noopener">{}</a>'
-                ),
-                css_class,
-                url,
-                label,
-            )
-
-        return format_html(
-            '<a class="{}" href="{}">{}</a>',
-            css_class,
-            url,
-            label,
-        )
-
-    def _validity_data(self, obj):
-        if not obj or not obj.valid_until:
-            return {
-                "label": "Neznámá",
-                "css_class": "status-neutral",
-                "days": None,
-                "detail": "Datum platnosti není uvedeno.",
-            }
-
-        today = timezone.localdate()
-        remaining_days = (
-            obj.valid_until - today
-        ).days
-
-        if remaining_days < 0:
-            expired_days = abs(remaining_days)
-            return {
-                "label": "Neplatný",
-                "css_class": "status-danger",
-                "days": remaining_days,
-                "detail": (
-                    f"Platnost skončila před "
-                    f"{expired_days} dny."
-                ),
-            }
-
-        if remaining_days == 0:
-            return {
-                "label": "Platný do dneška",
-                "css_class": "status-warning",
-                "days": 0,
-                "detail": "Platnost končí dnes.",
-            }
-
-        if remaining_days <= 90:
-            return {
-                "label": "Brzy vyprší",
-                "css_class": "status-warning",
-                "days": remaining_days,
-                "detail": (
-                    f"Do konce platnosti zbývá "
-                    f"{remaining_days} dnů."
-                ),
-            }
-
-        return {
-            "label": "Platný",
-            "css_class": "status-success",
-            "days": remaining_days,
-            "detail": (
-                f"Do konce platnosti zbývá "
-                f"{remaining_days} dnů."
-            ),
-        }
-
-    @admin.display(description="")
-    def certificate_dashboard(self, obj):
-        if not obj or not obj.pk:
-            return (
-                "Souhrn bude dostupný po vytvoření "
-                "osvědčení."
-            )
-
-        participant = obj.participant
-        attempt = obj.quiz_attempt
-        validity = self._validity_data(obj)
-
-        participant_name = (
-            f"{participant.first_name} "
-            f"{participant.last_name}"
-        ).strip()
-
-        if not participant_name:
-            participant_name = (
-                participant.email
-                or "Účastník bez jména"
-            )
-
-        registration_number = (
-            participant.registration_number
-            or "—"
-        )
-
-        score = (
-            f"{attempt.score_percent} %"
-            if attempt.score_percent is not None
-            else "—"
-        )
-
-        test_badge = (
-            ("Splněn", "status-success")
-            if attempt.passed
-            else ("Nesplněn", "status-danger")
-        )
-
-        cards = [
-            self._render_dashboard_card(
-                "Platnost",
-                validity["label"],
-                badge_label=validity["label"],
-                badge_class=validity["css_class"],
-                small_value=True,
-            ),
-            self._render_dashboard_card(
-                "Platnost do",
-                obj.valid_until.strftime("%d.%m.%Y"),
-                subvalue=validity["detail"],
-                small_value=True,
-            ),
-            self._render_dashboard_card(
-                "Kurz",
-                attempt.course.title,
-                small_value=True,
-            ),
-            self._render_dashboard_card(
-                "Test",
-                score,
-                badge_label=test_badge[0],
-                badge_class=test_badge[1],
-            ),
-            self._render_dashboard_card(
-                "PDF",
-                "Dynamické",
-                badge_label="Připraveno",
-                badge_class="status-info",
-                small_value=True,
-            ),
-        ]
-
-        cards_html = format_html_join(
-            "",
-            "{}",
-            ((card,) for card in cards),
-        )
-
-        participant_url = reverse(
-            "admin:courses_orderparticipant_change",
-            args=[participant.pk],
-        )
-        attempt_url = reverse(
-            "admin:courses_quizattempt_change",
-            args=[attempt.pk],
-        )
-        pdf_url = reverse(
-            "admin:courses_certificate_pdf",
-            args=[obj.pk],
-        )
-
-        actions = [
-            self._render_dashboard_action(
-                participant_url,
-                "Otevřít účastníka →",
-            ),
-            self._render_dashboard_action(
-                attempt_url,
-                "Otevřít testový pokus →",
-                secondary=True,
-            ),
-            self._render_dashboard_action(
-                pdf_url,
-                "Otevřít PDF →",
-                new_tab=True,
-            ),
-        ]
-
-        actions_html = format_html_join(
-            "",
-            "{}",
-            ((action,) for action in actions),
-        )
-
-        return format_html(
-            """
-            <div class="certificate-dashboard">
-                <div class="certificate-dashboard__identity">
-                    <div class="certificate-dashboard__eyebrow">
-                        {}
-                    </div>
-                    <div class="certificate-dashboard__name">
-                        {}
-                    </div>
-                    <div class="certificate-dashboard__email">
-                        {}
-                    </div>
-                </div>
-
-                <div class="certificate-dashboard__cards">
-                    {}
-                </div>
-
-                <div class="certificate-dashboard__meta">
-                    <span>
-                        <strong>Evidenční číslo:</strong> {}
-                    </span>
-                    <span>
-                        <strong>Objednávka:</strong> #{}
-                    </span>
-                    <span>
-                        <strong>Vystaveno:</strong> {}
-                    </span>
-                    <span>
-                        <strong>Vytvořeno:</strong> {}
-                    </span>
-                </div>
-
-                <div class="certificate-dashboard__actions">
-                    {}
-                </div>
-            </div>
-            """,
-            obj.certificate_number,
-            participant_name,
-            participant.email or "—",
-            cards_html,
-            registration_number,
-            participant.order_id,
-            self._format_admin_datetime(obj.issued_at),
-            self._format_admin_datetime(obj.created_at),
-            actions_html,
-        )
-
     @admin.display(
-        description="Účastník",
-        ordering="participant__last_name",
-    )
-    def participant_name(self, obj):
-        return (
-            f"{obj.participant.last_name} "
-            f"{obj.participant.first_name}"
-        ).strip()
-
-    @admin.display(
-        description="Evidenční číslo",
-        ordering="participant__registration_number",
-    )
-    def registration_number(self, obj):
-        return (
-            obj.participant.registration_number
-            or "—"
-        )
-
-    @admin.display(
-        description="Kurz",
-        ordering="quiz_attempt__course__title",
-    )
-    def course_display(self, obj):
-        return obj.quiz_attempt.course.title
-
-    @admin.display(
-        description="Platnost",
+        boolean=True,
+        description="Platné",
         ordering="valid_until",
     )
-    def validity_status(self, obj):
-        validity = self._validity_data(obj)
-
-        return self._render_dashboard_badge(
-            validity["label"],
-            validity["css_class"],
-        )
-
-    @admin.display(description="Platnost")
-    def validity_detail(self, obj):
-        if not obj or not obj.pk:
-            return "—"
-
-        validity = self._validity_data(obj)
-
-        return format_html(
-            '{} <span class="certificate-validity-detail">{}</span>',
-            self._render_dashboard_badge(
-                validity["label"],
-                validity["css_class"],
-            ),
-            validity["detail"],
-        )
-
-    @admin.display(description="Účastník objednávky")
-    def participant_link(self, obj):
-        if not obj or not obj.participant_id:
-            return "—"
-
-        url = reverse(
-            "admin:courses_orderparticipant_change",
-            args=[obj.participant_id],
-        )
-
-        return format_html(
-            '<a href="{}">{} – {}</a>',
-            url,
-            obj.participant.registration_number or "bez čísla",
-            obj.participant,
-        )
-
-    @admin.display(description="Testový pokus")
-    def quiz_attempt_link(self, obj):
-        if not obj or not obj.quiz_attempt_id:
-            return "—"
-
-        url = reverse(
-            "admin:courses_quizattempt_change",
-            args=[obj.quiz_attempt_id],
-        )
-
-        return format_html(
-            '<a href="{}">Pokus #{} – {} %</a>',
-            url,
-            obj.quiz_attempt.attempt_number,
-            (
-                obj.quiz_attempt.score_percent
-                if obj.quiz_attempt.score_percent is not None
-                else "—"
-            ),
-        )
-
-    @admin.display(description="PDF")
-    def pdf_detail_link(self, obj):
-        if not obj or not obj.pk:
-            return "—"
-
-        url = reverse(
-            "admin:courses_certificate_pdf",
-            args=[obj.pk],
-        )
-
-        return format_html(
-            (
-                '<a class="certificate-dashboard__button" '
-                'href="{}" target="_blank" rel="noopener">'
-                "Otevřít PDF"
-                "</a>"
-                '<span class="certificate-pdf-note">'
-                "PDF se generuje dynamicky z aktuální šablony."
-                "</span>"
-            ),
-            url,
-        )
-
-    @admin.display(description="PDF")
-    def pdf_list_link(self, obj):
-        if not obj or not obj.pk:
-            return "—"
-
-        url = reverse(
-            "admin:courses_certificate_pdf",
-            args=[obj.pk],
-        )
-
-        return format_html(
-            '<a href="{}" target="_blank" rel="noopener">PDF</a>',
-            url,
-        )
-
-    @admin.action(description="Exportovat vybraná osvědčení do CSV")
-    def export_certificates_to_csv(self, request, queryset):
-        queryset = queryset.select_related(
-            "participant",
-            "participant__order",
-            "quiz_attempt",
-            "quiz_attempt__course",
-        ).order_by(
-            "-issued_at",
-            "-id",
-        )
-
-        response = HttpResponse(
-            content_type="text/csv; charset=utf-8",
-        )
-        response["Content-Disposition"] = (
-            'attachment; filename="osvedceni.csv"'
-        )
-        response.write("\ufeff")
-
-        writer = csv.writer(
-            response,
-            delimiter=";",
-        )
-
-        writer.writerow(
-            (
-                "Číslo osvědčení",
-                "Evidenční číslo",
-                "Jméno",
-                "Příjmení",
-                "E-mail",
-                "Kurz",
-                "Objednávka",
-                "Pokus",
-                "Skóre",
-                "Vystaveno",
-                "Platnost do",
-                "Stav platnosti",
-            )
-        )
-
-        for certificate in queryset:
-            validity = self._validity_data(certificate)
-
-            writer.writerow(
-                (
-                    certificate.certificate_number,
-                    certificate.participant.registration_number or "",
-                    certificate.participant.first_name,
-                    certificate.participant.last_name,
-                    certificate.participant.email,
-                    certificate.quiz_attempt.course.title,
-                    certificate.participant.order_id,
-                    certificate.quiz_attempt.attempt_number,
-                    (
-                        certificate.quiz_attempt.score_percent
-                        if certificate.quiz_attempt.score_percent is not None
-                        else ""
-                    ),
-                    certificate.issued_at,
-                    certificate.valid_until,
-                    validity["label"],
-                )
-            )
-
-        return response
-
+    def is_valid(self, obj):
+        return obj.valid_until >= timezone.localdate()
 
 @admin.register(EmailLog)
 class EmailLogAdmin(admin.ModelAdmin):
