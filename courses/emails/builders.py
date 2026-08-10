@@ -11,6 +11,19 @@ from .renderer import render_email
 from .types import EmailAttachment
 
 
+def _reply_to():
+    value = getattr(
+        settings,
+        "EMAIL_REPLY_TO",
+        "",
+    ).strip()
+
+    if not value:
+        return ()
+
+    return (value,)
+
+
 def build_participant_activation_email(participant):
     activation_path = reverse(
         "participant_activation",
@@ -18,7 +31,6 @@ def build_participant_activation_email(participant):
             "token": participant.activation_token,
         },
     )
-
     activation_url = (
         f"{settings.SITE_URL}{activation_path}"
     )
@@ -38,9 +50,9 @@ def build_participant_activation_email(participant):
         html_template="emails/participant_activation.html",
         text_template="emails/participant_activation.txt",
         context=context,
+        from_email=settings.EMAIL_FROM_ACTIVATION,
+        reply_to=_reply_to(),
     )
-
-
 
 
 COURSE_COMPLETED_SUBJECT = (
@@ -61,7 +73,6 @@ def build_course_completed_email(
 
     Pokud PDF přílohy nejsou předané, vygeneruje je builder sám.
     To zachovává funkčnost administrátorských preview view.
-
     Workflow dokončení kurzu naopak předává již připravené PDF,
     aby bylo možné každý krok samostatně zachytit a auditovat.
     """
@@ -119,6 +130,7 @@ def build_course_completed_email(
         content=certificate_pdf,
         mimetype="application/pdf",
     )
+
     quiz_result_attachment = EmailAttachment(
         filename=(
             f"vysledek-testu-"
@@ -145,6 +157,8 @@ def build_course_completed_email(
             certificate_attachment,
             quiz_result_attachment,
         ),
+        from_email=settings.EMAIL_FROM_CERTIFICATES,
+        reply_to=_reply_to(),
     )
 
 
@@ -166,5 +180,6 @@ def build_payment_completed_email(
         html_template="emails/payment_completed.html",
         text_template="emails/payment_completed.txt",
         context=context,
+        from_email=settings.EMAIL_FROM_INVOICES,
+        reply_to=_reply_to(),
     )
-

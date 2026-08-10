@@ -15,3 +15,5 @@ class RenderedEmail:
     text_body: str
     html_body: str
     attachments: tuple[EmailAttachment, ...] = ()
+    from_email: str | None = None
+    reply_to: tuple[str, ...] = ()

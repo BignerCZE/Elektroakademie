@@ -7,15 +7,44 @@ Django 6.0.4
 import os
 from pathlib import Path
 
+from django.core.exceptions import ImproperlyConfigured
+from dotenv import load_dotenv
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+# -----------------------------------------------------------------------------
+# Proměnné prostředí
+# -----------------------------------------------------------------------------
+
+# Lokálně se načítá BASE_DIR/.env.
+# V produkci lze cestu přesměrovat přes ELEKTROAKADEMIE_ENV_FILE,
+# např. na /home/<uzivatel>/.elektroakademie.env na PythonAnywhere.
+ENV_FILE = os.getenv("ELEKTROAKADEMIE_ENV_FILE")
+
+if ENV_FILE:
+    load_dotenv(
+        dotenv_path=ENV_FILE,
+        override=False,
+    )
+else:
+    load_dotenv(
+        dotenv_path=BASE_DIR / ".env",
+        override=False,
+    )
 
 
 # -----------------------------------------------------------------------------
 # Zabezpečení a prostředí
 # -----------------------------------------------------------------------------
 
-SECRET_KEY = "h3)_7-)0-@qb)^s=&+&9o#j_m8y#yd9ee$1cv@yi94p=27)r66"
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
+
+if not SECRET_KEY:
+    raise ImproperlyConfigured(
+        "Chybí povinná proměnná DJANGO_SECRET_KEY."
+    )
 
 DEBUG = os.getenv("DJANGO_DEBUG", "True").lower() in {
     "1",
@@ -205,7 +234,101 @@ ACTIVATION_LINK_VALID_DAYS = 30
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# -----------------------------------------------------------------------------
+# E-mailový transport a SMTP
+# -----------------------------------------------------------------------------
+
 EMAIL_TRANSPORT = os.getenv(
     "EMAIL_TRANSPORT",
     "preview",
+).strip().lower()
+
+EMAIL_BACKEND = os.getenv(
+    "EMAIL_BACKEND",
+    "django.core.mail.backends.smtp.EmailBackend",
+)
+
+EMAIL_HOST = os.getenv(
+    "EMAIL_HOST",
+    "",
+)
+
+EMAIL_PORT = int(
+    os.getenv(
+        "EMAIL_PORT",
+        "587",
+    )
+)
+
+EMAIL_HOST_USER = os.getenv(
+    "EMAIL_HOST_USER",
+    "",
+)
+
+EMAIL_HOST_PASSWORD = os.getenv(
+    "EMAIL_HOST_PASSWORD",
+    "",
+)
+
+EMAIL_USE_TLS = os.getenv(
+    "EMAIL_USE_TLS",
+    "True",
+).lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}
+
+EMAIL_USE_SSL = os.getenv(
+    "EMAIL_USE_SSL",
+    "False",
+).lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}
+
+EMAIL_TIMEOUT = int(
+    os.getenv(
+        "EMAIL_TIMEOUT",
+        "20",
+    )
+)
+
+DEFAULT_FROM_EMAIL = os.getenv(
+    "DEFAULT_FROM_EMAIL",
+    EMAIL_HOST_USER or "webmaster@localhost",
+)
+
+SERVER_EMAIL = os.getenv(
+    "SERVER_EMAIL",
+    DEFAULT_FROM_EMAIL,
+)
+
+# -----------------------------------------------------------------------------
+# Odesílací adresy podle typu e-mailu
+# -----------------------------------------------------------------------------
+
+EMAIL_FROM_ACTIVATION = os.getenv(
+    "EMAIL_FROM_ACTIVATION",
+    DEFAULT_FROM_EMAIL,
+)
+
+EMAIL_FROM_INVOICES = os.getenv(
+    "EMAIL_FROM_INVOICES",
+    DEFAULT_FROM_EMAIL,
+)
+
+EMAIL_FROM_CERTIFICATES = os.getenv(
+    "EMAIL_FROM_CERTIFICATES",
+    DEFAULT_FROM_EMAIL,
+)
+
+# Volitelná společná adresa pro odpovědi.
+# Prázdná hodnota znamená, že Reply-To nebude explicitně nastaveno.
+EMAIL_REPLY_TO = os.getenv(
+    "EMAIL_REPLY_TO",
+    "",
 )
