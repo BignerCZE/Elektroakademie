@@ -16,10 +16,10 @@ USE_TLS = True
 # Testovaný alias
 # ==========================================
 
-FROM_EMAIL = "blablabla@elektroakademie.cz"
+FROM_EMAIL = "faktury@elektroakademie.cz"
 
 # Kam se odešle test
-TO_EMAIL = "michaelnejcz@gmail.com"
+TO_EMAIL = "test-faktury@elektroakademie.cz"
 
 # ==========================================
 # Vytvoření zprávy
