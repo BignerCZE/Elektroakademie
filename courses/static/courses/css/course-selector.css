@@ -868,23 +868,23 @@ body.legal-modal-open {
    ========================================================= */
 
 .activation-page {
-    padding-top: 22px;
-    padding-bottom: 22px;
+    padding-top: 14px;
+    padding-bottom: 14px;
 }
 
 .activation-card {
     max-width: 1120px;
     margin: 0 auto;
-    padding: 26px 30px;
+    padding: 20px 24px;
 }
 
 .activation-header {
-    margin-bottom: 18px;
+    margin-bottom: 12px;
 }
 
 .activation-header h1 {
     margin: 0 0 4px;
-    font-size: 2rem;
+    font-size: 1.75rem;
     line-height: 1.1;
 }
 
@@ -896,11 +896,12 @@ body.legal-modal-open {
 .activation-layout {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 18px;
+    gap: 12px;
 }
 
 .activation-section {
-    padding: 18px;
+    margin: 0;
+    padding: 14px 16px;
     border: 1px solid #d8deea;
     border-radius: 16px;
     background: #ffffff;
@@ -911,7 +912,7 @@ body.legal-modal-open {
 }
 
 .activation-section h2 {
-    margin: 0 0 14px;
+    margin: 0 0 10px;
     font-size: 1.2rem;
     line-height: 1.2;
 }
@@ -919,7 +920,7 @@ body.legal-modal-open {
 .activation-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
+    gap: 9px 12px;
 }
 
 .activation-field {
@@ -936,6 +937,35 @@ body.legal-modal-open {
     font-size: 0.88rem;
     font-weight: 700;
     color: #12233f;
+}
+
+.activation-date {
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.activation-date legend {
+    margin-bottom: 5px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #12233f;
+}
+
+.activation-date-fields {
+    display: grid;
+    grid-template-columns: minmax(76px, 0.8fr) minmax(86px, 0.9fr) minmax(110px, 1.25fr);
+    gap: 8px;
+}
+
+.activation-date-part {
+    min-width: 0;
+}
+
+.activation-date-part label {
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: #5f6f89;
 }
 
 .activation-field input,
@@ -976,16 +1006,39 @@ body.legal-modal-open {
 }
 
 .activation-field .errorlist {
-    margin: 5px 0 0;
-    padding-left: 18px;
-    font-size: 0.82rem;
+    margin: 4px 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: 0.78rem;
+    line-height: 1.2;
     color: #c62828;
+}
+
+.activation-field--error .password-help {
+    display: none;
+}
+
+.activation-field--error input,
+.activation-field--error select,
+.activation-field--error textarea,
+.activation-date--error input {
+    border-color: #d93025;
+    background: #fff7f7;
+    box-shadow: 0 0 0 2px rgba(217, 48, 37, 0.08);
+}
+
+.activation-field--error input:focus,
+.activation-field--error select:focus,
+.activation-field--error textarea:focus,
+.activation-date--error input:focus {
+    border-color: #b3261e;
+    outline-color: rgba(217, 48, 37, 0.16);
 }
 
 .activation-actions {
     display: flex;
     justify-content: flex-end;
-    margin-top: 18px;
+    margin-top: 12px;
 }
 
 .activation-actions .button-primary {
@@ -1013,6 +1066,14 @@ body.legal-modal-open {
 
     .activation-field--full {
         grid-column: auto;
+    }
+
+    .activation-date {
+        grid-column: auto;
+    }
+
+    .activation-date-fields {
+        grid-template-columns: minmax(68px, 0.8fr) minmax(78px, 0.9fr) minmax(104px, 1.2fr);
     }
 
     .activation-actions {

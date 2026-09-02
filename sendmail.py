@@ -19,7 +19,7 @@ USE_TLS = True
 FROM_EMAIL = "faktury@elektroakademie.cz"
 
 # Kam se odešle test
-TO_EMAIL = "test-faktury@elektroakademie.cz"
+TO_EMAIL = "m.schlesinger@revitec.cz"
 
 # ==========================================
 # Vytvoření zprávy

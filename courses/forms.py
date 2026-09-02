@@ -1,3 +1,5 @@
+from datetime import date
+
 from django import forms
 from django.contrib.auth import password_validation
 from django.core.exceptions import ValidationError
@@ -307,12 +309,62 @@ class ParticipantActivationForm(forms.Form):
         ),
     )
 
-    birth_date = forms.DateField(
-        label="Datum narození",
-        widget=forms.DateInput(
+    birth_day = forms.IntegerField(
+        label="Den",
+        min_value=1,
+        max_value=31,
+        error_messages={
+            "required": "Vyplňte den.",
+            "invalid": "Den musí být číslo.",
+            "min_value": "Den musí být od 1 do 31.",
+            "max_value": "Den musí být od 1 do 31.",
+        },
+        widget=forms.TextInput(
             attrs={
-                "type": "date",
-                "autocomplete": "bday",
+                "placeholder": "15",
+                "inputmode": "numeric",
+                "autocomplete": "bday-day",
+                "list": "birth-day-options",
+            }
+        ),
+    )
+
+    birth_month = forms.IntegerField(
+        label="Měsíc",
+        min_value=1,
+        max_value=12,
+        error_messages={
+            "required": "Vyplňte měsíc.",
+            "invalid": "Měsíc musí být číslo.",
+            "min_value": "Měsíc musí být od 1 do 12.",
+            "max_value": "Měsíc musí být od 1 do 12.",
+        },
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "7",
+                "inputmode": "numeric",
+                "autocomplete": "bday-month",
+                "list": "birth-month-options",
+            }
+        ),
+    )
+
+    birth_year = forms.IntegerField(
+        label="Rok",
+        min_value=1900,
+        max_value=date.today().year,
+        error_messages={
+            "required": "Vyplňte rok.",
+            "invalid": "Rok musí být číslo.",
+            "min_value": "Zadejte rok čtyřmi číslicemi.",
+            "max_value": "Rok narození nemůže být v budoucnosti.",
+        },
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "1982",
+                "inputmode": "numeric",
+                "autocomplete": "bday-year",
+                "list": "birth-year-options",
             }
         ),
     )
@@ -364,6 +416,11 @@ class ParticipantActivationForm(forms.Form):
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.user = user
+        self.birth_year_options = range(
+            date.today().year,
+            1899,
+            -1,
+        )
 
     def clean_password2(self):
         password1 = self.cleaned_data.get("password1")
@@ -379,6 +436,26 @@ class ParticipantActivationForm(forms.Form):
     def clean(self):
         cleaned_data = super().clean()
         password = cleaned_data.get("password1")
+
+        birth_day = cleaned_data.get("birth_day")
+        birth_month = cleaned_data.get("birth_month")
+        birth_year = cleaned_data.get("birth_year")
+
+        if all(
+            value is not None
+            for value in (birth_day, birth_month, birth_year)
+        ):
+            try:
+                cleaned_data["birth_date"] = date(
+                    birth_year,
+                    birth_month,
+                    birth_day,
+                )
+            except ValueError:
+                self.add_error(
+                    "birth_day",
+                    "Zadané datum narození neexistuje.",
+                )
 
         if password:
             try:

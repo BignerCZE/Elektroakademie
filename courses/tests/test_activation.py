@@ -44,7 +44,9 @@ class ParticipantActivationTests(TestCase):
         self.valid_data = {
             "password1": "Testheslo1",
             "password2": "Testheslo1",
-            "birth_date": "1990-05-15",
+            "birth_day": "15",
+            "birth_month": "5",
+            "birth_year": "1990",
             "birth_place": "Praha",
             "permanent_address": "Dlouhá 10, Praha",
             "employer_name": "Testovací firma s.r.o.",
@@ -83,6 +85,60 @@ class ParticipantActivationTests(TestCase):
             response,
             "Testovací firma s.r.o.",
         )
+
+        self.assertContains(response, 'name="birth_day"')
+        self.assertContains(response, 'name="birth_month"')
+        self.assertContains(response, 'name="birth_year"')
+        self.assertNotContains(response, 'name="birth_date"')
+
+    def test_leap_day_is_accepted(self):
+        data = {
+            **self.valid_data,
+            "birth_day": "29",
+            "birth_month": "2",
+            "birth_year": "2000",
+        }
+
+        response = self.client.post(self.activation_url, data)
+
+        self.assertRedirects(response, reverse("dashboard"))
+        profile = ParticipantProfile.objects.get(participant=self.participant)
+        self.assertEqual(str(profile.birth_date), "2000-02-29")
+
+    def test_invalid_calendar_date_is_rejected_and_preserved(self):
+        data = {
+            **self.valid_data,
+            "birth_day": "29",
+            "birth_month": "2",
+            "birth_year": "2023",
+        }
+
+        response = self.client.post(self.activation_url, data)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Zadané datum narození neexistuje.")
+        self.assertContains(response, 'value="29"')
+        self.assertContains(response, 'value="2023"')
+        self.assertContains(response, "activation-date--error")
+        self.assertEqual(User.objects.count(), 0)
+        self.assertEqual(ParticipantProfile.objects.count(), 0)
+
+    def test_missing_required_fields_are_highlighted(self):
+        data = {
+            **self.valid_data,
+            "birth_day": "",
+            "birth_place": "",
+        }
+
+        response = self.client.post(self.activation_url, data)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Vyplňte den.")
+        self.assertContains(response, "Toto pole je třeba vyplnit.")
+        self.assertContains(response, "activation-date--error")
+        self.assertContains(response, "activation-field--error")
+        self.assertContains(response, 'value="Dlouhá 10, Praha"')
+        self.assertEqual(User.objects.count(), 0)
 
     def test_successful_activation_creates_user(self):
         response = self.client.post(

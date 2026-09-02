@@ -4,7 +4,7 @@
 {% block title %}Aktivace účtu | Elektroakademie{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'courses/css/course-selector.css' %}?v=5">
+<link rel="stylesheet" href="{% static 'courses/css/course-selector.css' %}?v=6">
 {% endblock %}
 
 {% block content %}
@@ -49,7 +49,8 @@
                                 </small>
                             </div>
 
-                            <div class="activation-field">
+                            <div
+                                class="activation-field{% if form.password1.errors %} activation-field--error{% endif %}">
                                 {{ form.password1.label_tag }}
                                 {{ form.password1 }}
 
@@ -62,7 +63,8 @@
                                 {{ form.password1.errors }}
                             </div>
 
-                            <div class="activation-field">
+                            <div
+                                class="activation-field{% if form.password2.errors %} activation-field--error{% endif %}">
                                 {{ form.password2.label_tag }}
                                 {{ form.password2 }}
 
@@ -110,19 +112,98 @@
                                 </small>
                             </div>
 
-                            <div class="activation-field">
-                                {{ form.birth_date.label_tag }}
-                                {{ form.birth_date }}
-                                {{ form.birth_date.errors }}
-                            </div>
+                            <fieldset
+                                class="activation-field activation-field--full activation-date{% if form.birth_day.errors or form.birth_month.errors or form.birth_year.errors %} activation-date--error{% endif %}">
+                                <legend>Datum narození</legend>
 
-                            <div class="activation-field">
+                                <div class="activation-date-fields">
+                                    <div
+                                        class="activation-date-part{% if form.birth_day.errors %} activation-field--error{% endif %}">
+                                        {{ form.birth_day.label_tag }}
+                                        {{ form.birth_day }}
+                                        {{ form.birth_day.errors }}
+                                    </div>
+
+                                    <div
+                                        class="activation-date-part{% if form.birth_month.errors %} activation-field--error{% endif %}">
+                                        {{ form.birth_month.label_tag }}
+                                        {{ form.birth_month }}
+                                        {{ form.birth_month.errors }}
+                                    </div>
+
+                                    <div
+                                        class="activation-date-part activation-date-part--year{% if form.birth_year.errors %} activation-field--error{% endif %}">
+                                        {{ form.birth_year.label_tag }}
+                                        {{ form.birth_year }}
+                                        {{ form.birth_year.errors }}
+                                    </div>
+                                </div>
+
+                                <datalist id="birth-day-options">
+                                    <option value="1">
+                                    <option value="2">
+                                    <option value="3">
+                                    <option value="4">
+                                    <option value="5">
+                                    <option value="6">
+                                    <option value="7">
+                                    <option value="8">
+                                    <option value="9">
+                                    <option value="10">
+                                    <option value="11">
+                                    <option value="12">
+                                    <option value="13">
+                                    <option value="14">
+                                    <option value="15">
+                                    <option value="16">
+                                    <option value="17">
+                                    <option value="18">
+                                    <option value="19">
+                                    <option value="20">
+                                    <option value="21">
+                                    <option value="22">
+                                    <option value="23">
+                                    <option value="24">
+                                    <option value="25">
+                                    <option value="26">
+                                    <option value="27">
+                                    <option value="28">
+                                    <option value="29">
+                                    <option value="30">
+                                    <option value="31">
+                                </datalist>
+
+                                <datalist id="birth-month-options">
+                                    <option value="1">
+                                    <option value="2">
+                                    <option value="3">
+                                    <option value="4">
+                                    <option value="5">
+                                    <option value="6">
+                                    <option value="7">
+                                    <option value="8">
+                                    <option value="9">
+                                    <option value="10">
+                                    <option value="11">
+                                    <option value="12">
+                                </datalist>
+
+                                <datalist id="birth-year-options">
+                                    {% for year in form.birth_year_options %}
+                                    <option value="{{ year }}">
+                                        {% endfor %}
+                                </datalist>
+                            </fieldset>
+
+                            <div
+                                class="activation-field{% if form.birth_place.errors %} activation-field--error{% endif %}">
                                 {{ form.birth_place.label_tag }}
                                 {{ form.birth_place }}
                                 {{ form.birth_place.errors }}
                             </div>
 
-                            <div class="activation-field activation-field--full">
+                            <div
+                                class="activation-field activation-field--full{% if form.permanent_address.errors %} activation-field--error{% endif %}">
                                 {{ form.permanent_address.label_tag }}
                                 {{ form.permanent_address }}
                                 {{ form.permanent_address.errors }}
@@ -134,13 +215,15 @@
                         <h2>Zaměstnavatel</h2>
 
                         <div class="activation-grid">
-                            <div class="activation-field">
+                            <div
+                                class="activation-field{% if form.employer_name.errors %} activation-field--error{% endif %}">
                                 {{ form.employer_name.label_tag }}
                                 {{ form.employer_name }}
                                 {{ form.employer_name.errors }}
                             </div>
 
-                            <div class="activation-field">
+                            <div
+                                class="activation-field{% if form.employer_address.errors %} activation-field--error{% endif %}">
                                 {{ form.employer_address.label_tag }}
                                 {{ form.employer_address }}
                                 {{ form.employer_address.errors }}
