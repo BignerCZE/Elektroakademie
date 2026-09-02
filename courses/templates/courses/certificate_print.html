@@ -13,49 +13,8 @@
         </title>
 
         <link rel="stylesheet" href="{% static 'courses/css/certificate.css' %}">
+        <link rel="stylesheet" href="{% static 'courses/css/certificate-print.css' %}?v=1">
 
-        <style>
-            html,
-            body {
-                margin: 0;
-                padding: 0;
-                background: #ffffff;
-            }
-
-            body {
-                display: flex;
-                justify-content: center;
-                align-items: flex-start;
-            }
-
-            .certificate-print-wrapper {
-                width: 210mm;
-                min-height: 297mm;
-                margin: 0 auto;
-                background: #ffffff;
-            }
-
-            @page {
-                size: A4;
-                margin: 0;
-            }
-
-            @media print {
-
-                html,
-                body {
-                    width: 210mm;
-                    height: 297mm;
-                    background: #ffffff;
-                }
-
-                .certificate-print-wrapper {
-                    margin: 0;
-                    width: 210mm;
-                    min-height: 297mm;
-                }
-            }
-        </style>
     </head>
 
     <body>
