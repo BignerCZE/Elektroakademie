@@ -4,7 +4,77 @@
 {% block title %}Elektroakademie{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'courses/css/landing.css' %}?v=13">
+<link rel="stylesheet" href="{% static 'courses/css/landing.css' %}?v=18">
+<style>
+    /* FAQ SCROLL FIX v20 — nadpis je mimo rolovací oblast */
+    .page-scroll>#faq.faq-section {
+        box-sizing: border-box !important;
+        display: flex !important;
+        align-items: stretch !important;
+        height: 100% !important;
+        min-height: 100% !important;
+        max-height: 100% !important;
+        padding: 18px 0 22px !important;
+        overflow: hidden !important;
+    }
+
+    #faq>.faq-inner {
+        box-sizing: border-box !important;
+        display: flex !important;
+        flex: 1 1 auto !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        height: 100% !important;
+        min-height: 0 !important;
+        max-height: 100% !important;
+        overflow: hidden !important;
+    }
+
+    #faq .faq-inner>.section-title {
+        position: relative !important;
+        z-index: 2 !important;
+        flex: 0 0 auto !important;
+        margin-bottom: 28px !important;
+    }
+
+    #faq .faq-list {
+        display: grid !important;
+        flex: 1 1 0 !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        height: 0 !important;
+        min-height: 0 !important;
+        padding: 0 10px 24px 0 !important;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+        overscroll-behavior: contain !important;
+        scrollbar-gutter: stable !important;
+    }
+
+    @media (max-width: 1200px) {
+        .page-scroll>#faq.faq-section {
+            height: calc(100svh - var(--header-height) - 24px) !important;
+            min-height: 620px !important;
+            max-height: none !important;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .page-scroll>#faq.faq-section {
+            height: calc(100svh - var(--header-height)) !important;
+            min-height: 560px !important;
+        }
+
+        #faq .faq-inner>.section-title {
+            margin-bottom: 22px !important;
+        }
+
+        #faq .faq-list {
+            grid-template-columns: 1fr !important;
+            gap: 16px !important;
+            padding-right: 6px !important;
+        }
+    }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -16,8 +86,8 @@
         <a href="#intro" class="landing-nav-link is-active" data-target="intro">Úvod</a>
         <a href="#programs" class="landing-nav-link" data-target="programs">Kurzy</a>
         <a href="#courses" class="landing-nav-link" data-target="courses">Průběh</a>
-        <a href="#faq" class="landing-nav-link" data-target="faq">FAQ</a>
         <a href="#contact" class="landing-nav-link" data-target="contact">Kontakt</a>
+        <a href="#faq" class="landing-nav-link" data-target="faq">FAQ</a>
     </nav>
 
     <main class="page-scroll">
@@ -460,60 +530,6 @@
 
         <!-- Zbytek FAQ, Kontakt, modal a JS nech beze změny -->
 
-        <section class="page-section faq-section" id="faq">
-            <div class="container faq-inner">
-                <h2 class="section-title">Často kladené otázky</h2>
-
-                <div class="faq-list">
-                    <div class="faq-item">
-                        <h3>Jak dlouho mám přístup ke kurzu?</h3>
-                        <p>
-                            Přístup do e-learningu získáte okamžitě po zaplacení a je aktivní po dobu 60 dnů.
-                            Během této doby si můžete obsah procházet neomezeně.
-                        </p>
-                    </div>
-
-                    <div class="faq-item">
-                        <h3>Musím mít elektrotechnické vzdělání?</h3>
-                        <p>
-                            Nemusíte. Kurz je navržen i pro úplné začátečníky bez předchozí zkušenosti
-                            s elektrotechnikou.
-                        </p>
-                    </div>
-
-                    <div class="faq-item">
-                        <h3>Jak probíhá závěrečný test?</h3>
-                        <p>
-                            Test probíhá online a můžete ho opakovat. Po každém pokusu ihned vidíte výsledek
-                            a můžete se vrátit ke studiu.
-                        </p>
-                    </div>
-
-                    <div class="faq-item">
-                        <h3>Kdy mohu začít studovat?</h3>
-                        <p>
-                            Okamžitě po obdržení přístupových údajů. Studium není časově omezené během dne,
-                            je čistě na vás, kdy se mu budete věnovat.
-                        </p>
-                    </div>
-
-                    <div class="faq-item">
-                        <h3>Dostanu po absolvování certifikát?</h3>
-                        <p>
-                            Ano, po splnění podmínek získáte zápis o provedení poučení dle platné legislativy.
-                        </p>
-                    </div>
-
-                    <div class="faq-item">
-                        <h3>Co když test neudělám napoprvé?</h3>
-                        <p>
-                            Nic se neděje. Test můžete opakovat a mezi pokusy si doplnit znalosti.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
         <section class="page-section contact-section" id="contact">
             <div class="container contact-inner">
                 <h2 class="section-title">Kontakt</h2>
@@ -521,6 +537,10 @@
                 <div class="contact-wrapper">
 
                     <div class="contact-box contact-form-box">
+                        <h3 class="contact-card-title">
+                            Potřebujete poradit? Rádi vám pomůžeme
+                        </h3>
+
                         <form class="contact-form" action="#" method="post">
                             <div class="contact-form-grid">
                                 <label>
@@ -539,12 +559,14 @@
                                 </label>
 
                                 <label>
-                                    Týká se
+                                    Předmět
                                     <select name="topic">
-                                        <option value="obecny-dotaz">Obecný dotaz</option>
-                                        <option value="paragraf-4">§4</option>
-                                        <option value="paragraf-6">§6</option>
-                                        <option value="paragraf-7">§7</option>
+                                        <option value="obecne-informace">Obecné informace</option>
+                                        <option value="paragraf-4">§4 – osoba poučená</option>
+                                        <option value="paragraf-6">§6 – elektrotechnik</option>
+                                        <option value="paragraf-7">§7 – vedoucí elektrotechnik</option>
+                                        <option value="individualni-skoleni">Individuální školení</option>
+                                        <option value="firemni-skoleni">Firemní školení</option>
                                     </select>
                                 </label>
                             </div>
@@ -563,27 +585,181 @@
                     </div>
 
                     <div class="contact-box contact-info-box">
-
-                        <h2 class="section-title section-title--dark">
-                            Máte dotaz ke školení?
-                        </h2>
+                        <h3 class="contact-card-title contact-card-title--uppercase">
+                            O Elektroakademii
+                        </h3>
 
                         <p>
-                            Napište nám a ozveme se vám s podrobnostmi k online školení,
-                            průběhu testu i vystavení potvrzení.
+                            ELEKTROAKADEMIE je moderní vzdělávací projekt zaměřený na školení
+                            a přezkoušení odborné způsobilosti v elektrotechnice dle NV 194/2022 Sb.
                         </p>
 
-                        <div class="contact-details">
-                            <p><strong>Revitec elektro s.r.o.</strong></p>
-                            <p>Zenklova 24/25, 180 00, Praha 8</p>
-                            <p>E-mail: info@elektroakademie.cz</p>
-                            <p>IČO: 249 44 769</p>
+                        <p>
+                            Školení a studijní materiály připravili zkušení revizní technici
+                            s více než 40 lety praxe v oboru elektrotechniky, revizí a odborného vzdělávání.
+                        </p>
+
+                        <p>
+                            Součástí našich aktivit je také projekt <strong>REVITEC.cz</strong> zaměřený
+                            na komplexní elektro služby, revize a odbornou činnost v elektrotechnice.
+                            Připravujeme rovněž projekt <strong>HlídáníRevizí.cz</strong>, který bude sloužit
+                            pro bezstarostnou správu a kontrolu termínů revizí pro firmy i jednotlivce.
+                        </p>
+
+                        <div class="contact-billing">
+                            <h4>Fakturační údaje</h4>
+                            <address>
+                                <span>Revitec elektro s.r.o.</span>
+                                <span>Zenklova 24/25, 180 00 Praha 8</span>
+                            </address>
+                            <p class="contact-company-ids">
+                                <span><strong>IČO:</strong> 249 44 769</span>
+                                <span><strong>DIČ:</strong> CZ249 44 769</span>
+                            </p>
                         </div>
                     </div>
 
                 </div>
             </div>
         </section>
+
+        <section class="page-section faq-section" id="faq">
+            <div class="container faq-inner">
+                <h2 class="section-title">Často kladené otázky</h2>
+
+                <div class="faq-list">
+                    <article class="faq-item">
+                        <h3>Jak dlouho mám přístup ke kurzu?</h3>
+                        <p>
+                            Přístup do e-learningu obdržíte po uhrazení objednávky a bude aktivní po dobu
+                            60 dnů. Po celou dobu máte možnost neomezeného přístupu ke studijním materiálům
+                            i testům.
+                        </p>
+                    </article>
+
+                    <article class="faq-item">
+                        <h3>Musím mít elektrotechnické vzdělání?</h3>
+                        <p>
+                            Záleží na typu vybraného školení. Pro §4 není elektrotechnické vzdělání vyžadováno
+                            a kurz je vhodný i pro úplné začátečníky. Pro školení §6 a §7 je naopak nutné
+                            odpovídající elektrotechnické vzdělání dle platné legislativy.
+                        </p>
+                    </article>
+
+                    <article class="faq-item">
+                        <h3>Jak probíhá závěrečný test?</h3>
+                        <p>
+                            Průběh závěrečného testu se liší podle typu vybraného školení. U §4 probíhá test
+                            online formou e-learningu a je možné jej opakovat. U §6 a §7 po online přípravě
+                            následuje také prezenční ústní přezkoušení ve zvoleném termínu.
+                        </p>
+                    </article>
+
+                    <article class="faq-item">
+                        <h3>Kdy mohu začít studovat?</h3>
+                        <p>
+                            Studovat můžete ihned po obdržení přístupových údajů do e-learningu. Studium
+                            probíhá online a je pouze na vás, kdy a v jakém čase se budete přípravě věnovat.
+                        </p>
+                    </article>
+
+                    <article class="faq-item">
+                        <h3>Dostanu po absolvování doklad?</h3>
+                        <p>
+                            Ano, po úspěšném absolvování získáte doklad o odborné způsobilosti dle vybraného
+                            školení (§4, §6 nebo §7) a platné legislativy NV 194/2022 Sb.
+                        </p>
+                    </article>
+
+                    <article class="faq-item">
+                        <h3>Co když test neudělám napoprvé?</h3>
+                        <p>
+                            Nic se neděje. U online části máte možnost test opakovat a mezi jednotlivými pokusy
+                            si doplnit potřebné znalosti ze studijních materiálů.
+                        </p>
+                    </article>
+
+                    <article class="faq-item">
+                        <h3>Jak dlouho je doklad platný?</h3>
+                        <p>
+                            Doklad o odborné způsobilosti dle NV 194/2022 Sb. má platnost 3 roky. Po uplynutí
+                            této doby je nutné absolvovat přezkoušení.
+                        </p>
+                    </article>
+
+                    <article class="faq-item">
+                        <h3>Jaký je rozdíl mezi §4, §6 a §7?</h3>
+                        <p>
+                            §4 je určen pro osoby bez elektrotechnického vzdělání. §6 opravňuje k samostatné
+                            práci na elektrických zařízeních a §7 je určen pro vedoucí elektrotechniky a osoby
+                            řídící elektro činnosti.
+                        </p>
+                    </article>
+
+                    <article class="faq-item">
+                        <h3>Je školení v souladu s platnou legislativou?</h3>
+                        <p>
+                            Ano, školení i přezkoušení probíhá dle zákona č. 250/2021 Sb. a NV 194/2022 Sb.
+                        </p>
+                    </article>
+
+                    <article class="faq-item">
+                        <h3>Mohu školení absolvovat jako OSVČ?</h3>
+                        <p>
+                            Ano, školení je určeno jak pro zaměstnance firem, tak pro OSVČ a jednotlivce.
+                        </p>
+                    </article>
+
+                    <article class="faq-item">
+                        <h3>Je možné školení zajistit pro celou firmu?</h3>
+                        <p>
+                            Ano, nabízíme také firemní a individuální školení přímo u zákazníka nebo v našich
+                            školících prostorách.
+                        </p>
+                    </article>
+
+                    <article class="faq-item">
+                        <h3>Co potřebuji ke studiu?</h3>
+                        <p>
+                            Pro online část stačí počítač, tablet nebo mobilní telefon s připojením k internetu.
+                            U §6 a §7 je pro ústní část potřeba také webkamera.
+                        </p>
+                    </article>
+
+                    <article class="faq-item">
+                        <h3>Jak rychle obdržím přístup do e-learningu?</h3>
+                        <p>
+                            Přístupové údaje zasíláme po potvrzení objednávky a úhradě kurzu.
+                        </p>
+                    </article>
+
+                    <article class="faq-item">
+                        <h3>Mohu si vybrat termín přezkoušení?</h3>
+                        <p>
+                            Ano, u §6 a §7 je možné zvolit termín přezkoušení dle aktuálně vypsaných termínů
+                            nebo individuální dohody.
+                        </p>
+                    </article>
+
+                    <article class="faq-item">
+                        <h3>Platí doklad po celé České republice?</h3>
+                        <p>
+                            Ano, doklad o odborné způsobilosti je vystaven dle platné české legislativy a je
+                            platný v rámci České republiky.
+                        </p>
+                    </article>
+
+                    <article class="faq-item">
+                        <h3>Mohu absolvovat školení i bez praxe?</h3>
+                        <p>
+                            Ano, u §4 není odborná praxe vyžadována. U §6 a §7 záleží na rozsahu požadovaného
+                            oprávnění a splnění podmínek dle NV 194/2022 Sb.
+                        </p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
     </main>
 </div>
 
@@ -606,6 +782,9 @@
 
         const landingNavLinks = document.querySelectorAll('.landing-nav-link');
         const sections = document.querySelectorAll('.page-section[id]');
+        const faqList = document.querySelector('#faq .faq-list');
+        const contactSection = document.getElementById('contact');
+        let faqExitLocked = false;
 
         const homeLink = document.getElementById('home-link');
         const introSection = document.getElementById('intro');
@@ -769,6 +948,29 @@
 
         if (pageScroll) {
             pageScroll.addEventListener('scroll', updateActiveSection);
+        }
+
+        /* FAQ TOP EXIT v21 — další scroll nahoru přejde na Kontakt */
+        if (faqList && contactSection) {
+            faqList.addEventListener('wheel', function (e) {
+                const isAtTop = faqList.scrollTop <= 1;
+                const isScrollingUp = e.deltaY < 0;
+
+                if (!isAtTop || !isScrollingUp) return;
+
+                e.preventDefault();
+                e.stopPropagation();
+
+                if (faqExitLocked) return;
+                faqExitLocked = true;
+
+                scrollToSection(contactSection);
+                setActiveLandingNav('contact');
+
+                window.setTimeout(function () {
+                    faqExitLocked = false;
+                }, 900);
+            }, { passive: false });
         }
 
         if (homeLink && introSection) {

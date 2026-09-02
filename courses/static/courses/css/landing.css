@@ -704,12 +704,13 @@
 
 .contact-wrapper {
     display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 40px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 28px;
 }
 
 .contact-box {
-    padding: 36px;
+    min-width: 0;
+    padding: 30px;
     border-radius: 28px;
     background: rgba(255, 255, 255, 0.95);
     color: var(--color-dark-text);
@@ -720,7 +721,21 @@
 .contact-info-box {
     display: flex;
     flex-direction: column;
+}
+
+.contact-form-box {
     justify-content: center;
+}
+
+.contact-card-title {
+    margin: 0 0 20px;
+    color: var(--color-bg-end);
+    font-size: clamp(21px, 1.7vw, 27px);
+    line-height: 1.2;
+}
+
+.contact-card-title--uppercase {
+    text-transform: uppercase;
 }
 
 .contact-eyebrow {
@@ -731,22 +746,47 @@
     text-transform: uppercase;
 }
 
-.contact-info p {
+.contact-info-box > p {
+    margin: 0 0 13px;
     color: var(--color-card-muted);
-    font-size: 16px;
-    line-height: 1.6;
+    font-size: 15px;
+    line-height: 1.5;
 }
 
-.contact-details {
-    margin-top: 28px;
-}
-
-.contact-details p {
-    margin-bottom: 8px;
-}
-
-.contact-details strong {
+.contact-info-box > p strong {
     color: var(--color-dark-text);
+}
+
+.contact-billing {
+    margin-top: 5px;
+    padding-top: 16px;
+    border-top: 1px solid #dce2ea;
+}
+
+.contact-billing h4 {
+    margin: 0 0 8px;
+    color: var(--color-bg-end);
+    font-size: 18px;
+}
+
+.contact-billing address {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin: 0;
+    color: var(--color-card-muted);
+    font-size: 15px;
+    font-style: normal;
+    line-height: 1.45;
+}
+
+.contact-company-ids {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 24px;
+    margin: 10px 0 0;
+    color: var(--color-card-muted);
+    font-size: 15px;
 }
 
 .contact-form {
@@ -786,7 +826,7 @@
 
 .contact-form textarea {
     resize: vertical;
-    min-height: 180px;
+    min-height: 150px;
 }
 
 .contact-message-field {
@@ -1050,6 +1090,10 @@
         padding: 24px;
     }
 
+    .contact-card-title {
+        margin-bottom: 18px;
+    }
+
     .contact-form-grid {
         grid-template-columns: 1fr;
     }
@@ -1061,6 +1105,22 @@
     .contact-form .cta-button {
         width: 100%;
         min-width: unset;
+    }
+}
+
+@media (max-width: 420px) {
+    .contact-box {
+        padding: 20px;
+        border-radius: 22px;
+    }
+
+    .contact-card-title {
+        font-size: 21px;
+    }
+
+    .contact-company-ids {
+        flex-direction: column;
+        gap: 4px;
     }
 }
 
