@@ -27,7 +27,6 @@
     cursor: pointer;
     white-space: nowrap;
 }
-
 .ares-button:hover {
     background: #102d53;
 }
@@ -52,7 +51,6 @@
         min-height: 48px;
     }
 }
-
 .ares-status {
     display: block;
     min-height: 1.25rem;
@@ -73,7 +71,6 @@
 .ares-status.is-error {
     color: #c62828;
 }
-
 .ares-notice {
     display: flex;
     align-items: flex-start;
@@ -88,7 +85,6 @@
     font-size: 0.875rem;
     line-height: 1.45;
 }
-
 .ares-notice-icon {
     display: inline-flex;
     flex: 0 0 auto;
@@ -112,7 +108,6 @@
 .ares-notice strong {
     color: #493900;
 }
-
 .ares-loading {
     cursor: progress;
     background-image:
@@ -133,7 +128,6 @@
         background-position: -200% 0;
     }
 }
-
 .contact-person-section {
     grid-column: 1 / -1;
     margin-top: 12px;
@@ -160,7 +154,6 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 16px;
 }
-
 .contact-phone-group {
     display: grid;
     grid-template-columns: 96px minmax(0, 1fr);
@@ -185,7 +178,6 @@
         grid-template-columns: 90px minmax(0, 1fr);
     }
 }
-
 .participant-item input.field-error {
     border-color: #c62828;
     box-shadow: 0 0 0 1px #c62828;
@@ -207,7 +199,6 @@
 .participant-card.participant-card--error .participant-header h2 {
     color: #b42318;
 }
-
 .participant-email-errors-row {
     grid-column: 1 / -1;
     width: 100%;
@@ -233,7 +224,6 @@
     border-color: #d92d20;
     box-shadow: 0 0 0 1px #d92d20;
 }
-
 .remove-participant-button {
     width: auto !important;
     min-width: 0 !important;
@@ -258,7 +248,6 @@
     font-size: 0.9rem;
     font-weight: 700;
     line-height: 1;
-
     cursor: pointer;
     box-shadow: none;
 }
@@ -282,7 +271,6 @@
     width: 18px;
     height: 18px;
     flex: 0 0 18px;
-
     fill: none;
     stroke: currentColor;
     stroke-width: 1.8;
@@ -301,4 +289,178 @@
     color: inherit;
     font: inherit;
     line-height: inherit;
+}
+
+/* Objednávkové akce: jednotná hierarchie primární / sekundární navigace. */
+.register-page .summary-submit-button,
+.register-page .button-primary,
+.register-page .checkout-back-button,
+.register-page .register-actions .add-person-button,
+.register-page .restart-order-button {
+    min-height: 52px;
+    border-radius: 14px;
+    font-weight: 700;
+    transition:
+        background-color 0.18s ease,
+        border-color 0.18s ease,
+        color 0.18s ease,
+        box-shadow 0.18s ease,
+        transform 0.12s ease,
+        opacity 0.18s ease;
+}
+
+.register-page .summary-submit-button,
+.register-page .button-primary {
+    border: 1px solid #183b6b;
+    background: #183b6b;
+    color: #ffffff;
+    box-shadow: 0 8px 18px rgba(24, 59, 107, 0.16);
+}
+
+.register-page .summary-submit-button:hover:not(:disabled),
+.register-page .button-primary:hover:not(:disabled) {
+    border-color: #102d53;
+    background: #102d53;
+    box-shadow: 0 10px 22px rgba(24, 59, 107, 0.2);
+    transform: translateY(-1px);
+}
+
+.register-page .checkout-back-button,
+.register-page .register-actions .add-person-button {
+    border: 1px solid #b9c6d8;
+    background: #ffffff;
+    color: #183b6b;
+}
+
+.register-page .checkout-back-button:hover:not(:disabled),
+.register-page .register-actions .add-person-button:hover:not(:disabled) {
+    border-color: #7f96b5;
+    background: #f5f8fc;
+    transform: translateY(-1px);
+}
+
+.register-page .restart-order-button {
+    border: 1px solid #b9c6d8;
+    background: #ffffff;
+    color: #183b6b;
+    box-shadow: none;
+}
+
+.register-page .restart-order-button:hover:not(:disabled) {
+    border-color: #7f96b5;
+    background: #f5f8fc;
+    color: #183b6b;
+    transform: translateY(-1px);
+}
+
+.register-page .summary-submit-button:focus-visible,
+.register-page .button-primary:focus-visible,
+.register-page .checkout-back-button:focus-visible,
+.register-page .register-actions .add-person-button:focus-visible,
+.register-page .restart-order-button:focus-visible {
+    outline: 3px solid rgba(47, 125, 246, 0.28);
+    outline-offset: 3px;
+}
+
+.register-page .summary-submit-button:active:not(:disabled),
+.register-page .button-primary:active:not(:disabled),
+.register-page .checkout-back-button:active:not(:disabled),
+.register-page .register-actions .add-person-button:active:not(:disabled),
+.register-page .restart-order-button:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+.register-page .summary-submit-button:disabled,
+.register-page .button-primary:disabled,
+.register-page .checkout-back-button:disabled,
+.register-page .register-actions .add-person-button:disabled,
+.register-page .restart-order-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+    transform: none;
+    box-shadow: none;
+}
+
+
+/* Checkout navigation and sticky action panels. */
+@media (min-width: 1101px) {
+    .register-page .order-summary-card,
+    .register-page .course-info-action-card,
+    .register-page .final-order-action-card {
+        top: calc(var(--header-height) + 104px);
+    }
+}
+
+.register-page .final-order-action-card p {
+    margin-bottom: 22px;
+    color: var(--color-card-muted);
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+.register-page .restart-order-button {
+    width: 100%;
+    margin-top: 12px;
+    padding: 0 20px;
+}
+
+@media (max-width: 1100px) {
+    .register-page .final-order-action-card {
+        position: static;
+    }
+}
+
+.register-page .final-action-consent {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    width: 100%;
+    margin: 0 0 18px;
+    padding: 14px 16px;
+    border: 1px solid #d8e0ec;
+    border-radius: 12px;
+    background: #f7f9fc;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.register-page .final-action-consent input[type="checkbox"] {
+    flex: 0 0 auto;
+    margin-top: 3px;
+}
+
+.register-page .final-action-consent .terms-link {
+    font-weight: 600;
+}
+
+/* Větší odstup akčních tlačítek od cenového souhrnu. */
+.register-page .order-summary-card > .summary-submit-button {
+    margin-top: 22px;
+}
+
+/* Objednávka: sjednocení textů s tmavě modrou barvou primárních CTA. */
+.register-page .checkout-step,
+.register-page .checkout-step .step-label,
+.register-page .final-action-consent,
+.register-page .final-action-consent .terms-link {
+    color: #183b6b;
+}
+
+/* Aktivní krok zůstává výrazně modrý jako orientační prvek. */
+.register-page .checkout-step.active,
+.register-page .checkout-step.active .step-label {
+    color: #0066f5;
+}
+
+/* Neaktivní čísla kroků */
+.register-page .checkout-step > span {
+    background: #e5ebf4;
+    color: #183b6b;
+}
+
+/* Aktivní číslo kroku */
+.register-page .checkout-step.checkout-step--active > span {
+    background: #183b6b;
+    color: #ffffff;
 }

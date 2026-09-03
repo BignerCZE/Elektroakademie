@@ -2,6 +2,7 @@ from django.contrib.auth import views as auth_views
 from django.urls import path
 
 from . import views
+from .registration_policy import prevent_contact_only_course_order
 
 
 urlpatterns = [
@@ -23,11 +24,10 @@ urlpatterns = [
         views.course_detail,
         name="course_detail",
     ),
-
     # Registrace
     path(
         "registrace/",
-        views.register,
+        prevent_contact_only_course_order(views.register),
         name="register",
     ),
     path(
@@ -40,7 +40,6 @@ urlpatterns = [
         views.password_setup_sent,
         name="password_setup_sent",
     ),
-
     # Nastavení hesla přes e-mail
     path(
         "heslo/nastavit/<uidb64>/<token>/",
@@ -57,7 +56,6 @@ urlpatterns = [
         ),
         name="password_reset_complete",
     ),
-
     # Přihlášení / odhlášení
     path(
         "prihlaseni/",
@@ -73,7 +71,6 @@ urlpatterns = [
         ),
         name="logout",
     ),
-
     # Uživatelská sekce
     path(
         "dashboard/",
@@ -85,7 +82,6 @@ urlpatterns = [
         views.profile,
         name="profile",
     ),
-
     # Nákup a platba
     path(
         "kurz/<int:course_id>/koupit/",
@@ -112,7 +108,6 @@ urlpatterns = [
         views.order_payment_success,
         name="order_payment_success",
     ),
-
     # Aktivace účastníka
     path(
         "aktivace/<uuid:token>/",
@@ -136,7 +131,6 @@ urlpatterns = [
         views.quiz_start,
         name="quiz_start",
     ),
-
     # Test
     path(
         "test/<int:attempt_id>/",
@@ -168,7 +162,6 @@ urlpatterns = [
         views.quiz_attempt_detail,
         name="quiz_attempt_detail",
     ),
-
     # Certifikát
     path(
         "kurz/<int:course_id>/certifikat/",
@@ -187,7 +180,6 @@ urlpatterns = [
         views.participant_activation_email_preview,
         name="participant_activation_email_preview",
     ),
-
     path(
         "email-preview/payment-completed/<int:order_id>/",
         views.payment_completed_email_preview,
@@ -199,7 +191,6 @@ urlpatterns = [
         views.course_completed_email_preview,
         name="course_completed_email_preview",
     ),
-
     path(
         (
             "email-preview/course-completed/"
@@ -209,7 +200,6 @@ urlpatterns = [
         views.course_completed_email_attachment,
         name="course_completed_email_attachment",
     ),
-
     # Právní stránky
     path(
         "obchodni-podminky/",

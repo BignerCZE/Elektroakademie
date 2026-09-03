@@ -29,7 +29,6 @@ class FrontendStaticAssetTests(TestCase):
 
     def test_index_loads_assets_and_keeps_contact_and_faq(self):
         response = self.client.get(reverse("index"))
-
         self.assertContains(response, "/static/courses/css/landing.css?v=20")
         self.assertContains(response, "/static/courses/js/landing.js?v=1")
         self.assertContains(response, 'id="contact"')
@@ -39,14 +38,20 @@ class FrontendStaticAssetTests(TestCase):
 
     def test_registration_loads_assets_and_exposes_backend_urls(self):
         response = self.client.get(reverse("register"))
+        contact_url = f'{reverse("index")}#contact'
 
-        self.assertContains(response, "/static/courses/css/registration.css?v=1")
-        self.assertContains(response, "/static/courses/js/registration.js?v=1")
+        self.assertContains(response, "/static/courses/css/registration.css?v=3")
+        self.assertContains(response, "/static/courses/js/registration.js?v=3")
         self.assertContains(
             response,
             f'data-check-emails-url="{reverse("check_participant_emails")}"',
         )
         self.assertContains(response, f'data-index-url="{reverse("index")}"')
+        self.assertContains(response, f'data-contact-url="{contact_url}"')
+        self.assertContains(
+            response,
+            f'href="{contact_url}" class="selector-card selector-card--link"',
+        )
 
     def test_base_loads_shared_draft_storage_before_dependent_scripts(self):
         response = self.client.get(reverse("register"))
@@ -54,15 +59,13 @@ class FrontendStaticAssetTests(TestCase):
 
         storage_asset = "/static/courses/js/order-draft-storage.js?v=1"
         base_asset = "/static/courses/js/base.js?v=2"
-        registration_asset = "/static/courses/js/registration.js?v=1"
-
+        registration_asset = "/static/courses/js/registration.js?v=3"
         self.assertContains(response, storage_asset)
         self.assertLess(content.index(storage_asset), content.index(base_asset))
         self.assertLess(content.index(storage_asset), content.index(registration_asset))
 
     def test_failed_registration_does_not_load_draft_cleanup_script(self):
         response = self.client.post(reverse("register"), {})
-
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "registration/register.html")
         self.assertNotContains(
@@ -81,7 +84,6 @@ class FrontendStaticAssetTests(TestCase):
         success_source = self._template_source(
             "registration/order_payment_success.html"
         )
-
         self.assertIn("courses/js/payment-simulation.js", simulation_source)
         self.assertIn("courses/js/payment-success.js", success_source)
         self.assertIn(
@@ -106,7 +108,6 @@ class FrontendStaticAssetTests(TestCase):
         response = self.client.get(
             reverse("order_payment_simulation", args=[order.id])
         )
-
         self.assertContains(
             response,
             (
@@ -121,7 +122,6 @@ class FrontendStaticAssetTests(TestCase):
 
     def test_shared_draft_storage_supports_all_known_keys(self):
         source = self._static_source("courses/js/order-draft-storage.js")
-
         for key in (
             "elektroakademie_order_draft",
             "elektroakademie_order_draft_v2",
@@ -129,7 +129,6 @@ class FrontendStaticAssetTests(TestCase):
         ):
             with self.subTest(key=key):
                 self.assertIn(f'"{key}"', source)
-
         self.assertIn("localStorage.removeItem(key)", source)
         self.assertIn("localStorage.getItem(key)", source)
         self.assertIn(
@@ -141,7 +140,6 @@ class FrontendStaticAssetTests(TestCase):
         for asset in self.expected_assets:
             if not asset.endswith(".js"):
                 continue
-
             with self.subTest(asset=asset):
                 source = self._static_source(asset)
                 self.assertNotIn("{%", source)
@@ -169,7 +167,6 @@ class FrontendStaticAssetTests(TestCase):
             "registration/payment_simulation.html",
             "registration/order_payment_success.html",
         )
-
         for relative_path in active_templates:
             with self.subTest(template=relative_path):
                 source = (template_root / relative_path).read_text(encoding="utf-8")

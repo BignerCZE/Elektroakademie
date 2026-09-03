@@ -11,7 +11,6 @@
         <link rel="stylesheet" href="{% static 'courses/css/app.css' %}?v=2">
         {% block extra_css %}{% endblock %}
     </head>
-
     <body>
         <header class="topbar">
             <div class="container topbar-inner">
@@ -19,14 +18,12 @@
                     <img src="{% static 'courses/img/tmave_pozadi_cropped.svg' %}" alt="Elektroakademie"
                         class="logo-image">
                 </a>
-
                 <nav class="top-navigation" id="top-navigation" aria-label="Hlavní navigace">
                     <a href="{% url 'index' %}#intro" class="menu-button">Úvod</a>
                     <a href="{% url 'index' %}#courses" class="menu-button">Školení</a>
                     <a href="{% url 'index' %}#faq" class="menu-button">FAQ</a>
                     <a href="{% url 'index' %}#contact" class="menu-button">Kontakt</a>
                 </nav>
-
                 <div class="topbar-actions">
                     <button class="mobile-menu-toggle" id="mobile-menu-toggle" type="button" aria-expanded="false"
                         aria-controls="top-navigation">
@@ -37,17 +34,15 @@
                         </span>
                         <span>Menu</span>
                     </button>
-
+                    {% block account_actions %}
                     {% if user.is_authenticated %}
                     <a href="{% url 'dashboard' %}" class="login-link">Přejít na Online Kurz</a>
-
                     <form method="post" action="{% url 'logout' %}" class="logout-form">
                         {% csrf_token %}
                         <button type="submit" class="outline-button">Odhlásit se</button>
                     </form>
                     {% else %}
                     <a href="{% url 'login' %}" class="login-link">Přihlásit se</a>
-
                     <a href="{% url 'register' %}" class="cta-button primary" id="start-order-link">
                         Mám zájem
                     </a>
@@ -56,12 +51,12 @@
                         Rozpracovaná objednávka
                     </a>
                     {% endif %}
+                    {% endblock %}
                 </div>
             </div>
         </header>
 
         {% block content %}{% endblock %}
-
 
         <script src="{% static 'courses/js/order-draft-storage.js' %}?v=1" defer></script>
         <script src="{% static 'courses/js/base.js' %}?v=2" defer></script>

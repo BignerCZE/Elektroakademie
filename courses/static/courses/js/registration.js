@@ -6,13 +6,13 @@ document.addEventListener("DOMContentLoaded", function () {
         registrationForm.dataset.participantServerErrors === "true";
     const hasBillingServerErrors =
         registrationForm.dataset.billingServerErrors === "true";
-
     const courses = {
         "4": {
             title: "Zkouška odborné způsobilosti §4 – osoba poučená",
             shortTitle: "§4 – osoba poučená",
             meta: "Online školení",
             price: 990,
+            orderMode: "standard",
             detailTitle: "Popis školení §4 – OSOBA POUČENÁ",
             detailHtml: `
                 <p>Online školení a přezkoušení pro osoby bez elektrotechnického vzdělání určené k získání odborné způsobilosti „osoba poučená“ dle §4 NV 194/2022 Sb.</p>
@@ -45,6 +45,7 @@ document.addEventListener("DOMContentLoaded", function () {
             shortTitle: "§6 – elektrotechnik",
             meta: "Kombinované školení",
             price: 2990,
+            orderMode: "contact",
             detailTitle: "Popis školení §6 – Elektrotechnik",
             detailHtml: `
                 <p>Online příprava ke zkoušce odborné způsobilosti dle §6 NV 194/2022 Sb. je určena pro osoby s elektrotechnickým vzděláním, které vykonávají samostatnou práci na elektrických zařízeních.</p>
@@ -79,6 +80,7 @@ document.addEventListener("DOMContentLoaded", function () {
             shortTitle: "§7 – vedoucí elektrotechnik",
             meta: "Kombinované školení",
             price: 3490,
+            orderMode: "contact",
             detailTitle: "Popis školení §7 – Vedoucí elektrotechnik",
             detailHtml: `
                 <p>Online příprava ke zkoušce odborné způsobilosti dle §7 NV 194/2022 Sb. je určena pro osoby s elektrotechnickým vzděláním, které vykonávají nebo budou vykonávat řídicí, kontrolní a organizační činnosti v elektrotechnice.</p>
@@ -109,13 +111,11 @@ document.addEventListener("DOMContentLoaded", function () {
             `
         }
     };
-
     const selectedCourseInput = document.getElementById("selected-course-input");
     const addButton = document.getElementById("add-participant-button");
     const wrapper = document.getElementById("participants-wrapper");
     const totalFormsInput = document.getElementById("id_participants-TOTAL_FORMS");
     const goToFinalSummaryButton = document.getElementById("go-to-final-summary-button");
-    const summaryPreviousButton = document.getElementById("summary-previous-button");
     const checkoutBackButton = document.getElementById("checkout-back-button");
     const goToParticipantsButton = document.getElementById("go-to-participants-button");
     const participantsToBillingButton = document.getElementById("participants-to-billing-button");
@@ -123,7 +123,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const billingErrorMessage = document.getElementById("billing-error-message");
     const termsAgreement = document.getElementById("terms-agreement");
     const termsAgreementLabel = document.querySelector(".terms-agreement-label");
-
     const icoInput = document.querySelector('[name="ico"]');
     const dicInput = document.querySelector('[name="dic"]');
     const companyNameInput = document.querySelector('[name="company_name"]');
@@ -133,7 +132,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const countryInput = document.querySelector('[name="country"]');
     const loadAresButton = document.getElementById("load-ares-button");
     const aresStatus = document.getElementById("ares-status");
-
     let aresRequestController = null;
 
     function setAresStatus(message, state = "") {
@@ -152,7 +150,6 @@ document.addEventListener("DOMContentLoaded", function () {
     function normalizeIco(value) {
         return String(value || "").replace(/\D/g, "").slice(0, 8);
     }
-
     function dispatchFieldUpdate(input) {
         if (!input) {
             return;
@@ -168,7 +165,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         const value = countryName || "Česká republika";
-
         if (countryInput.tagName === "SELECT") {
             const normalizedCountry = value.trim().toLocaleLowerCase("cs-CZ");
 
@@ -178,7 +174,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 return optionText === normalizedCountry || optionValue === normalizedCountry;
             });
-
             if (matchingOption) {
                 countryInput.value = matchingOption.value;
                 dispatchFieldUpdate(countryInput);
@@ -190,7 +185,6 @@ document.addEventListener("DOMContentLoaded", function () {
         countryInput.value = value;
         dispatchFieldUpdate(countryInput);
     }
-
     function fillBillingFromAres(company) {
         const fieldValues = [
             [dicInput, company.dic || ""],
@@ -204,7 +198,6 @@ document.addEventListener("DOMContentLoaded", function () {
             if (!input) {
                 return;
             }
-
             input.value = value;
             input.classList.remove("field-error");
             dispatchFieldUpdate(input);
@@ -219,7 +212,6 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!icoInput || !loadAresButton) {
             return;
         }
-
         const ico = normalizeIco(icoInput.value);
         icoInput.value = ico;
         icoInput.classList.remove("field-error");
@@ -236,7 +228,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         aresRequestController = new AbortController();
-
         const originalButtonText = loadAresButton.textContent;
         loadAresButton.disabled = true;
         loadAresButton.textContent = "Načítám…";
@@ -244,7 +235,6 @@ document.addEventListener("DOMContentLoaded", function () {
         icoInput.classList.add("ares-loading");
         icoInput.setAttribute("aria-busy", "true");
         setAresStatus("Načítám údaje z ARES…", "loading");
-
         try {
             const response = await fetch(`/api/ares/${encodeURIComponent(ico)}/`, {
                 method: "GET",
@@ -256,7 +246,6 @@ document.addEventListener("DOMContentLoaded", function () {
             });
 
             let data;
-
             try {
                 data = await response.json();
             } catch (error) {
@@ -268,7 +257,6 @@ document.addEventListener("DOMContentLoaded", function () {
                     data.message || "Subjekt se nepodařilo v ARES načíst."
                 );
             }
-
             fillBillingFromAres(data.company);
             setAresStatus("Fakturační údaje byly doplněny z ARES.", "success");
         } catch (error) {
@@ -277,7 +265,6 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             console.error("Chyba při načítání ARES:", error);
-
             setAresStatus(
                 error.message || "ARES je momentálně nedostupný. Údaje vyplňte ručně.",
                 "error"
@@ -290,7 +277,6 @@ document.addEventListener("DOMContentLoaded", function () {
             aresRequestController = null;
         }
     }
-
     if (icoInput) {
         icoInput.setAttribute("inputmode", "numeric");
         icoInput.setAttribute("autocomplete", "organization");
@@ -302,7 +288,6 @@ document.addEventListener("DOMContentLoaded", function () {
             if (icoInput.value !== normalizedValue) {
                 icoInput.value = normalizedValue;
             }
-
             icoInput.classList.remove("field-error");
             setAresStatus("");
         });
@@ -318,7 +303,6 @@ document.addEventListener("DOMContentLoaded", function () {
     if (loadAresButton) {
         loadAresButton.addEventListener("click", loadCompanyFromAres);
     }
-
     function openLegalModal(modalId) {
         const modal = document.getElementById(modalId);
 
@@ -336,7 +320,6 @@ document.addEventListener("DOMContentLoaded", function () {
             closeButton.focus();
         }
     }
-
     function closeLegalModal(modal) {
         if (!modal) {
             return;
@@ -351,7 +334,6 @@ document.addEventListener("DOMContentLoaded", function () {
         link.addEventListener("click", function (event) {
             event.preventDefault();
             event.stopPropagation();
-
             openLegalModal(link.dataset.legalModalOpen);
         });
     });
@@ -362,7 +344,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 closeLegalModal(modal);
             }
         });
-
         modal.querySelectorAll("[data-legal-modal-close]").forEach(function (button) {
             button.addEventListener("click", function () {
                 closeLegalModal(modal);
@@ -380,16 +361,16 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
-
     const stepButtons = document.querySelectorAll("[data-step-button]");
     const stepPanels = document.querySelectorAll("[data-step-panel]");
     const courseButtons = document.querySelectorAll("[data-course-select]");
-
     const courseInfoActionCard = document.getElementById("course-info-action-card");
+    const courseInfoActionTitle = document.getElementById("course-info-action-title");
+    const courseInfoActionText = document.getElementById("course-info-action-text");
     const orderSummaryCard = document.getElementById("order-summary-card");
+    const finalOrderActionCard = document.getElementById("final-order-action-card");
     const finalSummaryConsent = document.getElementById("final-summary-consent");
     const finalSummaryConsentInput = finalSummaryConsent ? finalSummaryConsent.querySelector("input") : null;
-
     const selectedCourseTitle = document.getElementById("selected-course-title");
     const selectedCourseContent = document.getElementById("selected-course-content");
     const registerProductTitle = document.getElementById("register-product-title");
@@ -402,7 +383,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const summaryTotalVat = document.getElementById("summary-total-vat");
     const summaryTotalNoVat = document.getElementById("summary-total-no-vat");
 
-
     function formatPrice(value) {
         return value.toLocaleString("cs-CZ") + " Kč";
     }
@@ -411,10 +391,17 @@ document.addEventListener("DOMContentLoaded", function () {
         return courses[selectedCourseInput.value];
     }
 
+    function isStandardOrderCourse(courseId) {
+        return Boolean(courses[courseId] && courses[courseId].orderMode === "standard");
+    }
+
+    function isContactCourse(courseId) {
+        return Boolean(courses[courseId] && courses[courseId].orderMode === "contact");
+    }
+
     function getParticipantCount() {
         return wrapper.querySelectorAll(".participant-item").length;
     }
-
     function escapeHtml(value) {
         return String(value)
             .replace(/&/g, "&amp;")
@@ -428,7 +415,6 @@ document.addEventListener("DOMContentLoaded", function () {
         const input = document.querySelector(`[name="${name}"]`);
         return input ? input.value.trim() : "";
     }
-
     function getOrderDraft() {
         try {
             const rawDraft = localStorage.getItem(ORDER_DRAFT_KEY);
@@ -438,7 +424,6 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             const draft = JSON.parse(rawDraft);
-
             if (
                 !draft
                 || !draft.selected_course
@@ -455,14 +440,12 @@ document.addEventListener("DOMContentLoaded", function () {
             return null;
         }
     }
-
     function saveOrderDraft() {
         const courseId = selectedCourseInput.value;
 
-        if (!courseId) {
+        if (!isStandardOrderCourse(courseId)) {
             return;
         }
-
         const participants = Array.from(wrapper.querySelectorAll(".participant-item")).map(function (participant) {
             return {
                 first_name: participant.querySelector("input[name$='first_name']")?.value || "",
@@ -472,7 +455,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         const billing = {};
-
         document.querySelectorAll(".billing-grid input, .billing-grid textarea, .billing-grid select").forEach(function (input) {
             if (!input.name) {
                 return;
@@ -482,7 +464,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
         const activePanel = document.querySelector(".checkout-step-panel:not([hidden])");
         const currentStep = activePanel ? Number(activePanel.dataset.stepPanel) : 3;
-
         localStorage.setItem(
             ORDER_DRAFT_KEY,
             JSON.stringify({
@@ -494,12 +475,10 @@ document.addEventListener("DOMContentLoaded", function () {
             })
         );
     }
-
     function cloneParticipant() {
         const formCount = Number(totalFormsInput.value);
         const firstParticipant = wrapper.querySelector(".participant-item");
         const newParticipant = firstParticipant.cloneNode(true);
-
         newParticipant.querySelectorAll("input").forEach(function (input) {
             input.name = input.name.replace(/participants-\d+-/, "participants-" + formCount + "-");
             input.id = input.id.replace(/participants-\d+-/, "participants-" + formCount + "-");
@@ -510,7 +489,6 @@ document.addEventListener("DOMContentLoaded", function () {
         newParticipant.querySelectorAll(".errorlist").forEach(function (errorList) {
             errorList.remove();
         });
-
         newParticipant.classList.remove("participant-card--error");
 
         newParticipant
@@ -525,7 +503,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
         return newParticipant;
     }
-
     function ensureParticipantCount(count) {
         while (wrapper.querySelectorAll(".participant-item").length < count) {
             cloneParticipant();
@@ -541,7 +518,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         updateCourseView(draft.selected_course);
-
         if (Array.isArray(draft.participants) && draft.participants.length) {
             const nonEmptyParticipants = draft.participants.filter(function (participant) {
                 return Boolean(
@@ -550,7 +526,6 @@ document.addEventListener("DOMContentLoaded", function () {
                     || (participant.email || "").trim()
                 );
             });
-
             const participantsToRestore = nonEmptyParticipants.length
                 ? draft.participants
                 : [draft.participants[0]];
@@ -563,14 +538,12 @@ document.addEventListener("DOMContentLoaded", function () {
             ) {
                 wrapper.lastElementChild.remove();
             }
-
             wrapper.querySelectorAll(".participant-item").forEach(function (participant, index) {
                 const participantData = participantsToRestore[index] || {};
 
                 const firstNameInput = participant.querySelector("input[name$='first_name']");
                 const lastNameInput = participant.querySelector("input[name$='last_name']");
                 const emailInput = participant.querySelector("input[name$='email']");
-
                 if (firstNameInput) {
                     firstNameInput.value = participantData.first_name || "";
                 }
@@ -584,7 +557,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
             });
         }
-
         if (draft.billing) {
             Object.keys(draft.billing).forEach(function (name) {
                 const input = document.querySelector(`[name="${name}"]`);
@@ -600,7 +572,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
             });
         }
-
         refreshParticipants();
         updateOrderSummary();
 
@@ -617,7 +588,6 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!container) {
             return;
         }
-
         container.innerHTML = `
             <strong>${escapeHtml(title)}</strong>
             <ul>
@@ -637,7 +607,6 @@ document.addEventListener("DOMContentLoaded", function () {
         container.hidden = true;
         container.innerHTML = "";
     }
-
     function clearParticipantEmailErrors() {
         wrapper.querySelectorAll("[data-participant-email-error]").forEach(function (errorElement) {
             errorElement.textContent = "";
@@ -648,7 +617,6 @@ document.addEventListener("DOMContentLoaded", function () {
             emailInput.classList.remove("field-error");
             emailInput.removeAttribute("aria-invalid");
         });
-
         wrapper.querySelectorAll(".participant-card--error").forEach(function (participantCard) {
             participantCard.classList.remove("participant-card--error");
         });
@@ -659,7 +627,6 @@ document.addEventListener("DOMContentLoaded", function () {
         emailInput.setAttribute("aria-invalid", "true");
 
         const participantCard = emailInput.closest(".participant-card");
-
         if (participantCard) {
             participantCard.classList.add("participant-card--error");
         }
@@ -679,7 +646,6 @@ document.addEventListener("DOMContentLoaded", function () {
             errorElement.hidden = false;
         }
     }
-
     async function checkParticipantEmails() {
         clearParticipantEmailErrors();
         clearValidationMessage(participantsErrorMessage);
@@ -691,11 +657,9 @@ document.addEventListener("DOMContentLoaded", function () {
         const emails = emailInputs.map(function (emailInput) {
             return emailInput.value.trim().toLowerCase();
         });
-
         const csrfInput = document.querySelector(
             '#registration-form input[name="csrfmiddlewaretoken"]'
         );
-
         try {
             const response = await fetch(
                 registrationForm.dataset.checkEmailsUrl,
@@ -709,7 +673,6 @@ document.addEventListener("DOMContentLoaded", function () {
                     body: JSON.stringify({ emails: emails })
                 }
             );
-
             let result;
 
             try {
@@ -723,7 +686,6 @@ document.addEventListener("DOMContentLoaded", function () {
                     result.message || "Kontrolu e-mailů se nepodařilo provést."
                 );
             }
-
             const occupiedEmails = new Set(result.occupied_emails || []);
             const duplicateEmails = new Set(result.duplicate_emails || []);
             let firstInvalidInput = null;
@@ -731,7 +693,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
             emailInputs.forEach(function (emailInput) {
                 const normalizedEmail = emailInput.value.trim().toLowerCase();
-
                 if (occupiedEmails.has(normalizedEmail)) {
                     showParticipantEmailError(
                         emailInput,
@@ -741,7 +702,6 @@ document.addEventListener("DOMContentLoaded", function () {
                     firstInvalidInput = firstInvalidInput || emailInput;
                     return;
                 }
-
                 if (duplicateEmails.has(normalizedEmail)) {
                     showParticipantEmailError(
                         emailInput,
@@ -751,14 +711,12 @@ document.addEventListener("DOMContentLoaded", function () {
                     firstInvalidInput = firstInvalidInput || emailInput;
                 }
             });
-
             if (hasError) {
                 showValidationMessage(
                     participantsErrorMessage,
                     "Nelze pokračovat k fakturačním údajům.",
                     ["Opravte označené e-mailové adresy účastníků."]
                 );
-
                 if (firstInvalidInput) {
                     firstInvalidInput.scrollIntoView({
                         behavior: "smooth",
@@ -773,7 +731,6 @@ document.addEventListener("DOMContentLoaded", function () {
             return true;
         } catch (error) {
             console.error("Chyba při kontrole e-mailů:", error);
-
             showValidationMessage(
                 participantsErrorMessage,
                 "Kontrolu e-mailů nelze dokončit.",
@@ -786,7 +743,6 @@ document.addEventListener("DOMContentLoaded", function () {
             return false;
         }
     }
-
     function validateParticipants() {
         const participants = wrapper.querySelectorAll(".participant-item");
         let isValid = true;
@@ -794,7 +750,6 @@ document.addEventListener("DOMContentLoaded", function () {
         const messages = [];
 
         clearValidationMessage(participantsErrorMessage);
-
         participants.forEach(function (participant, index) {
             const participantNumber = index + 1;
             const fields = [
@@ -805,7 +760,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const filledFields = [];
             const missingFields = [];
-
             fields.forEach(function ([input, label]) {
                 if (!input) {
                     return;
@@ -815,7 +769,6 @@ document.addEventListener("DOMContentLoaded", function () {
                     input.classList.add("field-error");
                     missingFields.push(label);
                     isValid = false;
-
                     if (!firstInvalidInput) {
                         firstInvalidInput = input;
                     }
@@ -824,7 +777,6 @@ document.addEventListener("DOMContentLoaded", function () {
                     filledFields.push(label);
                 }
             });
-
             if (missingFields.length) {
                 messages.push(
                     `Účastník č. ${participantNumber}: vyplněno ${filledFields.length ? filledFields.join(", ") : "nic"}; chybí ${missingFields.join(", ")}.`
@@ -838,7 +790,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 "Nelze pokračovat. Chybí údaje u účastníků.",
                 messages
             );
-
             if (firstInvalidInput) {
                 firstInvalidInput.scrollIntoView({ behavior: "smooth", block: "center" });
                 firstInvalidInput.focus();
@@ -854,7 +805,6 @@ document.addEventListener("DOMContentLoaded", function () {
         const messages = [];
 
         clearValidationMessage(billingErrorMessage);
-
         const requiredBillingFields = [
             ["company_name", "název firmy / jméno objednatele"],
             ["street", "ulice"],
@@ -867,7 +817,6 @@ document.addEventListener("DOMContentLoaded", function () {
             ["contact_phone", "telefonní číslo"],
             ["contact_email", "e-mail kontaktní osoby"]
         ];
-
         requiredBillingFields.forEach(function ([name, label]) {
             const input = document.querySelector(`[name="${name}"]`);
 
@@ -879,7 +828,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 input.classList.add("field-error");
                 messages.push(`Chybí ${label}.`);
                 isValid = false;
-
                 if (!firstInvalidInput) {
                     firstInvalidInput = input;
                 }
@@ -891,7 +839,6 @@ document.addEventListener("DOMContentLoaded", function () {
         const contactEmailInput = document.querySelector(
             '[name="contact_email"]'
         );
-
         if (
             contactEmailInput &&
             contactEmailInput.value.trim() &&
@@ -905,7 +852,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 firstInvalidInput = contactEmailInput;
             }
         }
-
         if (!isValid) {
             showValidationMessage(
                 billingErrorMessage,
@@ -921,7 +867,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
         return isValid;
     }
-
     function renderFinalSummary() {
         const course = getActiveCourse();
         const participantCount = getParticipantCount();
@@ -931,14 +876,12 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         const totalVat = course.price * participantCount;
-
         const finalCourseTitle = document.getElementById("final-course-title");
         const finalCourseMeta = document.getElementById("final-course-meta");
         const finalParticipantCount = document.getElementById("final-participant-count");
         const finalBillingSummary = document.getElementById("final-billing-summary");
         const finalParticipantsSummary = document.getElementById("final-participants-summary");
         const finalOrderTotal = document.getElementById("final-order-total");
-
         if (!finalCourseTitle || !finalCourseMeta || !finalParticipantCount || !finalBillingSummary || !finalParticipantsSummary || !finalOrderTotal) {
             return;
         }
@@ -949,11 +892,9 @@ document.addEventListener("DOMContentLoaded", function () {
         finalOrderTotal.textContent = formatPrice(totalVat);
 
         const countrySelect = document.querySelector('[name="country"]');
-
         const countryDisplayValue = countrySelect
             ? countrySelect.options[countrySelect.selectedIndex]?.textContent.trim() || ""
             : "";
-
         const billingRows = [
             ["IČO", getInputValue("ico")],
             ["DIČ", getInputValue("dic")],
@@ -973,7 +914,6 @@ document.addEventListener("DOMContentLoaded", function () {
             ["Kontaktní e-mail", getInputValue("contact_email")],
             ["Poznámka", getInputValue("note")]
         ];
-
         finalBillingSummary.innerHTML = billingRows
             .filter(function (row) {
                 return row[1];
@@ -987,13 +927,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 `;
             })
             .join("");
-
         finalParticipantsSummary.innerHTML = Array.from(wrapper.querySelectorAll(".participant-item"))
             .map(function (participant) {
                 const firstName = participant.querySelector("input[name$='first_name']")?.value.trim() || "";
                 const lastName = participant.querySelector("input[name$='last_name']")?.value.trim() || "";
                 const email = participant.querySelector("input[name$='email']")?.value.trim() || "";
-
                 return `
                     <tr>
                         <td>${escapeHtml(firstName)}</td>
@@ -1005,11 +943,35 @@ document.addEventListener("DOMContentLoaded", function () {
             .join("");
     }
 
+    function updateCourseActionPanel(courseId) {
+        if (!courseInfoActionTitle || !courseInfoActionText || !goToParticipantsButton) {
+            return;
+        }
+
+        if (isContactCourse(courseId)) {
+            courseInfoActionTitle.textContent = "Individuální průběh školení";
+            courseInfoActionText.textContent =
+                "Toto školení aktuálně probíhá individuální formou. Pro domluvení termínu a dalších podrobností nás kontaktujte prostřednictvím kontaktního formuláře.";
+            goToParticipantsButton.textContent = "Přejít na kontaktní formulář";
+            return;
+        }
+
+        courseInfoActionTitle.textContent = "Pokračovat";
+        courseInfoActionText.textContent =
+            "Po přečtení informací pokračujte k zadání účastníků školení.";
+        goToParticipantsButton.textContent = "Přejít k objednávce";
+    }
+
     function showStep(step) {
+        const selectedCourseId = selectedCourseInput.value;
+
+        if (isContactCourse(selectedCourseId) && step >= 3) {
+            step = 2;
+        }
+
         stepPanels.forEach(function (panel) {
             panel.hidden = panel.dataset.stepPanel !== String(step);
         });
-
         stepButtons.forEach(function (button) {
             button.classList.toggle(
                 "checkout-step--active",
@@ -1019,27 +981,23 @@ document.addEventListener("DOMContentLoaded", function () {
 
         document.body.dataset.checkoutStep = String(step);
         checkoutBackButton.hidden = step === 1;
-
         courseInfoActionCard.hidden = step !== 2;
         orderSummaryCard.hidden = !(step === 3 || step === 4);
+        finalOrderActionCard.hidden = step !== 5;
         participantsToBillingButton.hidden = step !== 3;
         goToFinalSummaryButton.hidden = step !== 4;
-
-        const deleteOrderButton = document.getElementById("delete-order-button");
-        deleteOrderButton.hidden = !(step === 3 || step === 4);
 
         if (finalSummaryConsentInput) {
             finalSummaryConsentInput.disabled = step !== 5;
         }
-
         if (step === 5) {
             renderFinalSummary();
         }
 
-        if (selectedCourseInput.value && step >= 2) {
+        if (isStandardOrderCourse(selectedCourseId) && step >= 2) {
             const draft = getOrderDraft();
 
-            if (draft) {
+            if (draft && draft.selected_course === selectedCourseId) {
                 draft.current_step = step;
                 localStorage.setItem(
                     ORDER_DRAFT_KEY,
@@ -1050,7 +1008,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
         updateOrderSummary();
     }
-
     function updateCourseView(courseId) {
         const course = courses[courseId];
 
@@ -1061,6 +1018,7 @@ document.addEventListener("DOMContentLoaded", function () {
         selectedCourseInput.value = courseId;
         selectedCourseTitle.textContent = course.detailTitle;
         selectedCourseContent.innerHTML = course.detailHtml;
+        updateCourseActionPanel(courseId);
 
         courseButtons.forEach(function (button) {
             button.classList.toggle("is-selected", button.dataset.courseSelect === courseId);
@@ -1068,7 +1026,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
         updateOrderSummary();
     }
-
     function updateOrderSummary() {
         const course = getActiveCourse();
 
@@ -1079,11 +1036,9 @@ document.addEventListener("DOMContentLoaded", function () {
         const participantCount = getParticipantCount();
         const totalVat = course.price * participantCount;
         const totalNoVat = Math.round(totalVat / 1.21);
-
         registerProductTitle.textContent = course.title;
         registerProductMeta.innerHTML = `<strong>${course.meta}</strong>`;
         registerProductPrice.textContent = `${participantCount}× ${formatPrice(course.price)}`;
-
         summaryCount.textContent = participantCount + "×";
         summaryProductTitle.textContent = course.shortTitle;
         summaryProductMeta.textContent = course.meta;
@@ -1094,7 +1049,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function refreshParticipants() {
         const participants = wrapper.querySelectorAll(".participant-item");
-
         participants.forEach(function (participant, index) {
             participant.querySelector("h2").textContent = "Účastník " + (index + 1);
 
@@ -1105,7 +1059,6 @@ document.addEventListener("DOMContentLoaded", function () {
         totalFormsInput.value = participants.length;
         updateOrderSummary();
     }
-
     courseButtons.forEach(function (button) {
         button.addEventListener("click", function () {
             const courseId = button.dataset.courseSelect;
@@ -1116,9 +1069,19 @@ document.addEventListener("DOMContentLoaded", function () {
             window.scrollTo({ top: 0, behavior: "smooth" });
         });
     });
-
     if (goToParticipantsButton) {
         goToParticipantsButton.addEventListener("click", function () {
+            const courseId = selectedCourseInput.value;
+
+            if (isContactCourse(courseId)) {
+                window.location.href = registrationForm.dataset.contactUrl;
+                return;
+            }
+
+            if (!isStandardOrderCourse(courseId)) {
+                return;
+            }
+
             saveOrderDraft();
             showStep(3);
             window.scrollTo({ top: 0, behavior: "smooth" });
@@ -1132,7 +1095,6 @@ document.addEventListener("DOMContentLoaded", function () {
             if (participantEmailCheckInProgress) {
                 return;
             }
-
             if (!validateParticipants()) {
                 return;
             }
@@ -1145,7 +1107,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
             try {
                 const emailsAreAvailable = await checkParticipantEmails();
-
                 if (!emailsAreAvailable) {
                     return;
                 }
@@ -1160,7 +1121,6 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     }
-
     if (goToFinalSummaryButton) {
         goToFinalSummaryButton.addEventListener("click", function () {
             if (!validateBilling()) {
@@ -1173,22 +1133,12 @@ document.addEventListener("DOMContentLoaded", function () {
             window.scrollTo({ top: 0, behavior: "smooth" });
         });
     }
-
-    if (summaryPreviousButton) {
-        summaryPreviousButton.addEventListener("click", function () {
-            saveOrderDraft();
-            showStep(4);
-            window.scrollTo({ top: 0, behavior: "smooth" });
-        });
-    }
-
     if (addButton) {
         addButton.addEventListener("click", function () {
             const newParticipant = cloneParticipant();
 
             refreshParticipants();
             saveOrderDraft();
-
             newParticipant.scrollIntoView({
                 behavior: "smooth",
                 block: "center"
@@ -1199,12 +1149,17 @@ document.addEventListener("DOMContentLoaded", function () {
     stepButtons.forEach(function (button) {
         button.addEventListener("click", async function () {
             const step = Number(button.dataset.stepButton);
+            const courseId = selectedCourseInput.value;
 
-            if (step > 1 && !selectedCourseInput.value) {
+            if (step > 1 && !courseId) {
                 showStep(1);
                 return;
             }
 
+            if (isContactCourse(courseId) && step >= 3) {
+                showStep(2);
+                return;
+            }
             if (step >= 4) {
                 if (!validateParticipants()) {
                     showStep(3);
@@ -1223,7 +1178,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 showStep(4);
                 return;
             }
-
             saveOrderDraft();
             showStep(step);
             window.scrollTo({ top: 0, behavior: "smooth" });
@@ -1233,7 +1187,6 @@ document.addEventListener("DOMContentLoaded", function () {
     checkoutBackButton.addEventListener("click", function () {
         const activePanel = document.querySelector(".checkout-step-panel:not([hidden])");
         const activeStep = activePanel ? Number(activePanel.dataset.stepPanel) : 1;
-
         saveOrderDraft();
         showStep(Math.max(1, activeStep - 1));
         window.scrollTo({ top: 0, behavior: "smooth" });
@@ -1251,7 +1204,6 @@ document.addEventListener("DOMContentLoaded", function () {
         if (participants.length <= 1) {
             return;
         }
-
         removeButton.closest(".participant-item").remove();
         refreshParticipants();
         saveOrderDraft();
@@ -1266,7 +1218,6 @@ document.addEventListener("DOMContentLoaded", function () {
         event.target.removeAttribute("aria-invalid");
 
         const participantItem = event.target.closest(".participant-item");
-
         if (participantItem) {
             participantItem.classList.remove("participant-card--error");
         }
@@ -1281,7 +1232,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 emailError.hidden = true;
             }
         }
-
         clearValidationMessage(participantsErrorMessage);
         saveOrderDraft();
     });
@@ -1292,7 +1242,6 @@ document.addEventListener("DOMContentLoaded", function () {
             clearValidationMessage(billingErrorMessage);
             saveOrderDraft();
         });
-
         input.addEventListener("change", function () {
             saveOrderDraft();
         });
@@ -1313,27 +1262,26 @@ document.addEventListener("DOMContentLoaded", function () {
     } else if (hasBillingServerErrors) {
         showStep(4);
     }
+    function returnToOrderStart() {
+        showStep(1);
+        saveOrderDraft();
 
-    function deleteDraftOrder() {
-        const confirmed = confirm(
-            "Opravdu chcete zrušit rozpracovanou objednávku?"
-        );
-
-        if (!confirmed) {
-            return;
+        const checkoutShell = document.querySelector(".register-checkout-shell");
+        if (checkoutShell) {
+            checkoutShell.scrollIntoView({ behavior: "smooth", block: "start" });
         }
-
-        orderDraftStorage.clear();
-
-        window.location.href = registrationForm.dataset.indexUrl;
     }
 
-    document.querySelectorAll(".delete-order-button").forEach(function (button) {
-        button.addEventListener("click", deleteDraftOrder);
+    document.querySelectorAll(".restart-order-button").forEach(function (button) {
+        button.addEventListener("click", returnToOrderStart);
     });
-
     if (registrationForm && termsAgreement && termsAgreementLabel) {
         registrationForm.addEventListener("submit", function (event) {
+            if (isContactCourse(selectedCourseInput.value)) {
+                event.preventDefault();
+                window.location.href = registrationForm.dataset.contactUrl;
+                return;
+            }
 
             if (!termsAgreement.checked) {
                 event.preventDefault();
@@ -1348,7 +1296,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 termsAgreement.focus();
                 return;
             }
-
             termsAgreementLabel.classList.remove("error");
         });
 

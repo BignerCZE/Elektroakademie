@@ -3,9 +3,13 @@
 
 {% block title %}Registrace | Elektroakademie{% endblock %}
 
+{% block account_actions %}
+<a href="{% url 'index' %}" class="login-link">Návrat na domovskou stránku</a>
+{% endblock %}
+
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'courses/css/course-selector.css' %}?v=4">
-<link rel="stylesheet" href="{% static 'courses/css/registration.css' %}?v=1">
+<link rel="stylesheet" href="{% static 'courses/css/registration.css' %}?v=3">
 
 {% endblock %}
 
@@ -14,14 +18,12 @@
     <div class="container">
         <section class="register-card">
             <div class="register-checkout-shell">
-
                 <div class="checkout-steps">
                     <div class="checkout-steps-left">
                         <button type="button" class="checkout-step checkout-step--active" data-step-button="1">
                             <span>1</span>
                             Výběr kurzu
                         </button>
-
                         <button type="button" class="checkout-step" data-step-button="2">
                             <span>2</span>
                             Informace o kurzu
@@ -31,7 +33,6 @@
                             <span>3</span>
                             Účastníci
                         </button>
-
                         <button type="button" class="checkout-step" data-step-button="4">
                             <span>4</span>
                             Údaje a platba
@@ -42,24 +43,21 @@
                             Shrnutí
                         </button>
                     </div>
-
                     <button type="button" class="checkout-back-button" id="checkout-back-button" hidden>
                         Zpět
                     </button>
                 </div>
-
                 <div class="checkout-layout" id="checkout-layout">
                     <form method="post" class="register-form" id="registration-form"
                         data-participant-server-errors="{{ participant_formset.errors|yesno:'true,false' }}"
                         data-billing-server-errors="{{ billing_form.errors|yesno:'true,false' }}"
                         data-check-emails-url="{% url 'check_participant_emails' %}"
-                        data-index-url="{% url 'index' %}">
+                        data-index-url="{% url 'index' %}"
+                        data-contact-url="{% url 'index' %}#contact">
                         {% csrf_token %}
-
                         <input type="hidden" name="selected_course" id="selected-course-input" value="">
 
                         {{ participant_formset.management_form }}
-
                         <section class="checkout-step-panel" data-step-panel="1">
                             <div class="course-choice-header">
                                 <h1>Vyberte typ školení</h1>
@@ -68,7 +66,6 @@
                                     V dalším kroku zobrazíme informace o vybraném kurzu.
                                 </p>
                             </div>
-
                             <div class="selector-grid">
                                 <button type="button" class="selector-card" data-course-select="4">
                                     <div class="selector-icon">§4</div>
@@ -77,13 +74,11 @@
                                         <h2>Osoba poučená</h2>
                                         <p>Online kurz pro osoby bez elektrotechnické kvalifikace.</p>
                                     </div>
-
                                     <span class="selector-price">990 Kč</span>
                                 </button>
 
                                 <button type="button" class="selector-card" data-course-select="6">
                                     <div class="selector-icon">§6</div>
-
                                     <div class="selector-content">
                                         <h2>Osoba znalá</h2>
                                         <p>Kombinované školení pro osoby s elektrotechnickým vzděláním.</p>
@@ -91,7 +86,6 @@
 
                                     <span class="selector-price">2 990 Kč</span>
                                 </button>
-
                                 <button type="button" class="selector-card" data-course-select="7">
                                     <div class="selector-icon">§7</div>
 
@@ -99,13 +93,11 @@
                                         <h2>Vedoucí elektrotechnik</h2>
                                         <p>Rozšířená odborná způsobilost pro vedoucí pracovníky.</p>
                                     </div>
-
                                     <span class="selector-price">3 490 Kč</span>
                                 </button>
 
                                 <a href="{% url 'index' %}#contact" class="selector-card selector-card--link">
                                     <div class="selector-icon">ⓘ</div>
-
                                     <div class="selector-content">
                                         <h2>Poptat individuální školení</h2>
                                         <p>Školení na míru pro firmy i jednotlivce.</p>
@@ -115,40 +107,34 @@
                                 </a>
                             </div>
                         </section>
-
                         <section class="checkout-step-panel" data-step-panel="2" hidden>
                             <section class="selected-course-detail" id="selected-course-detail">
                                 <h2 id="selected-course-title"></h2>
                                 <div class="selected-course-content" id="selected-course-content"></div>
                             </section>
                         </section>
-
                         <section class="checkout-step-panel" data-step-panel="3" hidden>
                             <div class="register-summary">
                                 <div>
                                     <h1 id="register-product-title">Vybraný kurz</h1>
                                     <p id="register-product-meta"></p>
                                 </div>
-
                                 <div class="register-price">
                                     <strong id="register-product-price"></strong>
                                 </div>
                             </div>
 
                             <div class="checkout-error-message" id="participants-error-message" hidden></div>
-
                             {% if participant_formset.non_form_errors %}
                             <div class="checkout-error-message">
                                 {{ participant_formset.non_form_errors }}
                             </div>
                             {% endif %}
-
                             <div id="participants-wrapper">
                                 {% for form in participant_formset %}
                                 <section class="participant-card participant-item">
                                     <div class="participant-header">
                                         <h2>Účastník {{ forloop.counter }}</h2>
-
                                         <button type="button" class="remove-participant-button" hidden
                                             aria-label="Smazat účastníka">
                                             <svg class="remove-participant-icon" viewBox="0 0 24 24" aria-hidden="true">
@@ -158,19 +144,16 @@
                                                 <path d="M10 11v5"></path>
                                                 <path d="M14 11v5"></path>
                                             </svg>
-
                                             <span class="remove-participant-label">
                                                 Smazat
                                             </span>
                                         </button>
                                     </div>
-
                                     <div class="participant-grid">
                                         <div class="register-field">
                                             {{ form.first_name }}
                                             {{ form.first_name.errors }}
                                         </div>
-
                                         <div class="register-field">
                                             {{ form.last_name }}
                                             {{ form.last_name.errors }}
@@ -179,7 +162,6 @@
                                         <div class="register-field">
                                             {{ form.email }}
                                         </div>
-
                                         <div class="participant-email-errors-row">
                                             {% if form.email.errors %}
                                             <div class="participant-email-error" data-participant-email-error>
@@ -196,14 +178,12 @@
                                 </section>
                                 {% endfor %}
                             </div>
-
                             <div class="register-actions">
                                 <button type="button" class="add-person-button" id="add-participant-button">
                                     Přidat další osobu
                                 </button>
                             </div>
                         </section>
-
                         <section class="checkout-step-panel" data-step-panel="4" hidden>
                             <div class="billing-card">
                                 <h2>Fakturační údaje</h2>
@@ -212,11 +192,9 @@
                                 <div class="checkout-error-message" id="billing-error-message" hidden></div>
 
                                 <div class="billing-grid">
-
                                     <div class="register-field ares-field">
                                         <div class="ares-input-group">
                                             {{ billing_form.ico }}
-
                                             <button type="button" id="load-ares-button"
                                                 class="button-secondary ares-button">
                                                 Načíst z ARES
@@ -225,12 +203,10 @@
 
                                         <span id="ares-status" class="ares-status" role="status" aria-live="polite">
                                         </span>
-
                                         {{ billing_form.ico.errors }}
 
                                         <div class="ares-notice" role="note">
                                             <span class="ares-notice-icon" aria-hidden="true">!</span>
-
                                             <p>
                                                 <strong>Zkontrolujte načtené údaje.</strong>
                                                 Informace jsou automaticky přebírány z registru ARES.
@@ -240,7 +216,6 @@
                                             </p>
                                         </div>
                                     </div>
-
                                     <div class="register-field">
                                         {{ billing_form.dic }}
                                         {{ billing_form.dic.errors }}
@@ -250,7 +225,6 @@
                                         {{ billing_form.company_name }}
                                         {{ billing_form.company_name.errors }}
                                     </div>
-
                                     <div class="register-field">
                                         {{ billing_form.street }}
                                         {{ billing_form.street.errors }}
@@ -260,7 +234,6 @@
                                         {{ billing_form.city }}
                                         {{ billing_form.city.errors }}
                                     </div>
-
                                     <div class="register-field">
                                         {{ billing_form.zip_code }}
                                         {{ billing_form.zip_code.errors }}
@@ -270,7 +243,6 @@
                                         {{ billing_form.country }}
                                         {{ billing_form.country.errors }}
                                     </div>
-
                                     <div class="contact-person-section">
                                         <div class="contact-person-heading">
                                             <h3>Kontaktní osoba</h3>
@@ -278,40 +250,33 @@
                                                 Na tyto údaje budeme zasílat informace související s objednávkou.
                                             </p>
                                         </div>
-
                                         <div class="contact-person-grid">
                                             <div class="register-field">
                                                 {{ billing_form.contact_first_name }}
                                                 {{ billing_form.contact_first_name.errors }}
                                             </div>
-
                                             <div class="register-field">
                                                 {{ billing_form.contact_last_name }}
                                                 {{ billing_form.contact_last_name.errors }}
                                             </div>
-
                                             <div class="register-field contact-phone-field">
                                                 <div class="contact-phone-group">
                                                     <div class="contact-phone-prefix">
                                                         {{ billing_form.contact_phone_prefix }}
                                                     </div>
-
                                                     <div class="contact-phone-number">
                                                         {{ billing_form.contact_phone }}
                                                     </div>
                                                 </div>
-
                                                 {{ billing_form.contact_phone_prefix.errors }}
                                                 {{ billing_form.contact_phone.errors }}
                                             </div>
-
                                             <div class="register-field">
                                                 {{ billing_form.contact_email }}
                                                 {{ billing_form.contact_email.errors }}
                                             </div>
                                         </div>
                                     </div>
-
 
                                     <div class="register-field billing-note">
                                         {{ billing_form.note }}
@@ -323,47 +288,28 @@
 
                             </div>
                         </section>
-
                         <section class="checkout-step-panel" data-step-panel="5" hidden>
                             <div class="final-summary-card">
                                 <h2>Shrnutí objednávky</h2>
 
                                 <div class="final-summary-section">
                                     <h3>Kurz</h3>
-
                                     <div class="final-course-summary">
                                         <strong id="final-course-title">Vybraný kurz</strong>
                                         <span id="final-course-meta"></span>
                                         <span>Počet účastníků: <strong id="final-participant-count">1</strong></span>
                                     </div>
                                 </div>
-
                                 <div class="final-summary-section">
                                     <h3>Fakturační údaje</h3>
                                     <dl class="final-summary-list" id="final-billing-summary"></dl>
                                 </div>
-
                                 <div class="final-summary-section final-summary-total">
                                     <span>Celková cena objednávky</span>
                                     <strong id="final-order-total">0 Kč</strong>
                                 </div>
-
-                                <label for="terms-agreement" class="terms-agreement-label">
-                                    <input type="checkbox" id="terms-agreement" name="terms_agreement" required>
-                                    Souhlasím s
-                                    <a href="#" class="terms-link" data-legal-modal-open="terms-modal">
-                                        obchodními podmínkami
-                                    </a>
-                                    a
-                                    <a href="#" class="terms-link" data-legal-modal-open="privacy-modal">
-                                        zásadami ochrany osobních údajů
-                                    </a>
-                                    *
-                                </label>
-
                                 <div class="final-summary-section">
                                     <h3>Účastníci kurzu</h3>
-
                                     <div class="final-participants-table-wrap">
                                         <table class="final-participants-table">
                                             <thead>
@@ -377,80 +323,83 @@
                                         </table>
                                     </div>
                                 </div>
-
-                                <div class="register-actions">
-                                    <button type="button" class="add-person-button" id="summary-previous-button">
-                                        Zpět
-                                    </button>
-
-                                    <button type="submit" class="button-primary" form="registration-form">
-                                        Odeslat objednávku
-                                    </button>
-                                </div>
                             </div>
                         </section>
                     </form>
 
                     <aside class="order-summary-card course-info-action-card" id="course-info-action-card" hidden>
-                        <h2>Pokračovat</h2>
-
-                        <p>
+                        <h2 id="course-info-action-title">Pokračovat</h2>
+                        <p id="course-info-action-text">
                             Po přečtení informací pokračujte k zadání účastníků školení.
                         </p>
 
                         <button type="button" class="summary-submit-button" id="go-to-participants-button">
                             Přejít k objednávce
                         </button>
-
-                        <button type="button" class="delete-order-button">
-                            Zrušit objednávku
+                        <button type="button" class="restart-order-button">
+                            Návrat na začátek objednávky
                         </button>
                     </aside>
 
                     <aside class="order-summary-card" id="order-summary-card" hidden>
                         <h2>Shrnutí objednávky</h2>
-
                         <div class="summary-product">
                             <div>
                                 <strong id="summary-count">1×</strong>
                                 <span id="summary-product-title">Kurz zatím není vybrán</span>
                             </div>
-
                             <div class="summary-product-meta">
                                 <span id="summary-product-meta">Vyberte typ školení</span>
                                 <strong id="summary-product-price">0 Kč</strong>
                             </div>
                         </div>
-
                         <div class="summary-total-row">
                             <span>Celkem s DPH</span>
                             <strong id="summary-total-vat">0 Kč</strong>
                         </div>
-
                         <div class="summary-total-row summary-total-row--muted">
                             <span>Celkem bez DPH</span>
                             <span id="summary-total-no-vat">0 Kč</span>
                         </div>
                         <button type="button" class="summary-submit-button" id="participants-to-billing-button">
-                            Pokračovat k fakturačním údajům
+                            Pokračovat k platbě
                         </button>
-
                         <button type="button" class="summary-submit-button" id="go-to-final-summary-button" hidden>
                             Pokračovat na shrnutí
                         </button>
 
-                        <button type="button" class="delete-order-button" id="delete-order-button">
-                            Zrušit objednávku
+                        <button type="button" class="restart-order-button">
+                            Návrat na začátek objednávky
                         </button>
+                    </aside>
 
-
+                    <aside class="order-summary-card final-order-action-card" id="final-order-action-card" hidden>
+                        <h2>Dokončit objednávku</h2>
+                        <p>
+                            Zkontrolujte prosím shrnutí objednávky a potvrďte souhlas s obchodními podmínkami.
+                        </p>
+                        <label for="terms-agreement" class="terms-agreement-label final-action-consent">
+                            <input type="checkbox" id="terms-agreement" name="terms_agreement" form="registration-form" required>
+                            <span>
+                                Souhlasím s
+                                <a href="#" class="terms-link" data-legal-modal-open="terms-modal">obchodními podmínkami</a>
+                                a
+                                <a href="#" class="terms-link" data-legal-modal-open="privacy-modal">zásadami ochrany osobních údajů</a>
+                                *
+                            </span>
+                        </label>
+                        <button type="submit" class="summary-submit-button" form="registration-form">
+                            Dokončit objednávku
+                        </button>
+                        <button type="button" class="restart-order-button">
+                            Návrat na začátek objednávky
+                        </button>
                     </aside>
                 </div>
             </div>
         </section>
     </div>
 </main>
-
 <div class="legal-modal-overlay" id="terms-modal" aria-hidden="true">
     <div class="legal-modal-window" role="dialog" aria-modal="true" aria-labelledby="terms-modal-title">
         <div class="legal-modal-header">
@@ -461,7 +410,6 @@
                 <span aria-hidden="true">×</span>
             </button>
         </div>
-
         <iframe class="legal-modal-frame" src="{% url 'terms_and_conditions' %}" title="Obchodní podmínky">
         </iframe>
     </div>
@@ -471,7 +419,6 @@
     <div class="legal-modal-window" role="dialog" aria-modal="true" aria-labelledby="privacy-modal-title">
         <div class="legal-modal-header">
             <h2 class="legal-modal-title" id="privacy-modal-title">Zásady ochrany osobních údajů</h2>
-
             <button type="button" class="legal-modal-close" data-legal-modal-close>
                 Zavřít
                 <span aria-hidden="true">×</span>
@@ -486,5 +433,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'courses/js/registration.js' %}?v=1" defer></script>
+<script src="{% static 'courses/js/registration.js' %}?v=3" defer></script>
 {% endblock %}
