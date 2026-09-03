@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
-    localStorage.removeItem("elektroakademie_order_draft");
+    window.ElektroakademieOrderDraft.clear();
 
     let seconds = 30;
     const paymentPage = document.querySelector("main[data-index-url]");

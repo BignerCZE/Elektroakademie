@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    const draftOrder = localStorage.getItem("elektroakademie_order_draft");
+    const draftOrder = window.ElektroakademieOrderDraft.exists();
     const startOrderLink = document.getElementById("start-order-link");
     const draftOrderLink = document.getElementById("draft-order-link");
 

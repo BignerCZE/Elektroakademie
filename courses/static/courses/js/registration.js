@@ -1,10 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const ORDER_DRAFT_KEY = "elektroakademie_order_draft_v2";
-    const ORDER_DRAFT_KEYS = [
-        "elektroakademie_order_draft",
-        "elektroakademie_order_draft_v2",
-        "elektroakademie_order_draft_v3"
-    ];
+    const orderDraftStorage = window.ElektroakademieOrderDraft;
+    const ORDER_DRAFT_KEY = orderDraftStorage.currentKey;
     const registrationForm = document.getElementById("registration-form");
     const hasParticipantServerErrors =
         registrationForm.dataset.participantServerErrors === "true";
@@ -1327,9 +1323,7 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        ORDER_DRAFT_KEYS.forEach(function (key) {
-            localStorage.removeItem(key);
-        });
+        orderDraftStorage.clear();
 
         window.location.href = registrationForm.dataset.indexUrl;
     }

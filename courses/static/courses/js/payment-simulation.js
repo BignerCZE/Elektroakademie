@@ -1,4 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
+    window.ElektroakademieOrderDraft.clear();
+
     const paymentPage = document.querySelector("main[data-success-url]");
 
     let seconds = 5;
