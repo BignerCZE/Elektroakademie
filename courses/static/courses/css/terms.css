@@ -1,3 +1,8 @@
+/* Právní dokumenty používají zjednodušenou hlavičku pouze s vystředěným logem. */
+.legal-topbar .topbar-inner {
+    justify-content: center;
+}
+
 .terms-page {
     padding: 48px 0 72px;
     background: var(--page-blue-bg);
@@ -39,7 +44,7 @@
 .terms-card h3 {
     margin-top: 22px;
     margin-bottom: 8px;
-    color: var(--color-primary);
+    color: var(--color-bg-mid);
     font-size: 1rem;
     font-weight: 800;
 }

@@ -2,9 +2,11 @@
 {% load static %}
 
 {% block title %}Obchodní podmínky | Elektroakademie{% endblock %}
+{% block topbar_class %} legal-topbar{% endblock %}
+{% block topbar_controls %}{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'courses/css/terms.css' %}">
+<link rel="stylesheet" href="{% static 'courses/css/terms.css' %}?v=2">
 {% endblock %}
 
 {% block content %}
