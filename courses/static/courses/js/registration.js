@@ -369,6 +369,51 @@ document.addEventListener("DOMContentLoaded", function () {
     const courseInfoActionText = document.getElementById("course-info-action-text");
     const orderSummaryCard = document.getElementById("order-summary-card");
     const finalOrderActionCard = document.getElementById("final-order-action-card");
+    const mobileCheckoutNextButton = document.createElement("button");
+    mobileCheckoutNextButton.type = "button";
+    mobileCheckoutNextButton.id = "mobile-checkout-next-button";
+    mobileCheckoutNextButton.className = "mobile-checkout-next-button";
+    mobileCheckoutNextButton.hidden = true;
+
+    if (checkoutBackButton && checkoutBackButton.parentNode) {
+        checkoutBackButton.parentNode.insertBefore(mobileCheckoutNextButton, checkoutBackButton);
+    }
+
+    function getMobileCheckoutTarget(step) {
+        if (step === 2) return goToParticipantsButton;
+        if (step === 3) return participantsToBillingButton;
+        if (step === 4) return goToFinalSummaryButton;
+        if (step === 5 && finalOrderActionCard) {
+            return finalOrderActionCard.querySelector('button[type="submit"], input[type="submit"]');
+        }
+        return null;
+    }
+
+    function updateMobileCheckoutAction(step) {
+        const target = getMobileCheckoutTarget(step);
+
+        if (!target) {
+            mobileCheckoutNextButton.hidden = true;
+            mobileCheckoutNextButton.disabled = false;
+            mobileCheckoutNextButton.textContent = "";
+            return;
+        }
+
+        mobileCheckoutNextButton.hidden = false;
+        mobileCheckoutNextButton.disabled = Boolean(target.disabled);
+        mobileCheckoutNextButton.textContent =
+            (target.textContent || target.value || "Pokračovat").trim();
+    }
+
+    mobileCheckoutNextButton.addEventListener("click", function () {
+        const step = Number(document.body.dataset.checkoutStep || "1");
+        const target = getMobileCheckoutTarget(step);
+
+        if (target && !target.disabled) {
+            target.click();
+        }
+    });
+
     const finalSummaryConsent = document.getElementById("final-summary-consent");
     const finalSummaryConsentInput = finalSummaryConsent ? finalSummaryConsent.querySelector("input") : null;
     const selectedCourseTitle = document.getElementById("selected-course-title");
@@ -986,6 +1031,7 @@ document.addEventListener("DOMContentLoaded", function () {
         finalOrderActionCard.hidden = step !== 5;
         participantsToBillingButton.hidden = step !== 3;
         goToFinalSummaryButton.hidden = step !== 4;
+        updateMobileCheckoutAction(step);
 
         if (finalSummaryConsentInput) {
             finalSummaryConsentInput.disabled = step !== 5;
@@ -1133,6 +1179,30 @@ document.addEventListener("DOMContentLoaded", function () {
             window.scrollTo({ top: 0, behavior: "smooth" });
         });
     }
+    [
+        goToParticipantsButton,
+        participantsToBillingButton,
+        goToFinalSummaryButton
+    ].filter(Boolean).forEach(function (button) {
+        new MutationObserver(function () {
+            updateMobileCheckoutAction(Number(document.body.dataset.checkoutStep || "1"));
+        }).observe(button, {
+            attributes: true,
+            childList: true,
+            subtree: true
+        });
+    });
+
+    if (finalOrderActionCard) {
+        new MutationObserver(function () {
+            updateMobileCheckoutAction(Number(document.body.dataset.checkoutStep || "1"));
+        }).observe(finalOrderActionCard, {
+            attributes: true,
+            childList: true,
+            subtree: true
+        });
+    }
+
     if (addButton) {
         addButton.addEventListener("click", function () {
             const newParticipant = cloneParticipant();

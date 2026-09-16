@@ -1,0 +1,1054 @@
+/*
+ * Targeted responsive corrections for checkout and participant dashboard.
+ * This stylesheet is loaded after page-specific CSS so the existing desktop
+ * design remains the source of truth outside the breakpoints below.
+ */
+
+/* Prevent grid/flex children in the two audited application shells from
+   forcing their parent wider than the viewport. */
+.register-page .register-card,
+.register-page .register-checkout-shell,
+.register-page .checkout-layout,
+.register-page .register-form,
+.register-page .checkout-layout > *,
+.register-page .participant-card,
+.register-page .billing-card,
+.register-page .order-summary-card,
+.register-page .course-info-action-card,
+.dashboard-shell-page .container,
+.dashboard-shell-page .dashboard-shell,
+.dashboard-shell-page .dashboard-shell-main,
+.dashboard-shell-page .dashboard-shell-sidebar,
+.dashboard-shell-page .content-card,
+.dashboard-shell-page .quiz-card,
+.dashboard-shell-page .quiz-review-card {
+    min-width: 0;
+    max-width: 100%;
+}
+
+/* Long user/order values must wrap instead of widening cards. */
+.register-page .summary-product,
+.register-page .summary-product-meta,
+.register-page .summary-total-row,
+.register-page .final-summary-list,
+.register-page .final-summary-list dd,
+.register-page .final-summary-list dt,
+.register-page .participant-card,
+.register-page .billing-card,
+.dashboard-shell-page .sidebar-account-item,
+.dashboard-shell-page .sidebar-account-item strong,
+.dashboard-shell-page .info-value,
+.dashboard-shell-page .certificate-page-card p,
+.dashboard-shell-page .certificate-page-card strong {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    word-break: normal;
+}
+
+.register-page img,
+.register-page iframe,
+.dashboard-shell-page img,
+.dashboard-shell-page video,
+.dashboard-shell-page iframe {
+    max-width: 100%;
+}
+
+/* Tables scroll inside their own wrapper; they must never widen the page. */
+.register-page .final-participants-table-wrap,
+.dashboard-shell-page .table-wrapper {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Legal dialogs belong to checkout but are mounted outside .register-page. */
+.legal-modal-window,
+.legal-modal-header,
+.legal-modal-frame {
+    min-width: 0;
+    max-width: 100%;
+}
+
+/* ------------------------- tablet / small laptop ------------------------- */
+@media (max-width: 1100px) {
+    .register-page .checkout-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .register-page .order-summary-card,
+    .register-page .course-info-action-card,
+    .register-page .final-order-action-card {
+        position: static;
+        top: auto;
+        width: 100%;
+    }
+
+    .dashboard-shell-page .dashboard-shell {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 900px) {
+    /* The five-step strip remains sticky, but uses its own horizontal area
+       instead of forcing the whole checkout wider. */
+    .register-page .checkout-steps {
+        min-width: 0;
+    }
+
+    .register-page .checkout-steps-left {
+        min-width: 0;
+        max-width: 100%;
+        overflow-x: auto;
+        overscroll-behavior-inline: contain;
+        scrollbar-width: thin;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .register-page .checkout-step {
+        flex: 0 0 auto;
+    }
+
+    .register-page .benefit-row,
+    .register-page .register-grid,
+    .register-page .participant-grid,
+    .register-page .billing-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .register-page .register-field--wide,
+    .register-page .billing-note {
+        grid-column: auto;
+    }
+}
+
+/* ------------------------------ tablet ---------------------------------- */
+@media (max-width: 768px) {
+    .register-page {
+        padding-top: 16px;
+        padding-bottom: 32px;
+    }
+
+    .register-page > .container {
+        width: min(100% - 24px, var(--container-width, 1200px));
+    }
+
+    .register-page .register-checkout-shell {
+        padding: 18px;
+        border-radius: 18px;
+    }
+
+    .register-page .checkout-steps {
+        gap: 12px;
+        margin: -18px -18px 20px;
+        padding: 12px 18px;
+        border-radius: 18px 18px 0 0;
+    }
+
+    /* At phone/tablet widths the number is the stable navigation affordance.
+       Keeping all five labels visible is what previously forced overflow. */
+    .register-page .checkout-steps-left {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(34px, 1fr));
+        gap: 8px;
+        width: 100%;
+        overflow: visible;
+    }
+
+    .register-page .checkout-step {
+        justify-content: center;
+        min-width: 0;
+        padding: 4px 0;
+        gap: 0;
+        font-size: 0;
+    }
+
+    .register-page .checkout-step span {
+        width: 34px;
+        height: 34px;
+        flex: 0 0 34px;
+        font-size: 15px;
+    }
+
+    .register-page .checkout-back-button {
+        flex: 0 0 auto;
+        min-height: 42px;
+        padding-inline: 16px;
+    }
+
+    .register-page .participant-card,
+    .register-page .billing-card,
+    .register-page .order-summary-card,
+    .register-page .course-info-action-card,
+    .register-page .final-summary-card {
+        padding: 20px;
+    }
+
+    .register-page .participant-header {
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .register-page .register-actions,
+    .register-page .final-summary-actions,
+    .register-page .final-order-actions {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .register-page .register-actions > *,
+    .register-page .final-summary-actions > *,
+    .register-page .final-order-actions > *,
+    .register-page .button-primary,
+    .register-page .button-secondary,
+    .register-page .add-person-button,
+    .register-page .summary-submit-button,
+    .register-page .delete-order-button,
+    .register-page .restart-order-button {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+    }
+
+    .register-page .summary-product > div:first-child,
+    .register-page .summary-product-meta,
+    .register-page .summary-total-row {
+        min-width: 0;
+    }
+
+    .register-page .final-summary-list div {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 4px;
+    }
+
+    .register-page .final-participants-table {
+        min-width: 600px;
+    }
+
+    .register-page .summary-consent,
+    .register-page .final-summary-consent,
+    .register-page .billing-checkbox {
+        align-items: flex-start;
+    }
+
+    .register-page .summary-consent input,
+    .register-page .final-summary-consent input,
+    .register-page .billing-checkbox input {
+        flex: 0 0 auto;
+        margin-top: 3px;
+    }
+
+    /* Participant area */
+    .dashboard-shell-page {
+        padding: 0;
+    }
+
+    .dashboard-shell-page > .container {
+        width: min(100% - 24px, var(--container-width, 1200px));
+    }
+
+    .dashboard-shell-page .dashboard-shell {
+        gap: 16px;
+        padding-top: 16px;
+    }
+
+    .dashboard-shell-page .dashboard-sidebar-panel,
+    .dashboard-shell-page .content-card,
+    .dashboard-shell-page .quiz-card,
+    .dashboard-shell-page .quiz-review-card .quiz-card {
+        padding: 20px;
+        border-radius: 18px;
+    }
+
+    .dashboard-shell-page .sidebar-account-item {
+        display: grid;
+        grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+        gap: 10px;
+    }
+
+    .dashboard-shell-page .sidebar-account-item strong {
+        text-align: right;
+    }
+
+    .dashboard-shell-page .sidebar-nav {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .dashboard-shell-page .sidebar-nav > a,
+    .dashboard-shell-page .sidebar-nav > span {
+        min-width: 0;
+        margin: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .dashboard-shell-page .page-title {
+        font-size: clamp(26px, 7vw, 30px);
+    }
+
+    /* Quiz: readable question, comfortable answers, stable controls. */
+    .dashboard-shell-page .quiz-card h1 {
+        font-size: 24px;
+    }
+
+    .dashboard-shell-page .quiz-question,
+    .dashboard-shell-page .quiz-review-question {
+        padding-block: 14px;
+    }
+
+    .dashboard-shell-page .quiz-question h2,
+    .dashboard-shell-page .quiz-question-content h2 {
+        margin: 14px 0 18px;
+        font-size: clamp(1.25rem, 5vw, 1.5rem);
+        line-height: 1.35;
+    }
+
+    .dashboard-shell-page .quiz-question-content {
+        min-height: 0;
+    }
+
+    .dashboard-shell-page .quiz-answers {
+        gap: 12px;
+        margin: 8px 0 22px;
+    }
+
+    .dashboard-shell-page .quiz-answer {
+        min-width: 0;
+        min-height: 58px;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 14px 16px;
+        border-radius: 14px;
+    }
+
+    .dashboard-shell-page .quiz-answer,
+    .dashboard-shell-page .quiz-answer span,
+    .dashboard-shell-page .quiz-answer label {
+        font-size: 1rem;
+        line-height: 1.45;
+        overflow-wrap: anywhere;
+    }
+
+    .dashboard-shell-page .quiz-answer input {
+        flex: 0 0 auto;
+        margin-top: 3px;
+    }
+
+    .dashboard-shell-page .quiz-question-switcher {
+        gap: 7px;
+        margin-bottom: 18px;
+    }
+
+    .dashboard-shell-page .quiz-question-link,
+    .dashboard-shell-page .quiz-question-number {
+        width: 32px;
+        height: 32px;
+        flex: 0 0 32px;
+        font-size: 0.9rem;
+    }
+
+    .dashboard-shell-page .quiz-navigation,
+    .dashboard-shell-page .quiz-actions,
+    .dashboard-shell-page .button-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .dashboard-shell-page .quiz-navigation > *,
+    .dashboard-shell-page .quiz-actions > *,
+    .dashboard-shell-page .button-row > *,
+    .dashboard-shell-page .primary-button,
+    .dashboard-shell-page .button-primary,
+    .dashboard-shell-page .button-secondary {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+    }
+
+    /* History remains a real table; scrolling is limited to this wrapper. */
+    .dashboard-shell-page .quiz-history-table,
+    .dashboard-shell-page .dashboard-table {
+        min-width: 620px;
+    }
+
+    .dashboard-shell-page .quiz-history-table th,
+    .dashboard-shell-page .quiz-history-table td {
+        padding: 10px 12px;
+    }
+
+    /* Certificate overview page, not the printable A4 itself. */
+    .dashboard-shell-page .certificate-page-card p {
+        line-height: 1.5;
+    }
+
+    .dashboard-shell-page .certificate-page-card .primary-button {
+        display: flex;
+        width: 100%;
+        max-width: 100%;
+        white-space: normal;
+        text-align: center;
+    }
+}
+
+/* ------------------------------- phones --------------------------------- */
+@media (max-width: 600px) {
+    .register-page .ares-input-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .register-page .ares-button {
+        width: 100%;
+        min-width: 0;
+        white-space: normal;
+    }
+
+    .legal-modal-overlay {
+        align-items: stretch;
+        padding: 0;
+    }
+
+    .legal-modal-window {
+        width: 100vw;
+        max-width: 100vw;
+        height: 100vh;
+        height: 100dvh;
+        max-height: none;
+        border-radius: 0;
+    }
+
+    .legal-modal-header {
+        min-height: 56px;
+        padding: 10px 12px 10px 16px;
+        gap: 10px;
+    }
+
+    .legal-modal-header h2 {
+        min-width: 0;
+        font-size: 1rem;
+        line-height: 1.25;
+        overflow-wrap: anywhere;
+    }
+
+    .legal-modal-close {
+        flex: 0 0 42px;
+    }
+
+    .legal-modal-frame {
+        width: 100%;
+        flex: 1 1 auto;
+    }
+
+    /* Certificate preview: A4 keeps its print dimensions and is deliberately
+       panned inside the modal, never at page level. */
+    .certificate-modal-overlay {
+        align-items: stretch;
+        padding: 0;
+    }
+
+    .certificate-modal {
+        width: 100vw;
+        max-width: 100vw;
+        height: 100vh;
+        height: 100dvh;
+        max-height: none;
+        border-radius: 0;
+    }
+
+    .certificate-modal-header {
+        min-height: 56px;
+        padding: 8px 12px 8px 16px;
+    }
+
+    .certificate-modal-header h2 {
+        min-width: 0;
+        font-size: 1rem;
+        overflow-wrap: anywhere;
+    }
+
+    .certificate-modal-content {
+        width: 100%;
+        min-width: 0;
+        padding: 8px;
+        overflow: auto;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+@media (max-width: 480px) {
+    .dashboard-shell-page > .container {
+        width: min(100% - 16px, var(--container-width, 1200px));
+    }
+
+    .register-page .checkout-steps-left {
+        gap: 5px;
+    }
+
+    .register-page .checkout-step span {
+        width: 32px;
+        height: 32px;
+        flex-basis: 32px;
+        font-size: 14px;
+    }
+
+    .register-page .participant-card,
+    .register-page .billing-card,
+    .register-page .order-summary-card,
+    .register-page .course-info-action-card,
+    .register-page .final-summary-card {
+        padding: 16px;
+        border-radius: 16px;
+    }
+
+    .register-page .register-field input,
+    .register-page .register-field select,
+    .register-page .register-field textarea {
+        min-width: 0;
+        padding-inline: 14px;
+        font-size: 16px; /* prevents input zoom on iOS */
+    }
+
+    .register-page .summary-product-meta,
+    .register-page .summary-total-row {
+        flex-wrap: wrap;
+        row-gap: 4px;
+    }
+
+    .register-page .summary-total-row strong,
+    .register-page .summary-total-row span:last-child {
+        max-width: 100%;
+        overflow-wrap: anywhere;
+    }
+
+    .dashboard-shell-page .dashboard-sidebar-panel,
+    .dashboard-shell-page .content-card,
+    .dashboard-shell-page .quiz-card,
+    .dashboard-shell-page .quiz-review-card .quiz-card {
+        padding: 16px;
+        border-radius: 16px;
+    }
+
+    .dashboard-shell-page .sidebar-account-item {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 3px;
+    }
+
+    .dashboard-shell-page .sidebar-account-item strong {
+        text-align: left;
+    }
+
+    .dashboard-shell-page .sidebar-nav {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .dashboard-shell-page .quiz-question-switcher {
+        gap: 6px;
+    }
+
+    .dashboard-shell-page .quiz-question-link,
+    .dashboard-shell-page .quiz-question-number {
+        width: 30px;
+        height: 30px;
+        flex-basis: 30px;
+        font-size: 0.84rem;
+    }
+
+    .dashboard-shell-page .quiz-answer {
+        padding: 13px 14px;
+    }
+}
+
+@media (max-width: 360px) {
+    .dashboard-shell-page .dashboard-sidebar-panel,
+    .dashboard-shell-page .content-card,
+    .dashboard-shell-page .quiz-card,
+    .dashboard-shell-page .quiz-review-card .quiz-card {
+        padding: 14px;
+    }
+
+    .dashboard-shell-page .quiz-question-link,
+    .dashboard-shell-page .quiz-question-number {
+        width: 29px;
+        height: 29px;
+        flex-basis: 29px;
+    }
+}
+
+/* -------------------------------------------------------------------------
+   Quiz mobile overflow hotfix
+   The original dashboard stylesheet applies a desktop max-height/overflow
+   rule after its media queries. On narrow screens that can clip a long
+   question and push the navigation buttons outside the white quiz card.
+   ------------------------------------------------------------------------- */
+@media (max-width: 768px) {
+    .dashboard-shell-page .dashboard-shell-main > .quiz-card {
+        align-self: stretch;
+        width: 100%;
+        max-width: 100%;
+        height: auto;
+        max-height: none;
+        overflow: visible;
+    }
+
+    .dashboard-shell-page #quiz-question-form {
+        flex: 0 0 auto;
+        width: 100%;
+        min-width: 0;
+        min-height: 0;
+        height: auto;
+        overflow: visible;
+    }
+
+    .dashboard-shell-page .quiz-question,
+    .dashboard-shell-page .quiz-question-content {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        height: auto;
+        min-height: 0;
+        overflow: visible;
+    }
+
+    .dashboard-shell-page .quiz-question-content {
+        display: block;
+    }
+
+    .dashboard-shell-page .quiz-question h2,
+    .dashboard-shell-page .quiz-question-content h2 {
+        display: block;
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        white-space: normal;
+        overflow-wrap: break-word;
+        word-break: normal;
+    }
+
+    .dashboard-shell-page .quiz-answers {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    .dashboard-shell-page .quiz-answer {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    .dashboard-shell-page .quiz-answer > * {
+        min-width: 0;
+    }
+
+    .dashboard-shell-page .quiz-navigation {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        margin-top: 12px;
+        padding-top: 12px;
+        padding-bottom: 0;
+        box-sizing: border-box;
+    }
+
+    .dashboard-shell-page .quiz-navigation > *,
+    .dashboard-shell-page .quiz-navigation button,
+    .dashboard-shell-page .quiz-navigation a,
+    .dashboard-shell-page .quiz-submit-form,
+    .dashboard-shell-page .quiz-submit-form button {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    .dashboard-shell-page .quiz-submit-form {
+        margin-top: 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .dashboard-shell-page .quiz-card {
+        padding: 16px;
+    }
+
+    .dashboard-shell-page .quiz-card h1 {
+        font-size: 1.45rem;
+        line-height: 1.2;
+    }
+
+    .dashboard-shell-page .quiz-question h2,
+    .dashboard-shell-page .quiz-question-content h2 {
+        margin: 10px 0 14px;
+        font-size: 1.18rem;
+        line-height: 1.35;
+    }
+
+    .dashboard-shell-page .quiz-answers {
+        gap: 10px;
+        margin-top: 8px;
+        margin-bottom: 14px;
+    }
+
+    .dashboard-shell-page .quiz-answer {
+        min-height: 0;
+        padding: 12px 13px;
+    }
+}
+
+/* Mobile checkout: primary action stays visible together with Back. */
+.mobile-checkout-next-button {
+    display: none;
+}
+
+@media (max-width: 640px) {
+    .checkout-steps {
+        align-items: stretch;
+    }
+
+    .mobile-checkout-next-button {
+        order: 2;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        min-width: 0;
+        min-height: 42px;
+        padding: 0 16px;
+        border: 0;
+        border-radius: 14px;
+        background: #183b6b;        
+        color: #ffffff;
+        font: inherit;
+        font-weight: 700;
+        line-height: 1.2;
+        text-align: center;
+        cursor: pointer;
+    }
+
+    .mobile-checkout-next-button:hover {
+        background: #102d53;
+    }
+
+    .mobile-checkout-next-button:disabled {
+        opacity: 0.58;
+        cursor: wait;
+    }
+
+    .mobile-checkout-next-button[hidden] {
+        display: none;
+    }
+
+    .checkout-back-button {
+        order: 3;
+    }
+}
+
+/* Mobile checkout – compact typography across ALL checkout steps */
+@media (max-width: 640px) {
+    /* Základní text celé objednávky */
+    .register-page {
+        font-size: 15px;
+        line-height: 1.45;
+    }
+
+    /* Hlavní nadpis stránky / kroku */
+    .register-page h1 {
+        font-size: 1.55rem;
+        line-height: 1.2;
+    }
+
+    /* Nadpisy hlavních karet */
+    .register-page h2 {
+        font-size: 1.25rem;
+        line-height: 1.25;
+    }
+
+    /* Menší nadpisy uvnitř formuláře */
+    .register-page h3,
+    .register-page h4 {
+        font-size: 1.05rem;
+        line-height: 1.3;
+    }
+
+    /* Běžné texty napříč všemi kroky */
+    .register-page p,
+    .register-page li,
+    .register-page td,
+    .register-page th,
+    .register-page .summary-row,
+    .register-page .summary-item,
+    .register-page .field-help,
+    .register-page .field-hint,
+    .register-page .course-description {
+        font-size: 0.93rem;
+        line-height: 1.45;
+    }
+
+    /* Labely formulářových polí */
+    .register-page label,
+    .register-page .form-label {
+        font-size: 0.92rem;
+        line-height: 1.35;
+    }
+
+    /* Doplňkové / sekundární informace */
+    .register-page small,
+    .register-page .help-text,
+    .register-page .muted,
+    .register-page .secondary-text {
+        font-size: 0.85rem;
+        line-height: 1.4;
+    }
+
+    /* VOP/GDPR a další checkboxové texty */
+    .register-page .consent-row,
+    .register-page .consent-row label,
+    .register-page .checkbox-row,
+    .register-page .checkbox-row label {
+        font-size: 0.88rem;
+        line-height: 1.4;
+    }
+
+    /* Inputy záměrně minimálně 16 px.
+       Na iOS tím zabráníme automatickému zoomu při focusu. */
+    .register-page input,
+    .register-page select,
+    .register-page textarea {
+        font-size: 16px;
+    }
+
+    /* Všechna objednávková tlačítka */
+    .register-page button,
+    .register-page .button-primary,
+    .register-page .button-secondary,
+    .register-page .summary-submit-button,
+    .register-page .checkout-back-button,
+    .register-page .restart-order-button,
+    .register-page .add-person-button,
+    .mobile-checkout-next-button {
+        font-size: 0.94rem;
+        line-height: 1.2;
+    }
+
+
+
+    /* Ceny a důležité hodnoty zůstávají o něco výraznější */
+    .register-page .price,
+    .register-page .summary-price,
+    .register-page .total-price {
+        font-size: 1rem;
+    }
+}
+
+/* Mobile checkout – compact spacing across ALL checkout steps */
+@media (max-width: 640px) {
+
+    /* Celkový layout objednávky */
+    .register-page .checkout-layout,
+    .register-page .checkout-main,
+    .register-page .register-form,
+    .register-page .checkout-content {
+        gap: 12px;
+    }
+
+    /* Všechny hlavní obsahové karty ve všech krocích */
+    .register-page .participant-card,
+    .register-page .billing-card,
+    .register-page .order-summary-card,
+    .register-page .course-info-action-card,
+    .register-page .final-summary-card,
+    .register-page .course-selection-card,
+    .register-page .register-card,
+    .register-page .form-card {
+        padding: 15px;
+    }
+
+    /* Nadpisy ve všech krocích */
+    .register-page h1,
+    .register-page h2,
+    .register-page h3 {
+        margin-top: 0;
+        margin-bottom: 10px;
+    }
+
+    /* Běžné texty */
+    .register-page p {
+        margin-top: 0;
+        margin-bottom: 8px;
+    }
+
+    /* Formulářové řádky a skupiny */
+    .register-page .form-row,
+    .register-page .form-group,
+    .register-page .field-group,
+    .register-page .participant-field,
+    .register-page .billing-field {
+        margin-bottom: 10px;
+        gap: 5px;
+    }
+
+    /* Gridy formulářů */
+    .register-page .form-grid,
+    .register-page .fields-grid,
+    .register-page .participant-grid,
+    .register-page .billing-grid {
+        gap: 10px;
+    }
+
+    /* Label → input */
+    .register-page label {
+        margin-bottom: 4px;
+    }
+
+    /* Inputy – menší vertikální rozměr, font zůstává 16 px */
+    .register-page input:not([type="checkbox"]):not([type="radio"]),
+    .register-page select,
+    .register-page textarea {
+        min-height: 44px;
+        padding-top: 8px;
+        padding-bottom: 8px;
+    }
+
+    /* Jednotliví účastníci */
+    .register-page .participant-card + .participant-card {
+        margin-top: 10px;
+    }
+
+    /* Akce pod formuláři ve všech krocích */
+    .register-page .register-actions,
+    .register-page .form-actions,
+    .register-page .summary-actions,
+    .register-page .participant-actions,
+    .register-page .billing-actions {
+        gap: 8px;
+        margin-top: 12px;
+    }
+
+    /* Souhrny */
+    .register-page .summary-row,
+    .register-page .summary-item {
+        padding-top: 7px;
+        padding-bottom: 7px;
+    }
+
+    /* Checkbox / VOP / GDPR */
+    .register-page .consent-row,
+    .register-page .checkbox-row {
+        padding: 10px;
+        gap: 8px;
+    }
+
+    /* Sticky horní navigace kroků */
+    .register-page .checkout-steps {
+        gap: 8px;
+        padding-top: 8px;
+        padding-bottom: 8px;
+    }
+
+    /* Pravý souhrnný panel, který se na mobilu skládá pod obsah */
+    .register-page .checkout-sidebar,
+    .register-page .order-summary {
+        gap: 10px;
+    }
+}
+
+/* -------------------------------------------------------------------------
+   Mobile checkout – consolidated phone layout
+   One source of truth for checkout geometry at <=640px.
+   Dashboard rules above are intentionally untouched.
+   ------------------------------------------------------------------------- */
+@media (max-width: 640px) {
+    /*
+     * Break out of the site's centered desktop container. This is deliberately
+     * scoped to .register-page: the homepage and participant dashboard keep
+     * their existing geometry.
+     */
+    .register-page {
+        width: 100vw;
+        max-width: none;
+        margin-left: calc(50% - 50vw);
+        margin-right: calc(50% - 50vw);
+        padding: 0 0 24px;
+    }
+
+    .register-page > .container {
+        width: 100%;
+        max-width: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .register-page .register-checkout-shell {
+        width: 100%;
+        max-width: none;
+        margin: 0;
+        padding: 0;
+        border-radius: 0;
+    }
+
+    .register-page .checkout-layout,
+    .register-page .checkout-main,
+    .register-page .register-form,
+    .register-page .checkout-content {
+        width: 100%;
+        max-width: none;
+        min-width: 0;
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    /*
+     * The step/action strip itself is edge-to-edge. Only its controls receive
+     * internal breathing room.
+     */
+    .register-page .checkout-steps {
+        width: 100%;
+        max-width: none;
+        margin: 0;
+        padding: 8px 12px;
+        border-radius: 0;
+        box-sizing: border-box;
+    }
+
+    .register-page .checkout-steps-left {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+
+    .register-page .checkout-step {
+        min-width: 0;
+        font-size: 0;
+    }
+
+    .register-page .checkout-step span {
+        font-size: 14px;
+    }
+
+    /*
+     * Content areas fill the shell. Individual cards retain their own compact
+     * padding, so text/form fields do not touch the physical screen edge.
+     */
+    .register-page .checkout-main,
+    .register-page .checkout-content {
+        padding-left: 0;
+        padding-right: 0;
+        box-sizing: border-box;
+    }
+
+    /*
+     * Remove only the vertical gap immediately above checkout. No global
+     * header geometry is changed.
+     */
+    .register-page {
+        padding-top: 0;
+    }
+}
