@@ -865,7 +865,6 @@
     .register-page .course-info-action-card,
     .register-page .final-summary-card,
     .register-page .course-selection-card,
-    .register-page .register-card,
     .register-page .form-card {
         padding: 15px;
     }
@@ -961,56 +960,46 @@
 
 /* -------------------------------------------------------------------------
    Mobile checkout – consolidated phone layout
-   One source of truth for checkout geometry at <=640px.
-   Dashboard rules above are intentionally untouched.
+   One source of truth for checkout geometry at <=768px.
    ------------------------------------------------------------------------- */
-@media (max-width: 640px) {
-    /*
-     * Break out of the site's centered desktop container. This is deliberately
-     * scoped to .register-page: the homepage and participant dashboard keep
-     * their existing geometry.
-     */
+@media (max-width: 768px) {
+    /* .page-shell has no horizontal padding, so removing the container gutter
+       is sufficient. Avoid 100vw and negative margins here. */
     .register-page {
-        width: 100vw;
-        max-width: none;
-        margin-left: calc(50% - 50vw);
-        margin-right: calc(50% - 50vw);
-        padding: 0 0 24px;
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+        padding-top: 0;
+        padding-bottom: 24px;
     }
 
     .register-page > .container {
         width: 100%;
-        max-width: none;
+        max-width: 100%;
         margin: 0;
-        padding: 0;
+        padding-left: 0;
+        padding-right: 0;
     }
 
-    .register-page .register-checkout-shell {
-        width: 100%;
-        max-width: none;
-        margin: 0;
-        padding: 0;
-        border-radius: 0;
-    }
-
+    .register-page .register-card,
+    .register-page .register-checkout-shell,
     .register-page .checkout-layout,
-    .register-page .checkout-main,
-    .register-page .register-form,
-    .register-page .checkout-content {
+    .register-page .register-form {
         width: 100%;
-        max-width: none;
+        max-width: 100%;
         min-width: 0;
         margin-left: 0;
         margin-right: 0;
     }
 
-    /*
-     * The step/action strip itself is edge-to-edge. Only its controls receive
-     * internal breathing room.
-     */
+    .register-page .register-checkout-shell {
+        padding: 0;
+        border-radius: 0;
+    }
+
     .register-page .checkout-steps {
         width: 100%;
-        max-width: none;
+        max-width: 100%;
         margin: 0;
         padding: 8px 12px;
         border-radius: 0;
@@ -1033,22 +1022,8 @@
         font-size: 14px;
     }
 
-    /*
-     * Content areas fill the shell. Individual cards retain their own compact
-     * padding, so text/form fields do not touch the physical screen edge.
-     */
-    .register-page .checkout-main,
-    .register-page .checkout-content {
-        padding-left: 0;
-        padding-right: 0;
+    .register-page .checkout-layout,
+    .register-page .register-form {
         box-sizing: border-box;
-    }
-
-    /*
-     * Remove only the vertical gap immediately above checkout. No global
-     * header geometry is changed.
-     */
-    .register-page {
-        padding-top: 0;
     }
 }
