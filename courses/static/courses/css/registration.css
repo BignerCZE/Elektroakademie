@@ -471,6 +471,14 @@
    Kept in registration.css so it is tied to the checkout template itself.
    ========================================================================== */
 @media (max-width: 768px) {
+    body .register-page {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding-top: 0 !important;
+        padding-bottom: 24px !important;
+    }
+
     /*
      * The global .container adds 28px horizontal padding. The checkout must
      * intentionally ignore that gutter on phones/tablets while the header
@@ -478,9 +486,8 @@
      */
     body .register-page > .container {
         width: 100% !important;
-        max-width: none !important;
-        margin-left: 0 !important;
-        margin-right: 0 !important;
+        max-width: 100% !important;
+        margin: 0 !important;
         padding-left: 0 !important;
         padding-right: 0 !important;
     }
@@ -494,6 +501,11 @@
         min-width: 0 !important;
         margin-left: 0 !important;
         margin-right: 0 !important;
+    }
+
+    body .register-page .register-card {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
     }
 
     body .register-page .register-checkout-shell {
@@ -521,6 +533,16 @@
         width: 100% !important;
         min-width: 0 !important;
         max-width: 100% !important;
+        grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    }
+
+    body .register-page .checkout-step {
+        min-width: 0 !important;
+        font-size: 0 !important;
+    }
+
+    body .register-page .checkout-step span {
+        font-size: 14px !important;
     }
 
     /*
@@ -540,5 +562,9 @@
         min-width: 0 !important;
         box-sizing: border-box;
     }
-}
 
+    body .register-page .checkout-layout,
+    body .register-page .register-form {
+        box-sizing: border-box;
+    }
+}

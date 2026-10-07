@@ -4,7 +4,7 @@
 {% block title %}Elektroakademie{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'courses/css/landing.css' %}?v=20">
+<link rel="stylesheet" href="{% static 'courses/css/landing.css' %}?v=22">
 {% endblock %}
 
 {% block content %}
@@ -17,7 +17,7 @@
         <a href="#programs" class="landing-nav-link" data-target="programs">Kurzy</a>
         <a href="#courses" class="landing-nav-link" data-target="courses">Průběh</a>
         <a href="#contact" class="landing-nav-link" data-target="contact">Kontakt</a>
-        <a href="#faq" class="landing-nav-link" data-target="faq">FAQ</a>
+        <a href="#faq" class="landing-nav-link" data-faq-modal-open>FAQ</a>
     </nav>
 
     <main class="page-scroll">
@@ -471,6 +471,11 @@
                             Potřebujete poradit? Rádi vám pomůžeme
                         </h3>
 
+                        <p class="contact-faq-hint">
+                            Možná už jsme váš dotaz zodpověděli v
+                            <a href="#faq">často kladených otázkách</a>.
+                        </p>
+
                         <form class="contact-form" action="#" method="post">
                             <div class="contact-form-grid">
                                 <label>
@@ -553,144 +558,264 @@
             </div>
         </section>
 
-        <section class="page-section faq-section" id="faq">
-            <div class="container faq-inner">
-                <h2 class="section-title">Často kladené otázky</h2>
+    </main>
+</div>
 
-                <div class="faq-list">
-                    <article class="faq-item">
-                        <h3>Jak dlouho mám přístup ke kurzu?</h3>
+<div class="faq-modal-overlay" id="faq" aria-hidden="true">
+    <div class="faq-modal-window" role="dialog" aria-modal="true" aria-labelledby="faq-modal-title">
+        <div class="faq-modal-header">
+            <h2 class="faq-modal-title" id="faq-modal-title">Často kladené otázky</h2>
+            <button type="button" class="faq-modal-close" data-faq-modal-close>
+                Zavřít
+                <span aria-hidden="true">×</span>
+            </button>
+        </div>
+
+        <div class="faq-modal-content">
+            <div class="faq-accordion">
+                <article class="faq-accordion-item">
+                    <h3>
+                        <button type="button" class="faq-question" aria-expanded="false" aria-controls="faq-answer-1">
+                            <span>Jak dlouho mám přístup ke kurzu?</span>
+                            <span class="faq-question-icon" aria-hidden="true"></span>
+                        </button>
+                    </h3>
+                    <div class="faq-answer" id="faq-answer-1" hidden>
                         <p>
                             Přístup do e-learningu obdržíte po uhrazení objednávky a bude aktivní po dobu
                             60 dnů. Po celou dobu máte možnost neomezeného přístupu ke studijním materiálům
                             i testům.
                         </p>
-                    </article>
+                    </div>
+                </article>
 
-                    <article class="faq-item">
-                        <h3>Musím mít elektrotechnické vzdělání?</h3>
+                <article class="faq-accordion-item">
+                    <h3>
+                        <button type="button" class="faq-question" aria-expanded="false" aria-controls="faq-answer-2">
+                            <span>Musím mít elektrotechnické vzdělání?</span>
+                            <span class="faq-question-icon" aria-hidden="true"></span>
+                        </button>
+                    </h3>
+                    <div class="faq-answer" id="faq-answer-2" hidden>
                         <p>
                             Záleží na typu vybraného školení. Pro §4 není elektrotechnické vzdělání vyžadováno
                             a kurz je vhodný i pro úplné začátečníky. Pro školení §6 a §7 je naopak nutné
                             odpovídající elektrotechnické vzdělání dle platné legislativy.
                         </p>
-                    </article>
+                    </div>
+                </article>
 
-                    <article class="faq-item">
-                        <h3>Jak probíhá závěrečný test?</h3>
+                <article class="faq-accordion-item">
+                    <h3>
+                        <button type="button" class="faq-question" aria-expanded="false" aria-controls="faq-answer-3">
+                            <span>Jak probíhá závěrečný test?</span>
+                            <span class="faq-question-icon" aria-hidden="true"></span>
+                        </button>
+                    </h3>
+                    <div class="faq-answer" id="faq-answer-3" hidden>
                         <p>
                             Průběh závěrečného testu se liší podle typu vybraného školení. U §4 probíhá test
                             online formou e-learningu a je možné jej opakovat. U §6 a §7 po online přípravě
                             následuje také prezenční ústní přezkoušení ve zvoleném termínu.
                         </p>
-                    </article>
+                    </div>
+                </article>
 
-                    <article class="faq-item">
-                        <h3>Kdy mohu začít studovat?</h3>
+                <article class="faq-accordion-item">
+                    <h3>
+                        <button type="button" class="faq-question" aria-expanded="false" aria-controls="faq-answer-4">
+                            <span>Kdy mohu začít studovat?</span>
+                            <span class="faq-question-icon" aria-hidden="true"></span>
+                        </button>
+                    </h3>
+                    <div class="faq-answer" id="faq-answer-4" hidden>
                         <p>
                             Studovat můžete ihned po obdržení přístupových údajů do e-learningu. Studium
                             probíhá online a je pouze na vás, kdy a v jakém čase se budete přípravě věnovat.
                         </p>
-                    </article>
+                    </div>
+                </article>
 
-                    <article class="faq-item">
-                        <h3>Dostanu po absolvování doklad?</h3>
+                <article class="faq-accordion-item">
+                    <h3>
+                        <button type="button" class="faq-question" aria-expanded="false" aria-controls="faq-answer-5">
+                            <span>Dostanu po absolvování doklad?</span>
+                            <span class="faq-question-icon" aria-hidden="true"></span>
+                        </button>
+                    </h3>
+                    <div class="faq-answer" id="faq-answer-5" hidden>
                         <p>
                             Ano, po úspěšném absolvování získáte doklad o odborné způsobilosti dle vybraného
                             školení (§4, §6 nebo §7) a platné legislativy NV 194/2022 Sb.
                         </p>
-                    </article>
+                    </div>
+                </article>
 
-                    <article class="faq-item">
-                        <h3>Co když test neudělám napoprvé?</h3>
+                <article class="faq-accordion-item">
+                    <h3>
+                        <button type="button" class="faq-question" aria-expanded="false" aria-controls="faq-answer-6">
+                            <span>Co když test neudělám napoprvé?</span>
+                            <span class="faq-question-icon" aria-hidden="true"></span>
+                        </button>
+                    </h3>
+                    <div class="faq-answer" id="faq-answer-6" hidden>
                         <p>
                             Nic se neděje. U online části máte možnost test opakovat a mezi jednotlivými pokusy
                             si doplnit potřebné znalosti ze studijních materiálů.
                         </p>
-                    </article>
+                    </div>
+                </article>
 
-                    <article class="faq-item">
-                        <h3>Jak dlouho je doklad platný?</h3>
+                <article class="faq-accordion-item">
+                    <h3>
+                        <button type="button" class="faq-question" aria-expanded="false" aria-controls="faq-answer-7">
+                            <span>Jak dlouho je doklad platný?</span>
+                            <span class="faq-question-icon" aria-hidden="true"></span>
+                        </button>
+                    </h3>
+                    <div class="faq-answer" id="faq-answer-7" hidden>
                         <p>
                             Doklad o odborné způsobilosti dle NV 194/2022 Sb. má platnost 3 roky. Po uplynutí
                             této doby je nutné absolvovat přezkoušení.
                         </p>
-                    </article>
+                    </div>
+                </article>
 
-                    <article class="faq-item">
-                        <h3>Jaký je rozdíl mezi §4, §6 a §7?</h3>
+                <article class="faq-accordion-item">
+                    <h3>
+                        <button type="button" class="faq-question" aria-expanded="false" aria-controls="faq-answer-8">
+                            <span>Jaký je rozdíl mezi §4, §6 a §7?</span>
+                            <span class="faq-question-icon" aria-hidden="true"></span>
+                        </button>
+                    </h3>
+                    <div class="faq-answer" id="faq-answer-8" hidden>
                         <p>
                             §4 je určen pro osoby bez elektrotechnického vzdělání. §6 opravňuje k samostatné
                             práci na elektrických zařízeních a §7 je určen pro vedoucí elektrotechniky a osoby
                             řídící elektro činnosti.
                         </p>
-                    </article>
+                    </div>
+                </article>
 
-                    <article class="faq-item">
-                        <h3>Je školení v souladu s platnou legislativou?</h3>
+                <article class="faq-accordion-item">
+                    <h3>
+                        <button type="button" class="faq-question" aria-expanded="false" aria-controls="faq-answer-9">
+                            <span>Je školení v souladu s platnou legislativou?</span>
+                            <span class="faq-question-icon" aria-hidden="true"></span>
+                        </button>
+                    </h3>
+                    <div class="faq-answer" id="faq-answer-9" hidden>
                         <p>
                             Ano, školení i přezkoušení probíhá dle zákona č. 250/2021 Sb. a NV 194/2022 Sb.
                         </p>
-                    </article>
+                    </div>
+                </article>
 
-                    <article class="faq-item">
-                        <h3>Mohu školení absolvovat jako OSVČ?</h3>
+                <article class="faq-accordion-item">
+                    <h3>
+                        <button type="button" class="faq-question" aria-expanded="false" aria-controls="faq-answer-10">
+                            <span>Mohu školení absolvovat jako OSVČ?</span>
+                            <span class="faq-question-icon" aria-hidden="true"></span>
+                        </button>
+                    </h3>
+                    <div class="faq-answer" id="faq-answer-10" hidden>
                         <p>
                             Ano, školení je určeno jak pro zaměstnance firem, tak pro OSVČ a jednotlivce.
                         </p>
-                    </article>
+                    </div>
+                </article>
 
-                    <article class="faq-item">
-                        <h3>Je možné školení zajistit pro celou firmu?</h3>
+                <article class="faq-accordion-item">
+                    <h3>
+                        <button type="button" class="faq-question" aria-expanded="false" aria-controls="faq-answer-11">
+                            <span>Je možné školení zajistit pro celou firmu?</span>
+                            <span class="faq-question-icon" aria-hidden="true"></span>
+                        </button>
+                    </h3>
+                    <div class="faq-answer" id="faq-answer-11" hidden>
                         <p>
                             Ano, nabízíme také firemní a individuální školení přímo u zákazníka nebo v našich
                             školících prostorách.
                         </p>
-                    </article>
+                    </div>
+                </article>
 
-                    <article class="faq-item">
-                        <h3>Co potřebuji ke studiu?</h3>
+                <article class="faq-accordion-item">
+                    <h3>
+                        <button type="button" class="faq-question" aria-expanded="false" aria-controls="faq-answer-12">
+                            <span>Co potřebuji ke studiu?</span>
+                            <span class="faq-question-icon" aria-hidden="true"></span>
+                        </button>
+                    </h3>
+                    <div class="faq-answer" id="faq-answer-12" hidden>
                         <p>
                             Pro online část stačí počítač, tablet nebo mobilní telefon s připojením k internetu.
                             U §6 a §7 je pro ústní část potřeba také webkamera.
                         </p>
-                    </article>
+                    </div>
+                </article>
 
-                    <article class="faq-item">
-                        <h3>Jak rychle obdržím přístup do e-learningu?</h3>
+                <article class="faq-accordion-item">
+                    <h3>
+                        <button type="button" class="faq-question" aria-expanded="false" aria-controls="faq-answer-13">
+                            <span>Jak rychle obdržím přístup do e-learningu?</span>
+                            <span class="faq-question-icon" aria-hidden="true"></span>
+                        </button>
+                    </h3>
+                    <div class="faq-answer" id="faq-answer-13" hidden>
                         <p>
                             Přístupové údaje zasíláme po potvrzení objednávky a úhradě kurzu.
                         </p>
-                    </article>
+                    </div>
+                </article>
 
-                    <article class="faq-item">
-                        <h3>Mohu si vybrat termín přezkoušení?</h3>
+                <article class="faq-accordion-item">
+                    <h3>
+                        <button type="button" class="faq-question" aria-expanded="false" aria-controls="faq-answer-14">
+                            <span>Mohu si vybrat termín přezkoušení?</span>
+                            <span class="faq-question-icon" aria-hidden="true"></span>
+                        </button>
+                    </h3>
+                    <div class="faq-answer" id="faq-answer-14" hidden>
                         <p>
                             Ano, u §6 a §7 je možné zvolit termín přezkoušení dle aktuálně vypsaných termínů
                             nebo individuální dohody.
                         </p>
-                    </article>
+                    </div>
+                </article>
 
-                    <article class="faq-item">
-                        <h3>Platí doklad po celé České republice?</h3>
+                <article class="faq-accordion-item">
+                    <h3>
+                        <button type="button" class="faq-question" aria-expanded="false" aria-controls="faq-answer-15">
+                            <span>Platí doklad po celé České republice?</span>
+                            <span class="faq-question-icon" aria-hidden="true"></span>
+                        </button>
+                    </h3>
+                    <div class="faq-answer" id="faq-answer-15" hidden>
                         <p>
                             Ano, doklad o odborné způsobilosti je vystaven dle platné české legislativy a je
                             platný v rámci České republiky.
                         </p>
-                    </article>
+                    </div>
+                </article>
 
-                    <article class="faq-item">
-                        <h3>Mohu absolvovat školení i bez praxe?</h3>
+                <article class="faq-accordion-item">
+                    <h3>
+                        <button type="button" class="faq-question" aria-expanded="false" aria-controls="faq-answer-16">
+                            <span>Mohu absolvovat školení i bez praxe?</span>
+                            <span class="faq-question-icon" aria-hidden="true"></span>
+                        </button>
+                    </h3>
+                    <div class="faq-answer" id="faq-answer-16" hidden>
                         <p>
                             Ano, u §4 není odborná praxe vyžadována. U §6 a §7 záleží na rozsahu požadovaného
                             oprávnění a splnění podmínek dle NV 194/2022 Sb.
                         </p>
-                    </article>
-                </div>
+                    </div>
+                </article>
             </div>
-        </section>
-
-    </main>
+        </div>
+    </div>
 </div>
 
 <div class="video-modal" id="video-modal" aria-hidden="true">
@@ -704,5 +829,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'courses/js/landing.js' %}?v=1" defer></script>
+<script src="{% static 'courses/js/landing.js' %}?v=2" defer></script>
 {% endblock %}

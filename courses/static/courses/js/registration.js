@@ -444,6 +444,11 @@ document.addEventListener("DOMContentLoaded", function () {
         return Boolean(courses[courseId] && courses[courseId].orderMode === "contact");
     }
 
+    function getRequestedCourseId() {
+        const courseId = new URLSearchParams(window.location.search).get("course");
+        return courseId && courses[courseId] ? courseId : null;
+    }
+
     function getParticipantCount() {
         return wrapper.querySelectorAll(".participant-item").length;
     }
@@ -1320,6 +1325,7 @@ document.addEventListener("DOMContentLoaded", function () {
     refreshParticipants();
 
     const existingDraft = getOrderDraft();
+    const requestedCourseId = getRequestedCourseId();
 
     if (existingDraft && existingDraft.selected_course && courses[existingDraft.selected_course]) {
         restoreOrderDraft();
@@ -1331,6 +1337,10 @@ document.addEventListener("DOMContentLoaded", function () {
         showStep(3);
     } else if (hasBillingServerErrors) {
         showStep(4);
+    } else if (requestedCourseId) {
+        updateCourseView(requestedCourseId);
+        showStep(2);
+        saveOrderDraft();
     }
     function returnToOrderStart() {
         showStep(1);

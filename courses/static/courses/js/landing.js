@@ -5,9 +5,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const landingNavLinks = document.querySelectorAll('.landing-nav-link');
     const sections = document.querySelectorAll('.page-section[id]');
-    const faqList = document.querySelector('#faq .faq-list');
-    const contactSection = document.getElementById('contact');
-    let faqExitLocked = false;
+
+    const faqModal = document.getElementById('faq');
+    const faqModalLinks = document.querySelectorAll('a[href="#faq"], a[href$="/#faq"]');
+    const faqModalCloseButtons = document.querySelectorAll('[data-faq-modal-close]');
+    const faqQuestions = document.querySelectorAll('.faq-question');
+    let faqModalTrigger = null;
 
     const homeLink = document.getElementById('home-link');
     const introSection = document.getElementById('intro');
@@ -111,6 +114,59 @@ document.addEventListener('DOMContentLoaded', function () {
         videoModalFrame.innerHTML = '';
     }
 
+    function openFaqModal(trigger) {
+        if (!faqModal) return;
+
+        faqModalTrigger = trigger || document.activeElement;
+        faqModal.classList.add('is-open');
+        faqModal.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('faq-modal-open');
+        setActiveLandingNav('faq');
+
+        if (window.location.hash !== '#faq') {
+            window.history.replaceState(null, '', '#faq');
+        }
+
+        const closeButton = faqModal.querySelector('[data-faq-modal-close]');
+        if (closeButton) closeButton.focus();
+    }
+
+    function closeFaqModal() {
+        if (!faqModal || !faqModal.classList.contains('is-open')) return;
+
+        faqModal.classList.remove('is-open');
+        faqModal.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('faq-modal-open');
+
+        if (window.location.hash === '#faq') {
+            window.history.replaceState(null, '', window.location.pathname + window.location.search);
+        }
+
+        updateActiveSection();
+
+        if (faqModalTrigger && typeof faqModalTrigger.focus === 'function') {
+            faqModalTrigger.focus();
+        }
+        faqModalTrigger = null;
+    }
+
+    function toggleFaqAnswer(question) {
+        const answerId = question.getAttribute('aria-controls');
+        const answer = document.getElementById(answerId);
+        if (!answer) return;
+
+        const willOpen = question.getAttribute('aria-expanded') !== 'true';
+
+        faqQuestions.forEach(otherQuestion => {
+            const otherAnswer = document.getElementById(otherQuestion.getAttribute('aria-controls'));
+            otherQuestion.setAttribute('aria-expanded', 'false');
+            if (otherAnswer) otherAnswer.hidden = true;
+        });
+
+        question.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+        answer.hidden = !willOpen;
+    }
+
     programTabs.forEach(tab => {
         tab.addEventListener('click', function () {
             activateProgram(tab.dataset.program);
@@ -142,6 +198,8 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     landingNavLinks.forEach(link => {
+        if (link.hasAttribute('data-faq-modal-open')) return;
+
         link.addEventListener('click', function (e) {
             e.preventDefault();
 
@@ -155,7 +213,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    document.querySelectorAll('a[href^="#"]').forEach(link => {
+    document.querySelectorAll('a[href^="#"]:not(.landing-nav-link):not([href="#faq"])').forEach(link => {
         link.addEventListener('click', function (e) {
             e.preventDefault();
 
@@ -173,29 +231,6 @@ document.addEventListener('DOMContentLoaded', function () {
         pageScroll.addEventListener('scroll', updateActiveSection);
     }
 
-    /* FAQ TOP EXIT v21 — další scroll nahoru přejde na Kontakt */
-    if (faqList && contactSection) {
-        faqList.addEventListener('wheel', function (e) {
-            const isAtTop = faqList.scrollTop <= 1;
-            const isScrollingUp = e.deltaY < 0;
-
-            if (!isAtTop || !isScrollingUp) return;
-
-            e.preventDefault();
-            e.stopPropagation();
-
-            if (faqExitLocked) return;
-            faqExitLocked = true;
-
-            scrollToSection(contactSection);
-            setActiveLandingNav('contact');
-
-            window.setTimeout(function () {
-                faqExitLocked = false;
-            }, 900);
-        }, { passive: false });
-    }
-
     if (homeLink && introSection) {
         homeLink.addEventListener('click', function (e) {
             e.preventDefault();
@@ -208,7 +243,41 @@ document.addEventListener('DOMContentLoaded', function () {
     if (closeVideoModalBackdrop) closeVideoModalBackdrop.addEventListener('click', closeVideoModal);
     if (closeVideoModalButton) closeVideoModalButton.addEventListener('click', closeVideoModal);
 
+    faqModalLinks.forEach(link => {
+        link.addEventListener('click', function (e) {
+            e.preventDefault();
+            openFaqModal(link);
+        });
+    });
+
+    faqModalCloseButtons.forEach(button => {
+        button.addEventListener('click', closeFaqModal);
+    });
+
+    faqQuestions.forEach(question => {
+        question.addEventListener('click', function () {
+            toggleFaqAnswer(question);
+        });
+    });
+
+    if (faqModal) {
+        faqModal.addEventListener('click', function (e) {
+            if (e.target === faqModal) closeFaqModal();
+        });
+    }
+
     document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') closeVideoModal();
+        if (e.key === 'Escape') {
+            closeVideoModal();
+            closeFaqModal();
+        }
+    });
+
+    if (window.location.hash === '#faq') {
+        openFaqModal();
+    }
+
+    window.addEventListener('hashchange', function () {
+        if (window.location.hash === '#faq') openFaqModal();
     });
 });

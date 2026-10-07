@@ -27,21 +27,23 @@ class FrontendStaticAssetTests(TestCase):
             with self.subTest(asset=asset):
                 self.assertIsNotNone(finders.find(asset))
 
-    def test_index_loads_assets_and_keeps_contact_and_faq(self):
+    def test_index_loads_assets_and_keeps_contact_and_faq_modal(self):
         response = self.client.get(reverse("index"))
-        self.assertContains(response, "/static/courses/css/landing.css?v=20")
-        self.assertContains(response, "/static/courses/js/landing.js?v=1")
+        self.assertContains(response, "/static/courses/css/landing.css?v=22")
+        self.assertContains(response, "/static/courses/js/landing.js?v=2")
         self.assertContains(response, 'id="contact"')
-        self.assertContains(response, 'id="faq"')
-        self.assertContains(response, 'class="faq-list"')
+        self.assertContains(response, 'class="faq-modal-overlay" id="faq"')
+        self.assertContains(response, 'class="faq-question"', count=16)
+        self.assertContains(response, 'class="faq-answer"', count=16)
+        self.assertNotContains(response, 'class="page-section faq-section"')
         self.assertContains(response, "Často kladené otázky")
 
     def test_registration_loads_assets_and_exposes_backend_urls(self):
         response = self.client.get(reverse("register"))
         contact_url = f'{reverse("index")}#contact'
 
-        self.assertContains(response, "/static/courses/css/registration.css?v=3")
-        self.assertContains(response, "/static/courses/js/registration.js?v=3")
+        self.assertContains(response, "/static/courses/css/registration.css?v=4")
+        self.assertContains(response, "/static/courses/js/registration.js?v=4")
         self.assertContains(
             response,
             f'data-check-emails-url="{reverse("check_participant_emails")}"',
@@ -59,7 +61,7 @@ class FrontendStaticAssetTests(TestCase):
 
         storage_asset = "/static/courses/js/order-draft-storage.js?v=1"
         base_asset = "/static/courses/js/base.js?v=2"
-        registration_asset = "/static/courses/js/registration.js?v=3"
+        registration_asset = "/static/courses/js/registration.js?v=4"
         self.assertContains(response, storage_asset)
         self.assertLess(content.index(storage_asset), content.index(base_asset))
         self.assertLess(content.index(storage_asset), content.index(registration_asset))

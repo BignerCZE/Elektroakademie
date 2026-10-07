@@ -9,6 +9,12 @@ class IndexContactSectionTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Potřebujete poradit? Rádi vám pomůžeme")
         self.assertContains(response, "Předmět")
+        self.assertContains(response, "Možná už jsme váš dotaz zodpověděli")
+        self.assertContains(
+            response,
+            '<a href="#faq">často kladených otázkách</a>',
+            html=True,
+        )
 
         expected_choices = (
             ("obecne-informace", "Obecné informace"),

@@ -9,67 +9,8 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'courses/css/course-selector.css' %}?v=4">
-<link rel="stylesheet" href="{% static 'courses/css/registration.css' %}?v=3">
+<link rel="stylesheet" href="{% static 'courses/css/registration.css' %}?v=4">
 
-{% endblock %}
-
-
-{% block final_page_css %}
-<style id="checkout-mobile-geometry-fix">
-    @media (max-width: 768px) {
-
-        /*
-     * Final checkout geometry override.
-     * This block is intentionally rendered after responsive-fixes.css.
-     */
-        html body main.page-shell.register-page>div.container {
-            width: 100% !important;
-            max-width: 100% !important;
-            margin: 0 !important;
-            padding-left: 0 !important;
-            padding-right: 0 !important;
-        }
-
-        html body main.page-shell.register-page>div.container>section.register-card {
-            padding-left: 0 !important;
-            padding-right: 0 !important;
-        }
-
-        html body main.page-shell.register-page>div.container>section.register-card,
-        html body main.page-shell.register-page .register-checkout-shell,
-        html body main.page-shell.register-page .checkout-layout,
-        html body main.page-shell.register-page .register-form {
-            width: 100% !important;
-            max-width: 100% !important;
-            min-width: 0 !important;
-            margin-left: 0 !important;
-            margin-right: 0 !important;
-        }
-
-        html body main.page-shell.register-page .register-checkout-shell {
-            padding-left: 0 !important;
-            padding-right: 0 !important;
-            border-radius: 0 !important;
-        }
-
-        html body main.page-shell.register-page .checkout-steps {
-            width: 100% !important;
-            max-width: 100% !important;
-            margin-left: 0 !important;
-            margin-right: 0 !important;
-            padding-left: 12px !important;
-            padding-right: 12px !important;
-            border-radius: 0 !important;
-            box-sizing: border-box !important;
-        }
-
-        html body main.page-shell.register-page .checkout-layout,
-        html body main.page-shell.register-page .checkout-step-panel {
-            min-width: 0 !important;
-            max-width: 100% !important;
-        }
-    }
-</style>
 {% endblock %}
 
 {% block content %}
@@ -437,8 +378,7 @@
                             Zkontrolujte prosím shrnutí objednávky a potvrďte souhlas s obchodními podmínkami.
                         </p>
                         <label for="terms-agreement" class="terms-agreement-label final-action-consent">
-                            <input type="checkbox" id="terms-agreement" name="terms_agreement" form="registration-form"
-                                required>
+                            <input type="checkbox" id="terms-agreement" name="terms_agreement" form="registration-form" required>
                             <span>
                                 Souhlasím s
                                 <a href="#" class="terms-link" data-legal-modal-open="terms-modal">obchodními
@@ -494,5 +434,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'courses/js/registration.js' %}?v=3" defer></script>
+<script src="{% static 'courses/js/registration.js' %}?v=4" defer></script>
 {% endblock %}

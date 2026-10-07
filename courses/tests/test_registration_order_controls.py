@@ -44,11 +44,11 @@ class RegistrationOrderControlsTests(TestCase):
         )
         self.assertContains(
             response,
-            'courses/css/registration.css?v=3',
+            'courses/css/registration.css?v=4',
         )
         self.assertContains(
             response,
-            'courses/js/registration.js?v=3',
+            'courses/js/registration.js?v=4',
         )
         self.assertContains(
             response,
@@ -139,6 +139,12 @@ class RegistrationOrderControlsTests(TestCase):
             "draft && draft.selected_course === selectedCourseId",
             source,
         )
+        self.assertIn(
+            'new URLSearchParams(window.location.search).get("course")',
+            source,
+        )
+        self.assertIn("updateCourseView(requestedCourseId);", source)
+        self.assertIn("showStep(2);", source)
 
     def test_restart_buttons_share_one_non_destructive_handler(self):
         source = self._read_static("js", "registration.js")
