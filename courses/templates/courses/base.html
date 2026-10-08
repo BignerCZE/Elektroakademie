@@ -12,12 +12,12 @@
         {% block extra_css %}{% endblock %}
         <link rel="stylesheet" href="{% static 'courses/css/responsive-fixes.css' %}?v=5">
     </head>
+
     <body>
         <header class="topbar{% block topbar_class %}{% endblock %}">
             <div class="container topbar-inner">
                 <a href="{% url 'index' %}" class="logo" id="home-link">
-                    <img src="{% static 'courses/img/tmave_pozadi_cropped.svg' %}" alt="Elektroakademie"
-                        class="logo-image">
+                    <img src="{% static 'courses/img/cz_tmave_pozadi.svg' %}" alt="Elektroakademie" class="logo-image">
                 </a>
                 {% block topbar_controls %}
                 <nav class="top-navigation" id="top-navigation" aria-label="Hlavní navigace">
