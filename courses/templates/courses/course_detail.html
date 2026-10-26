@@ -7,33 +7,7 @@
     <div class="page-header">
         <p class="page-eyebrow">Detail kurzu</p>
         <h1 class="page-title">{{ course.title }}</h1>
-        <p class="page-subtitle">{{ course.description }}</p>
-    </div>
-
-    <div class="info-grid">
-        <div class="info-item">
-            <span class="info-label">Přístup</span>
-            <div class="info-value">
-                {% if user.is_authenticated %}
-                Přihlášen jako {{ user.username }}
-                {% else %}
-                Pro vstup do kurzu je potřeba přihlášení
-                {% endif %}
-            </div>
-        </div>
-
-        <div class="info-item">
-            <span class="info-label">Stav platby</span>
-            <div class="info-value">
-                {% if user.is_authenticated and user.is_paid %}
-                Aktivní přístup
-                {% elif user.is_authenticated %}
-                Kurz zatím není zakoupen
-                {% else %}
-                Nepřihlášený uživatel
-                {% endif %}
-            </div>
-        </div>
+        <p class="page-subtitle course-detail-description">{{ course.description }}</p>
     </div>
 
     <div class="button-row">

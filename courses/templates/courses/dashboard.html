@@ -7,10 +7,6 @@
 
     <header class="dashboard-summary-header">
         <div>
-            <p class="dashboard-eyebrow">
-                Uživatelský dashboard
-            </p>
-
             <h1>
                 Vítejte, {{ user.first_name|default:user.username }}
             </h1>
@@ -20,11 +16,6 @@
             </p>
         </div>
 
-        {% if has_paid %}
-        <span class="status-badge status-paid">
-            Přístup aktivní
-        </span>
-        {% endif %}
     </header>
 
     {% if has_paid %}

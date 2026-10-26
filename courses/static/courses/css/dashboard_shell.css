@@ -67,7 +67,7 @@
 }
 
 .sidebar-action a {
-    color: #8f1690;
+    color: #173f84;
     font-weight: 700;
     text-decoration: none;
 }
@@ -97,7 +97,7 @@
 }
 
 .sidebar-nav a:hover {
-    color: #8f1690;
+    color: #173f84;
 }
 
 .disabled-link {
@@ -177,7 +177,7 @@
 
 .dashboard-eyebrow {
     margin-bottom: 10px;
-    color: #a12cab;
+    color: #173f84;
     font-size: 15px;
     font-weight: 700;
 }
@@ -215,7 +215,7 @@
 
 .dashboard-link-arrow {
     flex-shrink: 0;
-    color: #8f1690;
+    color: #173f84;
     font-size: 24px;
     font-weight: 700;
 }
@@ -226,7 +226,7 @@
 
 .page-eyebrow {
     margin-bottom: 10px;
-    color: #a12cab;
+    color: #173f84;
     font-size: 15px;
     font-weight: 700;
 }
@@ -242,6 +242,10 @@
     color: var(--color-card-muted);
     font-size: 17px;
     line-height: 1.6;
+}
+
+.course-detail-description {
+    max-width: none;
 }
 
 .info-grid {
@@ -1037,7 +1041,7 @@
 
 .dashboard-summary-header .dashboard-eyebrow {
     margin: 0;
-    color: #961393;
+    color: #173f84;
     font-size: 13px;
     font-weight: 800;
     letter-spacing: 0.04em;
@@ -1131,7 +1135,7 @@
 
 .dashboard-section-eyebrow {
     margin: 0 0 5px;
-    color: #961393;
+    color: #173f84;
     font-size: 13px;
     font-weight: 800;
     letter-spacing: 0.03em;
@@ -1201,7 +1205,7 @@
     align-self: flex-start;
     margin-top: auto;
     padding-top: 15px;
-    color: #831784;
+    color: #173f84;
     font-size: 14px;
     font-weight: 750;
     text-decoration: underline;
@@ -1251,7 +1255,7 @@
     justify-content: center;
     min-height: 67px;
     padding: 13px 18px;
-    color: #831784;
+    color: #173f84;
     font-size: 14px;
     font-weight: 750;
     text-align: center;

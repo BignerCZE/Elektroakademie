@@ -11,7 +11,7 @@
 
 .dashboard-eyebrow {
     margin-bottom: 10px;
-    color: #a12cab;
+    color: #173f84;
     font-size: 15px;
     font-weight: 700;
 }
@@ -92,7 +92,7 @@
 .dashboard-link-arrow {
     font-size: 24px;
     font-weight: 700;
-    color: #8f1690;
+    color: #173f84;
     flex-shrink: 0;
 }
 
@@ -294,7 +294,7 @@
 
 .dashboard-section-eyebrow {
     margin-bottom: 7px;
-    color: #8f1690;
+    color: #173f84;
     font-size: 14px;
     font-weight: 700;
 }
@@ -315,7 +315,7 @@
 .dashboard-text-link {
     display: inline-block;
     margin-top: 18px;
-    color: #8f1690;
+    color: #173f84;
     font-weight: 700;
     text-decoration: underline;
     text-underline-offset: 4px;
