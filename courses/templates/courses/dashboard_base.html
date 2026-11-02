@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'courses/css/dashboard_shell.css' %}?v=4">
+<link rel="stylesheet" href="{% static 'courses/css/dashboard_shell.css' %}?v=6">
 {% block dashboard_extra_css %}{% endblock %}
 {% endblock %}
 
@@ -58,11 +58,6 @@
                         </a>
 
                         {% if active_course %}
-                        <a href="{% url 'course_detail' active_course.id %}"
-                            class="{% if sidebar_page == 'course' %}active{% endif %}">
-                            Detail kurzu
-                        </a>
-
                         {% if has_paid %}
                         <a href="{% url 'video_detail' active_course.id %}"
                             class="{% if sidebar_page == 'video' %}active{% endif %}">
@@ -98,7 +93,6 @@
                         <span class="disabled-link">Certifikát</span>
                         {% endif %}
                         {% else %}
-                        <span class="disabled-link">Detail kurzu</span>
                         <span class="disabled-link">Video</span>
                         <span class="disabled-link">Test</span>
                         <span class="disabled-link">Certifikát</span>

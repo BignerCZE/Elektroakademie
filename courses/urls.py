@@ -19,11 +19,6 @@ urlpatterns = [
         views.index,
         name="courses",
     ),
-    path(
-        "kurz/<int:course_id>/",
-        views.course_detail,
-        name="course_detail",
-    ),
     # Registrace
     path(
         "registrace/",

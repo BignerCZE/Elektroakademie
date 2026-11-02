@@ -582,6 +582,24 @@ class QuizSubmitTests(QuizTestBase):
             data or {},
         )
 
+    def test_resubmitting_completed_attempt_preserves_result(self):
+        attempt = self.create_active_attempt()
+        attempt.status = QuizAttempt.STATUS_SUBMITTED
+        attempt.score_percent = 80
+        attempt.save()
+        submitted_at = attempt.submitted_at
+        with patch("courses.views.process_quiz_completion") as completion:
+            response = self.submit_attempt(attempt)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(
+            reverse("quiz_attempt_detail", kwargs={"attempt_id": attempt.id, "order": 1}),
+            response.url,
+        )
+        attempt.refresh_from_db()
+        self.assertEqual(attempt.score_percent, 80)
+        self.assertEqual(attempt.submitted_at, submitted_at)
+        completion.assert_not_called()
+
     def test_quiz_submit_requires_post(self):
         attempt = self.create_active_attempt()
 
@@ -856,7 +874,7 @@ class QuizSubmitTests(QuizTestBase):
 
         self.assertEqual(
             second_response.status_code,
-            404,
+            302,
         )
 
         attempt.refresh_from_db()

@@ -132,29 +132,6 @@ def landing(request):
     return render(request, "courses/landing.html")
 
 
-def course_detail(request, course_id):
-    course = get_object_or_404(Course, id=course_id)
-
-    context = {
-        "course": course,
-    }
-
-    if request.user.is_authenticated:
-        context.update(
-            get_dashboard_context(
-                request,
-                active_course=course,
-                sidebar_page="course",
-            )
-        )
-
-    return render(
-        request,
-        "courses/course_detail.html",
-        context,
-    )
-
-
 def register(request):
     ParticipantFormSet = formset_factory(
         ParticipantForm,
@@ -1298,8 +1275,15 @@ def quiz_submit(request, attempt_id):
         QuizAttempt,
         id=attempt_id,
         user=request.user,
-        status=QuizAttempt.STATUS_IN_PROGRESS,
     )
+
+    # Opakované odeslání již dokončený pokus nemění.
+    if attempt.status == QuizAttempt.STATUS_SUBMITTED:
+        detail_url = reverse(
+            "quiz_attempt_detail",
+            kwargs={"attempt_id": attempt.id, "order": 1},
+        )
+        return redirect(f"{detail_url}?from=result")
 
     current_question_id = request.POST.get(
         "current_question_id"

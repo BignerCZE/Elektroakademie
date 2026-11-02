@@ -48,6 +48,8 @@ Otázka {{ order }} z {{ total_questions }}
             {% endfor %}
         </div>
 
+        <p id="quiz-answer-progress" class="quiz-answer-progress" aria-live="polite"></p>
+
         <div class="quiz-navigation">
             {% if is_first %}
             <button type="submit" name="leave_test" value="1" class="button-secondary" data-leave-test="true">
@@ -67,7 +69,8 @@ Otázka {{ order }} z {{ total_questions }}
 
             <button type="submit" name="submit_test" value="1" class="button-primary"
                 formaction="{% url 'quiz_submit' attempt.id %}" formmethod="post" data-submit-test="true"
-                data-unanswered-questions="{{ unanswered_questions|join:',' }}" data-current-order="{{ order }}">
+                data-unanswered-questions="{{ unanswered_questions|join:',' }}" data-current-order="{{ order }}"
+                data-total-questions="{{ total_questions }}" hidden>
                 Odeslat test
             </button>
         </div>
@@ -78,5 +81,5 @@ Otázka {{ order }} z {{ total_questions }}
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'courses/js/quiz-question.js' %}?v=1" defer></script>
+<script src="{% static 'courses/js/quiz-question.js' %}?v=3" defer></script>
 {% endblock %}
