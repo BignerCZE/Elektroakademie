@@ -353,6 +353,17 @@ class RegistrationNumberSequence(models.Model):
         )
 
 class ParticipantProfile(models.Model):
+    employer_ico = models.CharField(
+        max_length=8, blank=True, verbose_name="IČO zaměstnavatele",
+    )
+    activity_scope = models.CharField(
+        max_length=255, blank=True, verbose_name="Rozsah vykonávaných činností",
+    )
+    workplace_specification = models.CharField(
+        max_length=255, blank=True,
+        verbose_name="Specifikace pracoviště a elektrických zařízení",
+    )
+
     participant = models.OneToOneField(
         OrderParticipant,
         on_delete=models.CASCADE,

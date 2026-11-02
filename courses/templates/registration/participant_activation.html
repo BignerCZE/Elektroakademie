@@ -228,6 +228,11 @@
                                 {{ form.employer_address }}
                                 {{ form.employer_address.errors }}
                             </div>
+                            <div class="activation-field activation-field--full{% if form.employer_ico.errors %} activation-field--error{% endif %}">
+                                {{ form.employer_ico.label_tag }}
+                                {{ form.employer_ico }}
+                                {{ form.employer_ico.errors }}
+                            </div>
                         </div>
                     </section>
                 </div>

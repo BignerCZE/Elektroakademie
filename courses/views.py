@@ -693,6 +693,7 @@ def participant_activation(request, token):
                         "employer_address": form.cleaned_data[
                             "employer_address"
                         ],
+                        "employer_ico": form.cleaned_data["employer_ico"],
                     },
                 )
 

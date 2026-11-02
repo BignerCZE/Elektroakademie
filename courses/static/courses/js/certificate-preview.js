@@ -16,6 +16,7 @@ document.addEventListener("DOMContentLoaded", function () {
         modalOverlay.setAttribute("aria-hidden", "false");
 
         document.body.classList.add("certificate-modal-open");
+        window.fitCertificates();
 
         closeButton.focus();
     }

@@ -30,11 +30,9 @@
         Zobrazit náhled certifikátu
     </button>
 
-    {% if certificate.pdf_file %}
-    <a href="{{ certificate.pdf_file.url }}" class="primary-button" target="_blank" rel="noopener">
+    <a href="{% url 'certificate_pdf' course.id %}" class="primary-button" target="_blank" rel="noopener">
         Otevřít PDF certifikát
     </a>
-    {% endif %}
 </section>
 
 <div class="certificate-modal-overlay" id="certificate-preview-modal" role="dialog" aria-modal="true"
@@ -62,5 +60,6 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'courses/js/certificate-layout.js' %}" defer></script>
 <script src="{% static 'courses/js/certificate-preview.js' %}?v=1" defer></script>
 {% endblock %}

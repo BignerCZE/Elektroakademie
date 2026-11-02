@@ -50,6 +50,7 @@ class ParticipantActivationTests(TestCase):
             "birth_place": "Praha",
             "permanent_address": "Dlouhá 10, Praha",
             "employer_name": "Testovací firma s.r.o.",
+            "employer_ico": "00123456",
             "employer_address": (
                 "Testovací 1, 11000 Praha, Česká republika"
             ),
@@ -200,6 +201,8 @@ class ParticipantActivationTests(TestCase):
         profile = ParticipantProfile.objects.get(
             participant=self.participant,
         )
+
+        self.assertEqual(profile.employer_ico, "00123456")
 
         self.assertEqual(
             str(profile.birth_date),
@@ -377,3 +380,26 @@ class ParticipantActivationTests(TestCase):
             user.email,
             "jan.novak@example.com",
         )
+
+    def test_optional_certificate_fields_support_legacy_activation(self):
+        data = self.valid_data.copy()
+        for field in ("employer_ico", "activity_scope", "workplace_specification"):
+            data.pop(field, None)
+        response = self.client.post(self.activation_url, data)
+        self.assertEqual(response.status_code, 302)
+        profile = ParticipantProfile.objects.get(participant=self.participant)
+        self.assertEqual(profile.employer_ico, "")
+        self.assertEqual(profile.activity_scope, "")
+        self.assertEqual(profile.workplace_specification, "")
+
+    def test_invalid_employer_ico_prevents_activation(self):
+        data = {**self.valid_data, "employer_ico": "12ab3456"}
+        response = self.client.post(self.activation_url, data)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "IČO musí obsahovat přesně 8 číslic.")
+        self.assertFalse(ParticipantProfile.objects.exists())
+
+    def test_manual_certificate_fields_are_not_requested_at_activation(self):
+        response = self.client.get(self.activation_url)
+        self.assertNotContains(response, 'name="activity_scope"')
+        self.assertNotContains(response, 'name="workplace_specification"')

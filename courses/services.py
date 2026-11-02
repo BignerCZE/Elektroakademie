@@ -1,4 +1,5 @@
 import os
+import base64
 
 from datetime import timedelta
 from io import BytesIO
@@ -239,13 +240,30 @@ def generate_certificate_pdf(certificate):
                 None,
             ),
             "completion_date": certificate.issued_at,
+            "certificate_logo_uri": load_static_data_uri(
+                "courses/img/cz_svetle_pozadi.svg", "image/svg+xml"
+            ),
+            "certificate_signature_uri": load_static_data_uri(
+                "courses/images/signature_jakub_jirak.png", "image/png"
+            ),
         },
     )
 
     return generate_html_pdf(
         html,
         css=certificate_css,
+        script=load_static_text("courses/js/certificate-layout.js"),
     )
+
+
+def load_static_data_uri(path, content_type):
+    """Embed local assets so PDF rendering never depends on a web server."""
+    absolute_path = finders.find(path)
+    if not absolute_path:
+        raise ValueError(f"Statický soubor nebyl nalezen: {path}")
+    with open(absolute_path, "rb") as file:
+        encoded = base64.b64encode(file.read()).decode("ascii")
+    return f"data:{content_type};base64,{encoded}"
 
 def register_quiz_pdf_fonts():
     regular_path = finders.find(
@@ -797,6 +815,7 @@ def generate_html_pdf(
     html,
     *,
     css=None,
+    script=None,
 ):
     """
     Vyrenderuje HTML pomocí Chromium
@@ -838,6 +857,15 @@ def generate_html_pdf(
                 page.add_style_tag(
                     content=css
                 )
+
+            page.evaluate("""async () => {
+                await document.fonts.ready;
+                await Promise.all(Array.from(document.images, image => image.decode()));
+            }""")
+
+            if script:
+                page.add_script_tag(content=script)
+                page.evaluate("window.fitCertificates()")
 
             return page.pdf(
                 format="A4",

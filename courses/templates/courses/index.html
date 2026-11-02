@@ -4,7 +4,7 @@
 {% block title %}Elektroakademie{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'courses/css/landing.css' %}?v=23">
+<link rel="stylesheet" href="{% static 'courses/css/landing.css' %}?v=24">
 {% endblock %}
 
 {% block content %}
@@ -57,7 +57,7 @@
                         <div class="hero-image-wrap">
                             <button class="video-trigger" id="open-video-modal" type="button"
                                 aria-label="Přehrát video">
-                                <img src="https://i.ytimg.com/vi/LDU_Txk06tM/hqdefault.jpg" alt="Náhled videa"
+                                <img src="{% static 'courses/img/video-jak-to-funguje.webp' %}" alt="Elektroakademie – Jak to funguje u nás?"
                                     class="video-thumbnail">
                                 <span class="video-play-button">▶</span>
                             </button>
@@ -829,5 +829,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'courses/js/landing.js' %}?v=2" defer></script>
+<script src="{% static 'courses/js/landing.js' %}?v=3" defer></script>
 {% endblock %}

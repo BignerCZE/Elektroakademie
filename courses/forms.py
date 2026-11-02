@@ -281,6 +281,12 @@ class BillingForm(forms.Form):
     
 
 class ParticipantActivationForm(forms.Form):
+    employer_ico = forms.RegexField(
+        regex=r"^[0-9]{8}$", max_length=8, required=False,
+        label="IČO zaměstnavatele (nepovinné)",
+        error_messages={"invalid": "IČO musí obsahovat přesně 8 číslic."},
+        widget=forms.TextInput(attrs={"inputmode": "numeric", "placeholder": "IČO zaměstnavatele"}),
+    )
     password1 = forms.CharField(
         label="Heslo",
         strip=False,

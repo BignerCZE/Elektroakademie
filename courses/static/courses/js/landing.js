@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         videoModalFrame.innerHTML = `
             <iframe
-                src="https://www.youtube.com/embed/LDU_Txk06tM?autoplay=1&rel=0&modestbranding=1"
+                src="https://www.youtube.com/embed/J_eSsfNwDVw?autoplay=1&rel=0&modestbranding=1"
                 title="YouTube video player"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 referrerpolicy="strict-origin-when-cross-origin"
