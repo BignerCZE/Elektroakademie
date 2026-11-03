@@ -298,22 +298,24 @@
     object-fit: cover;
     border-radius: 24px;
     background: #0a0a0a;
+    filter: brightness(0.85);
 }
 
 .video-play-button {
     position: absolute;
-    right: 14px;
-    bottom: 14px;
+    top: 50%;
+    left: 50%;
     z-index: 2;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 48px;
-    height: 48px;
+    width: 84px;
+    height: 84px;
+    transform: translate(-50%, -50%);
     border-radius: 50%;
     background: rgba(0, 0, 0, 0.7);
     color: #ffffff;
-    font-size: 22px;
+    font-size: 34px;
     line-height: 1;
 }
 
