@@ -5,6 +5,7 @@ Django 6.0.4
 """
 
 import os
+import re
 from pathlib import Path
 
 from django.core.exceptions import ImproperlyConfigured
@@ -123,6 +124,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "courses.consent.cookie_context",
             ],
         },
     },
@@ -332,3 +334,9 @@ EMAIL_REPLY_TO = os.getenv(
     "EMAIL_REPLY_TO",
     "",
 )
+
+
+# Empty ID keeps Google Analytics disabled.
+GA4_MEASUREMENT_ID = os.getenv("GA4_MEASUREMENT_ID", "").strip()
+if GA4_MEASUREMENT_ID and not re.fullmatch(r"G-[A-Z0-9]+", GA4_MEASUREMENT_ID):
+    raise ImproperlyConfigured("Neplatné GA4_MEASUREMENT_ID.")

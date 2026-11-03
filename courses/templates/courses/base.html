@@ -9,6 +9,7 @@
 
         <link rel="stylesheet" href="{% static 'courses/css/base.css' %}?v=8">
         <link rel="stylesheet" href="{% static 'courses/css/app.css' %}?v=3">
+        <link rel="stylesheet" href="{% static 'courses/css/cookies.css' %}?v=8">
         {% block extra_css %}{% endblock %}
         <link rel="stylesheet" href="{% static 'courses/css/responsive-fixes.css' %}?v=5">
     </head>
@@ -61,6 +62,10 @@
 
         {% block content %}{% endblock %}
 
+        {% block cookie_footer %}{% include 'courses/cookie_footer.html' %}{% endblock %}
+        {% include 'courses/cookie_banner.html' %}
+        {{ cookie_config|json_script:"ea-cookie-config" }}
+        <script src="{% static 'courses/js/cookies.js' %}?v=8" defer></script>
         <script src="{% static 'courses/js/order-draft-storage.js' %}?v=1" defer></script>
         <script src="{% static 'courses/js/base.js' %}?v=2" defer></script>
         {% block extra_js %}{% endblock %}

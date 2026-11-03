@@ -1,0 +1,7 @@
+{% extends "courses/base.html" %}
+{% load static %}
+{% block title %}Cookies | Elektroakademie{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'courses/css/terms.css' %}">{% endblock %}
+{% block content %}<main class="terms-page"><div class="container"><section class="terms-card">
+{% include 'courses/legal/cookies_content.html' %}
+</section></div></main>{% endblock %}

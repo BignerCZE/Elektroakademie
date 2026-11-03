@@ -91,13 +91,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function openVideoModal() {
         if (!videoModal || !videoModalFrame) return;
+        if (!window.EACookies || !window.EACookies.mediaAllowed()) {
+            if (window.EACookies) window.EACookies.open();
+            return;
+        }
 
         videoModal.classList.add('is-open');
         videoModal.setAttribute('aria-hidden', 'false');
 
         videoModalFrame.innerHTML = `
             <iframe
-                src="https://www.youtube.com/embed/J_eSsfNwDVw?autoplay=1&rel=0&modestbranding=1"
+                src="https://www.youtube-nocookie.com/embed/J_eSsfNwDVw?autoplay=1&rel=0&modestbranding=1"
                 title="YouTube video player"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 referrerpolicy="strict-origin-when-cross-origin"

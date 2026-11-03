@@ -665,3 +665,11 @@ class EmailLog(models.Model):
             f"{self.get_email_type_display()} – "
             f"{self.recipient}"
         )
+
+
+class CookieConsent(models.Model):
+    identifier = models.UUIDField(db_index=True)
+    version = models.CharField(max_length=20)
+    analytics = models.BooleanField(default=False)
+    media = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)

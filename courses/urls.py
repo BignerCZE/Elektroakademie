@@ -1,11 +1,13 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path
 
-from . import views
+from . import views, consent
 from .registration_policy import prevent_contact_only_course_order
 
 
 urlpatterns = [
+    path("cookies/", consent.consent_settings, name="cookies"),
+    path("cookies/souhlas/", consent.save_consent, name="cookie_consent"),
     # Domovská stránka
     path(
         "",

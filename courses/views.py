@@ -210,6 +210,7 @@ def register(request):
                     ]
                 )
 
+            request.session["analytics_order_created"] = True
             return redirect(
                 "order_payment_simulation",
                 order_id=order.id,

@@ -1,0 +1,32 @@
+<section class="cookie-banner" id="cookie-banner" hidden>
+    <div class="cookie-backdrop" data-cookie-close aria-hidden="true"></div>
+    <div class="cookie-dialog" id="cookie-dialog" role="dialog" aria-modal="true" aria-labelledby="cookie-title" tabindex="-1">
+    <div id="cookie-consent-panel">
+    <h2 id="cookie-title">Vaše soukromí je pro nás důležité</h2>
+    <p>Nezbytné cookies zajišťují fungování webu. S vaším souhlasem měříme návštěvnost pomocí Google Analytics a povolíme videa YouTube. Volbu můžete kdykoliv změnit.</p>
+    <a href="{% url 'cookies' %}" data-cookie-info>Podrobnosti o cookies</a>
+    <form id="cookie-form" action="{% url 'cookie_consent' %}">{% csrf_token %}
+        <div id="cookie-options" hidden>
+            <p><label><input type="checkbox" checked disabled> Nezbytné — vždy aktivní</label></p>
+            <p><label><input type="checkbox" id="cookie-analytics"> Analytické — Google Analytics</label></p>
+            <p><label><input type="checkbox" id="cookie-media"> Externí média — YouTube</label></p>
+            <button type="button" data-cookie-choice="save">Uložit výběr</button>
+        </div>
+        <div class="cookie-actions">
+            <button type="button" data-cookie-choice="all">Přijmout vše</button>
+            <button type="button" data-cookie-choice="none">Odmítnout volitelné</button>
+            <button type="button" id="cookie-settings-toggle" data-cookie-choice="settings" aria-expanded="false" aria-controls="cookie-options">Nastavení</button>
+        </div>
+        <p><button type="button" class="cookie-dismiss" data-cookie-close>Zavřít bez rozhodnutí</button></p>
+        <p id="cookie-status" role="status"></p>
+    </form>
+    </div>
+    <div id="cookie-info-panel" hidden>
+        <div class="cookie-information">{% include 'courses/legal/cookies_content.html' %}</div>
+        <div class="cookie-actions">
+            <button type="button" data-cookie-back>Zpět na nastavení</button>
+            <button type="button" data-cookie-close>Zavřít</button>
+        </div>
+    </div>
+    </div>
+</section>

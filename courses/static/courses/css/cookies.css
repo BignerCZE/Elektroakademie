@@ -1,0 +1,88 @@
+.cookie-footer {
+    position: static;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px;
+    text-align: center;
+    background: transparent;
+    color: #fff;
+    font-size: 14px;
+    line-height: 1.5;
+}
+.cookie-footer a { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
+.cookie-footer a:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.cookie-banner a { color: #12365a; text-decoration: underline; }
+.cookie-banner {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    isolation: isolate;
+    font: 16px/1.5 system-ui;
+}
+.cookie-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.82);
+}
+.cookie-dialog {
+    position: relative;
+    width: min(680px, 100%);
+    box-sizing: border-box;
+    max-height: calc(100dvh - 48px);
+    overflow-y: auto;
+    padding: 32px;
+    background: #fff;
+    color: #12365a;
+    border: 2px solid #12365a;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+}
+.cookie-banner[hidden], .cookie-banner [hidden] { display: none !important; }
+.cookie-banner h2 { margin: 0; font-size: 23px; color: #12365a; }
+.cookie-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+.cookie-banner button {
+    background: #12365a;
+    color: #fff;
+    border: 2px solid #12365a;
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font: inherit;
+}
+.cookie-banner button:focus-visible, .cookie-banner a:focus-visible {
+    outline: 3px solid #e7a92e;
+    outline-offset: 3px;
+}
+.cookie-banner input { accent-color: #12365a; }
+.cookie-banner input[type=checkbox] { width: 18px; height: 18px; }
+.cookie-banner button:disabled { opacity: .6; cursor: wait; }
+@media (max-width: 480px) {
+    .cookie-banner { padding: 16px; }
+    .cookie-dialog { padding: 24px 20px; max-height: calc(100dvh - 32px); }
+    .cookie-banner h2 { font-size: 21px; }
+    .cookie-actions button { flex: 1 1 100%; }
+}
+@media print { .cookie-footer, .cookie-banner { display: none !important; } }
+
+.cookie-information h1 { margin: 0 0 20px; color: #12365a; font-size: 25px; }
+.cookie-information h2 { margin-top: 24px; font-size: 19px; }
+.cookie-information p { margin: 12px 0; }
+
+/* Keep the footer below both contact cards inside the original container. */
+.contact-inner > .cookie-footer {
+    flex: 0 0 auto;
+    align-self: stretch;
+    margin-top: 12px;
+}
+
+.cookie-banner .cookie-dismiss {
+    border: 0;
+    padding: 4px 0;
+    background: transparent;
+    color: #12365a;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}

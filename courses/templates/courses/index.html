@@ -57,7 +57,7 @@
                         <div class="hero-image-wrap">
                             <button class="video-trigger" id="open-video-modal" type="button"
                                 aria-label="Přehrát video">
-                                <img src="https://i.ytimg.com/vi/J_eSsfNwDVw/hqdefault.jpg" alt="Náhled videa"
+                                <img src="{% static 'courses/img/video-thumbnail.jpg' %}" alt="Náhled videa"
                                     class="video-thumbnail">
                                 <span class="video-play-button">▶</span>
                             </button>
@@ -555,6 +555,7 @@
                     </div>
 
                 </div>
+                {% include 'courses/cookie_footer.html' %}
             </div>
         </section>
 
@@ -829,5 +830,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'courses/js/landing.js' %}?v=3" defer></script>
+<script src="{% static 'courses/js/landing.js' %}?v=cookies1-3" defer></script>
 {% endblock %}
+
+{% block cookie_footer %}{% endblock %}
