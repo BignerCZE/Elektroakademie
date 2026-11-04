@@ -101,3 +101,32 @@ class LegalDocumentPresentationTests(TestCase):
         source = self._static_source(Path("js") / "registration.js")
         self.assertNotIn("{%", source)
         self.assertNotIn("{{", source)
+
+
+class LegalDocumentContentTests(TestCase):
+    def test_privacy_uses_shared_actual_privacy_content(self):
+        response = self.client.get(reverse("privacy_policy"))
+        self.assertTemplateUsed(response, "courses/legal/privacy_content.html")
+        self.assertContains(response, "<h1>Zásady ochrany osobních údajů</h1>", html=True)
+        self.assertNotContains(response, "Všeobecné obchodní podmínky")
+        for text in ["datum a místo narození", "zadané odpovědi", "zaměstnavatele", "automaticky", "5 let"]:
+            self.assertContains(response, text)
+
+    def test_cookie_modal_and_page_share_the_same_document(self):
+        for url in [reverse("index"), reverse("cookies")]:
+            with self.subTest(url=url):
+                response = self.client.get(url)
+                self.assertTemplateUsed(response, "courses/legal/cookies_content.html")
+                self.assertContains(response, "Prohlášení o použití cookies")
+                for text in ["YouTube", "Google Analytics 4", "180 dní", "nemá vlastní časovou expiraci"]:
+                    self.assertContains(response, text)
+                self.assertNotContains(response, "Marketingové cookies používáme pouze na základě vašeho souhlasu")
+        self.assertContains(self.client.get(reverse("cookies")), reverse("privacy_policy"))
+
+    def test_activation_informs_employer_registered_participant(self):
+        from courses.models import Order, OrderParticipant
+        order=Order.objects.create(course_type="4",status="paid",company_name="Test")
+        participant=OrderParticipant.objects.create(order=order,first_name="Test",last_name="Test",email="test@example.invalid")
+        response=self.client.get(reverse("participant_activation",args=[participant.activation_token]))
+        self.assertContains(response, reverse("privacy_policy"))
+        self.assertContains(response, "Informace o zpracování údajů")

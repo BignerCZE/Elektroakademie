@@ -4,10 +4,12 @@ import uuid
 
 from django import forms
 from django.contrib import admin, messages
-from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.admin import UserAdmin, GroupAdmin
+from django.contrib.auth.models import Group
 from django.db import transaction
 from django.db.models import Count, Exists, OuterRef, Q, Subquery
 from django.http import HttpResponse
+from django.core.exceptions import PermissionDenied
 from django.urls import path, reverse
 from django.utils.html import format_html, format_html_join
 from django.utils import timezone
@@ -87,8 +89,29 @@ class CourseAdmin(admin.ModelAdmin):
     search_fields = ("title",)
 
 
+class SuperuserManagedAccountsMixin:
+    """Account/role changes can grant access or reset another user's password."""
+
+    def has_add_permission(self, request):
+        return request.user.is_superuser
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+
+admin.site.unregister(Group)
+
+
+@admin.register(Group)
+class ExplicitGroupAdmin(SuperuserManagedAccountsMixin, GroupAdmin):
+    pass
+
+
 @admin.register(CustomUser)
-class CustomUserAdmin(UserAdmin):
+class CustomUserAdmin(SuperuserManagedAccountsMixin, UserAdmin):
     list_display = (
         "username",
         "email",
@@ -3277,7 +3300,7 @@ class QuizAttemptAdmin(admin.ModelAdmin):
         request,
         obj=None,
     ):
-        return True
+        return super().has_delete_permission(request, obj)
 
     @staticmethod
     def _format_admin_datetime(value):
@@ -4019,6 +4042,8 @@ class CertificateAdmin(admin.ModelAdmin):
         return custom_urls + urls
 
     def certificate_pdf_view(self, request, object_id):
+        if not self.has_view_or_change_permission(request):
+            raise PermissionDenied
         certificate = self.get_object(request, object_id)
 
         if certificate is None:
@@ -4027,6 +4052,9 @@ class CertificateAdmin(admin.ModelAdmin):
                 status=404,
                 content_type="text/plain; charset=utf-8",
             )
+
+        if not self.has_view_or_change_permission(request, certificate):
+            raise PermissionDenied
 
         try:
             pdf_content = generate_certificate_pdf(
@@ -4687,11 +4715,7 @@ class EmailLogAdmin(admin.ModelAdmin):
         request,
         obj=None,
     ):
-        return bool(
-            request.user
-            and request.user.is_active
-            and request.user.is_staff
-        )
+        return super().has_view_permission(request, obj)
 
     def has_add_permission(
         self,

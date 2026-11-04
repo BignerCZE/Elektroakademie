@@ -78,7 +78,9 @@
         if (!infoWasOpen) returnFocus = document.activeElement;
         showPanel(true);
         banner.hidden = false;
-        infoPanel.querySelector("button").focus();
+        const heading = infoPanel.querySelector("h1");
+        heading.setAttribute("tabindex", "-1");
+        heading.focus({preventScroll: true});
     }));
     document.querySelectorAll("[data-cookie-back]").forEach(el => el.addEventListener("click", () => open()));
     document.querySelectorAll("[data-cookie-close]").forEach(el => el.addEventListener("click", close));

@@ -11,7 +11,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_POST
 from .models import CookieConsent
 
-VERSION = "2026-11-03"
+VERSION = "2026-11-04"
 AGE = 60 * 60 * 24 * 180
 COOKIE = "ea_consent"
 

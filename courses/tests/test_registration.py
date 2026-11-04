@@ -461,3 +461,23 @@ class RegistrationTests(TestCase):
 
 
 
+
+
+class ParticipantFormsetIntegrityTests(TestCase):
+    def test_sparse_indices_are_rejected_instead_of_dropping_participant(self):
+        data = RegistrationTests().get_registration_data(participants=[
+            {"first_name":"First", "last_name":"Test", "email":"first@example.invalid"},
+            {"first_name":"Third", "last_name":"Test", "email":"third@example.invalid"},
+        ])
+        for field in ("first_name", "last_name", "email"):
+            data[f"participants-2-{field}"] = data.pop(f"participants-1-{field}")
+        response = self.client.post(reverse("register"), data)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Seznam účastníků se nepodařilo ověřit")
+        self.assertFalse(Order.objects.exists())
+
+    def test_missing_last_index_is_rejected(self):
+        data = RegistrationTests().get_registration_data()
+        data["participants-TOTAL_FORMS"] = "2"
+        self.client.post(reverse("register"), data)
+        self.assertFalse(Order.objects.exists())

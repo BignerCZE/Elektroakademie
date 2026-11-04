@@ -1,0 +1,101 @@
+{
+  "base_commit": "7da23e925ec99c054a06d1b6a6d22c194c427457",
+  "files": [
+    {
+      "path": "courses/admin.py",
+      "sha256": "2fe4d5d32378bd02da716bbadfb4dcaac5a13604098881b908be518f082b768b"
+    },
+    {
+      "path": "courses/consent.py",
+      "sha256": "ddf49bc055308f18d88b5435f17f371cbe9bb432c3056d18392ac7b96e3e2972"
+    },
+    {
+      "path": "courses/forms.py",
+      "sha256": "7ec4d9669c4f90a743b6cebf64fdeeb9d3be6b17c7c5219e4bf90d89a1d6f4ab"
+    },
+    {
+      "path": "courses/quiz_state.py",
+      "sha256": "242cf167086ef9a341f885f959b343be6ea7de53118eab90b1ec370afc4f7b95"
+    },
+    {
+      "path": "courses/static/courses/css/cookies.css",
+      "sha256": "a21a2644d29dcc0f508a705ed666c9c450a84d31c6cc5ef29a71fae81d7f1a0d"
+    },
+    {
+      "path": "courses/static/courses/js/cookies.js",
+      "sha256": "50ea07aae5d4f01569ac9c1992d36f24ff08a7ef242fa234e3ccc06c165869fa"
+    },
+    {
+      "path": "courses/static/courses/js/registration.js",
+      "sha256": "ea2289c7cf0003712a6a57537614897442b92af4cb84dcfa7d2e5fe7daf33a57"
+    },
+    {
+      "path": "courses/templates/courses/base.html",
+      "sha256": "14180c082f0934a97353334ac84bd18d6ff3dd3215296109e849d6849a569bc6"
+    },
+    {
+      "path": "courses/templates/courses/legal/cookies_content.html",
+      "sha256": "9670267e31460d43b86809185e15813d49d314a0b79c3c9238fb34b47e620a04"
+    },
+    {
+      "path": "courses/templates/courses/legal/privacy_content.html",
+      "sha256": "92c4f3ddc72fa77dd9012d6d1288a878a045854d4e257ea7c832388fe07cd898"
+    },
+    {
+      "path": "courses/templates/courses/privacy_policy.html",
+      "sha256": "cfc3c9df26e481a5f890f79dbbe1e7e1d285f24d58d88a58816d8d0cda6244c6"
+    },
+    {
+      "path": "courses/templates/registration/participant_activation.html",
+      "sha256": "453123b5acb280e6896c8e4e92e5c899ecc44a5ca7767d9a69af02fffe482897"
+    },
+    {
+      "path": "courses/templates/registration/register.html",
+      "sha256": "ed5ed8afca8e9b1b554376047a04824a84fb74aac91535136c0c11616df64693"
+    },
+    {
+      "path": "courses/tests/cookies_frontend.test.cjs",
+      "sha256": "45cdf0fca64ed9db0a6a5a708ea88d4573cc9e73c38607f7180c71c329d8e26d"
+    },
+    {
+      "path": "courses/tests/test_emails.py",
+      "sha256": "222b6b500f501269c568ce37f546c51da21afbb0f58592399c1310beee0d4487"
+    },
+    {
+      "path": "courses/tests/test_explicit_permissions.py",
+      "sha256": "b6e62aa5326c156072fa86af5c71148943797a5427dcfc404b5bb4dac9353f18"
+    },
+    {
+      "path": "courses/tests/test_frontend_static_assets.py",
+      "sha256": "9e1feea795d4fe80feb183b2bec0a8fa83081b61e59094dc03c7402b4af89dd3"
+    },
+    {
+      "path": "courses/tests/test_legal_documents.py",
+      "sha256": "394bf309b766f1d9af9177fe64ed2d327bda24da0e49967545719db886236c02"
+    },
+    {
+      "path": "courses/tests/test_quiz_concurrency.py",
+      "sha256": "e7156b76204884b6f2c8e77a67bb91be9c259f9ade64e12208b470b88961c29a"
+    },
+    {
+      "path": "courses/tests/test_registration.py",
+      "sha256": "e3d5212dd6cebd0efd52923e3efead82aec37a100b783f2b3ef40da97772c174"
+    },
+    {
+      "path": "courses/tests/test_registration_browser.py",
+      "sha256": "22f2cf27a392686d6b1f94075340660a4d65435e2fa031ed983b531a0eb6fc37"
+    },
+    {
+      "path": "courses/tests/test_registration_order_controls.py",
+      "sha256": "52d9657189995ef14bec8314327d86b7a7fb81fb3fe5319d85631caebddb9ca0"
+    },
+    {
+      "path": "courses/views.py",
+      "sha256": "b257f74bfca247409a01bb4f39aa9cbd79eda2f65a082e7c64e1ade28cd74065"
+    },
+    {
+      "path": "docs/OPRAVY_2026_11_04.md",
+      "sha256": "df8757f75866e8bd6b972d23fe2c75434846f3ad82f0754153419189348c4909"
+    }
+  ]
+}

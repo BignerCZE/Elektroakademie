@@ -1,3 +1,4 @@
+from django.contrib.auth.models import Permission
 import uuid
 
 from django.contrib.auth import get_user_model
@@ -219,6 +220,10 @@ class ParticipantActivationEmailPreviewTests(TestCase):
             password="Testheslo1",
             is_staff=True,
         )
+        self.staff_user.user_permissions.add(*Permission.objects.filter(
+            content_type__app_label="courses",
+            codename__in=["view_order", "view_orderparticipant", "view_quizattempt", "view_certificate"],
+        ))
 
     def test_staff_user_can_view_html_preview(self):
         self.client.force_login(self.staff_user)
@@ -682,6 +687,10 @@ class CourseCompletedEmailPreviewTests(TestCase):
             password="Testheslo1",
             is_staff=True,
         )
+        self.staff_user.user_permissions.add(*Permission.objects.filter(
+            content_type__app_label="courses",
+            codename__in=["view_order", "view_orderparticipant", "view_quizattempt", "view_certificate"],
+        ))
 
         self.course = Course.objects.create(
             title="§4 – osoba poučená",
@@ -1093,6 +1102,10 @@ class PaymentCompletedEmailPreviewTests(TestCase):
             password="Testheslo1",
             is_staff=True,
         )
+        self.staff_user.user_permissions.add(*Permission.objects.filter(
+            content_type__app_label="courses",
+            codename__in=["view_order", "view_orderparticipant", "view_quizattempt", "view_certificate"],
+        ))
 
         self.normal_user = User.objects.create_user(
             username="user@example.com",

@@ -6,7 +6,7 @@ import logging
 import requests
 from django.conf import settings
 from django.contrib.auth import get_user_model, login
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db import transaction
 from django.db.models import Max, Q
@@ -53,6 +53,8 @@ from .workflows import (
     process_order_payment,
     process_quiz_completion,
 )
+
+from .quiz_state import serialized_quiz_attempt
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
@@ -460,6 +462,7 @@ def order_payment_success(request, order_id):
 
 
 @staff_member_required
+@permission_required(('courses.view_orderparticipant', 'courses.view_order'), raise_exception=True)
 @require_GET
 def participant_activation_email_preview(request, token):
     participant = get_object_or_404(
@@ -493,6 +496,7 @@ def participant_activation_email_preview(request, token):
     )
 
 @staff_member_required
+@permission_required(('courses.view_order', 'courses.view_orderparticipant'), raise_exception=True)
 @require_GET
 def payment_completed_email_preview(request, order_id):
     order = get_object_or_404(
@@ -1040,6 +1044,77 @@ def quiz_start(request, course_id):
 
 @login_required
 def quiz_question(request, attempt_id, order):
+    if request.method == "POST":
+        with serialized_quiz_attempt(attempt_id, request.user) as attempt:
+            if attempt.status == QuizAttempt.STATUS_SUBMITTED:
+                return redirect("quiz_attempt_detail", attempt_id=attempt.id, order=1)
+            attempt_question = get_object_or_404(
+                QuizAttemptQuestion.objects.select_related("question"),
+                attempt=attempt, order=order,
+            )
+
+            total_questions = attempt.attempt_questions.count()
+            if "leave_test" in request.POST:
+                return redirect(
+                    "quiz",
+                    course_id=attempt.course.id,
+                )
+
+            choice_id = request.POST.get("choice")
+
+            if choice_id:
+                choice = (
+                    Choice.objects
+                    .filter(
+                        id=choice_id,
+                        question=attempt_question.question,
+                    )
+                    .first()
+                )
+
+                if choice:
+                    attempt_question.selected_choice = choice
+                    attempt_question.save(
+                        update_fields=["selected_choice"]
+                    )
+
+            if "previous" in request.POST:
+                return redirect(
+                    "quiz_question",
+                    attempt_id=attempt.id,
+                    order=max(order - 1, 1),
+                )
+
+            if "next" in request.POST:
+                return redirect(
+                    "quiz_question",
+                    attempt_id=attempt.id,
+                    order=min(order + 1, total_questions),
+                )
+
+            if "go_to" in request.POST:
+                try:
+                    target_order = int(request.POST["go_to"])
+                except (TypeError, ValueError):
+                    target_order = order
+
+                target_order = min(
+                    max(target_order, 1),
+                    total_questions,
+                )
+
+                return redirect(
+                    "quiz_question",
+                    attempt_id=attempt.id,
+                    order=target_order,
+                )
+
+            return redirect(
+                "quiz_question",
+                attempt_id=attempt.id,
+                order=order,
+            )
+
     attempt = get_object_or_404(
         QuizAttempt,
         id=attempt_id,
@@ -1061,67 +1136,6 @@ def quiz_question(request, attempt_id, order):
         order=order,
     )
 
-    if request.method == "POST":
-        if "leave_test" in request.POST:
-            return redirect(
-                "quiz",
-                course_id=attempt.course.id,
-            )
-
-        choice_id = request.POST.get("choice")
-
-        if choice_id:
-            choice = (
-                Choice.objects
-                .filter(
-                    id=choice_id,
-                    question=attempt_question.question,
-                )
-                .first()
-            )
-
-            if choice:
-                attempt_question.selected_choice = choice
-                attempt_question.save(
-                    update_fields=["selected_choice"]
-                )
-
-        if "previous" in request.POST:
-            return redirect(
-                "quiz_question",
-                attempt_id=attempt.id,
-                order=max(order - 1, 1),
-            )
-
-        if "next" in request.POST:
-            return redirect(
-                "quiz_question",
-                attempt_id=attempt.id,
-                order=min(order + 1, total_questions),
-            )
-
-        if "go_to" in request.POST:
-            try:
-                target_order = int(request.POST["go_to"])
-            except (TypeError, ValueError):
-                target_order = order
-
-            target_order = min(
-                max(target_order, 1),
-                total_questions,
-            )
-
-            return redirect(
-                "quiz_question",
-                attempt_id=attempt.id,
-                order=target_order,
-            )
-
-        return redirect(
-            "quiz_question",
-            attempt_id=attempt.id,
-            order=order,
-        )
 
     choices = []
 
@@ -1206,6 +1220,42 @@ def quiz_question(request, attempt_id, order):
 
 @login_required
 def quiz_attempt(request, attempt_id):
+    if request.method == "POST":
+        with serialized_quiz_attempt(attempt_id, request.user) as attempt:
+            if attempt.status == QuizAttempt.STATUS_SUBMITTED:
+                return redirect("quiz_attempt_detail", attempt_id=attempt.id, order=1)
+
+            attempt_questions = (
+                attempt.attempt_questions
+                .select_related("question")
+            )
+
+            for attempt_question in attempt_questions:
+                choice_id = request.POST.get(
+                    f"question_{attempt_question.id}"
+                )
+
+                if choice_id:
+                    choice = (
+                        Choice.objects
+                        .filter(
+                            id=choice_id,
+                            question=attempt_question.question,
+                        )
+                        .first()
+                    )
+
+                    if choice:
+                        attempt_question.selected_choice = choice
+                        attempt_question.save(
+                            update_fields=["selected_choice"]
+                        )
+
+            return redirect(
+                "quiz_attempt",
+                attempt_id=attempt.id,
+            )
+
     attempt = get_object_or_404(
         QuizAttempt,
         id=attempt_id,
@@ -1219,37 +1269,6 @@ def quiz_attempt(request, attempt_id):
             order=1,
         )
 
-    if request.method == "POST":
-        attempt_questions = (
-            attempt.attempt_questions
-            .select_related("question")
-        )
-
-        for attempt_question in attempt_questions:
-            choice_id = request.POST.get(
-                f"question_{attempt_question.id}"
-            )
-
-            if choice_id:
-                choice = (
-                    Choice.objects
-                    .filter(
-                        id=choice_id,
-                        question=attempt_question.question,
-                    )
-                    .first()
-                )
-
-                if choice:
-                    attempt_question.selected_choice = choice
-                    attempt_question.save(
-                        update_fields=["selected_choice"]
-                    )
-
-        return redirect(
-            "quiz_attempt",
-            attempt_id=attempt.id,
-        )
 
     context = {
         "attempt": attempt,
@@ -1273,116 +1292,112 @@ def quiz_attempt(request, attempt_id):
 @login_required
 @require_POST
 def quiz_submit(request, attempt_id):
-    attempt = get_object_or_404(
-        QuizAttempt,
-        id=attempt_id,
-        user=request.user,
-    )
-
-    # Opakované odeslání již dokončený pokus nemění.
-    if attempt.status == QuizAttempt.STATUS_SUBMITTED:
-        detail_url = reverse(
-            "quiz_attempt_detail",
-            kwargs={"attempt_id": attempt.id, "order": 1},
-        )
-        return redirect(f"{detail_url}?from=result")
-
-    current_question_id = request.POST.get(
-        "current_question_id"
-    )
-    choice_id = request.POST.get("choice")
-
-    if current_question_id and choice_id:
-        current_attempt_question = (
-            QuizAttemptQuestion.objects
-            .select_related("question")
-            .filter(
-                id=current_question_id,
-                attempt=attempt,
+    with serialized_quiz_attempt(attempt_id, request.user) as attempt:
+        if attempt.status == QuizAttempt.STATUS_SUBMITTED:
+            detail_url = reverse(
+                "quiz_attempt_detail", kwargs={"attempt_id": attempt.id, "order": 1},
             )
-            .first()
-        )
+            return redirect(f"{detail_url}?from=result")
 
-        if current_attempt_question:
-            selected_choice = (
-                Choice.objects
+        current_question_id = request.POST.get(
+            "current_question_id"
+        )
+        choice_id = request.POST.get("choice")
+
+        if current_question_id and choice_id:
+            current_attempt_question = (
+                QuizAttemptQuestion.objects
+                .select_related("question")
                 .filter(
-                    id=choice_id,
-                    question=current_attempt_question.question,
+                    id=current_question_id,
+                    attempt=attempt,
                 )
                 .first()
             )
 
-            if selected_choice:
-                current_attempt_question.selected_choice = (
-                    selected_choice
-                )
-                current_attempt_question.save(
-                    update_fields=["selected_choice"]
+            if current_attempt_question:
+                selected_choice = (
+                    Choice.objects
+                    .filter(
+                        id=choice_id,
+                        question=current_attempt_question.question,
+                    )
+                    .first()
                 )
 
-    unanswered_question = (
-        attempt.attempt_questions
-        .filter(selected_choice__isnull=True)
-        .order_by("order")
-        .first()
-    )
+                if selected_choice:
+                    current_attempt_question.selected_choice = (
+                        selected_choice
+                    )
+                    current_attempt_question.save(
+                        update_fields=["selected_choice"]
+                    )
 
-    if unanswered_question:
-        return redirect(
-            "quiz_question",
-            attempt_id=attempt.id,
-            order=unanswered_question.order,
+        unanswered_question = (
+            attempt.attempt_questions
+            .filter(selected_choice__isnull=True)
+            .order_by("order")
+            .first()
         )
 
-    total_questions = attempt.attempt_questions.count()
+        if unanswered_question:
+            return redirect(
+                "quiz_question",
+                attempt_id=attempt.id,
+                order=unanswered_question.order,
+            )
 
-    correct_answers = (
-        attempt.attempt_questions
-        .filter(selected_choice__is_correct=True)
-        .count()
-    )
+        total_questions = attempt.attempt_questions.count()
 
-    score_percent = 0
-
-    if total_questions:
-        score_percent = round(
-            (correct_answers / total_questions) * 100,
-            2,
+        correct_answers = (
+            attempt.attempt_questions
+            .filter(selected_choice__is_correct=True)
+            .count()
         )
 
-    pass_percentage = getattr(
-        settings,
-        "QUIZ_PASS_PERCENTAGE",
-        70,
-    )
+        score_percent = 0
 
-    passed = score_percent >= pass_percentage
+        if total_questions:
+            score_percent = round(
+                (correct_answers / total_questions) * 100,
+                2,
+            )
 
-    attempt.total_questions = total_questions
-    attempt.correct_answers = correct_answers
-    attempt.score_percent = score_percent
-    attempt.passed = passed
-    attempt.status = QuizAttempt.STATUS_SUBMITTED
-    attempt.submitted_at = timezone.now()
+        pass_percentage = getattr(
+            settings,
+            "QUIZ_PASS_PERCENTAGE",
+            70,
+        )
 
-    attempt.save(
-        update_fields=[
-            "total_questions",
-            "correct_answers",
-            "score_percent",
-            "passed",
-            "status",
-            "submitted_at",
-        ]
-    )
+        passed = score_percent >= pass_percentage
 
+        attempt.total_questions = total_questions
+        attempt.correct_answers = correct_answers
+        attempt.score_percent = score_percent
+        attempt.passed = passed
+        attempt.status = QuizAttempt.STATUS_SUBMITTED
+        attempt.submitted_at = timezone.now()
+
+        attempt.save(
+            update_fields=[
+                "total_questions",
+                "correct_answers",
+                "score_percent",
+                "passed",
+                "status",
+                "submitted_at",
+            ]
+        )
+
+        if passed:
+            request.user.passed_quiz = True
+            request.user.save(
+                update_fields=["passed_quiz"]
+            )
+
+    # The lock is committed before PDF/SMTP work. Only the request that
+    # changed in_progress -> submitted can start this workflow.
     if passed:
-        request.user.passed_quiz = True
-        request.user.save(
-            update_fields=["passed_quiz"]
-        )
-
         try:
             workflow_result = process_quiz_completion(
                 attempt
@@ -1799,6 +1814,7 @@ def quiz_result_pdf(request, attempt_id):
     return response
 
 @staff_member_required
+@permission_required(('courses.view_quizattempt', 'courses.view_certificate'), raise_exception=True)
 @require_GET
 def course_completed_email_preview(request, attempt_id):
     attempt = get_object_or_404(
@@ -1869,6 +1885,7 @@ def course_completed_email_preview(request, attempt_id):
     )
 
 @staff_member_required
+@permission_required(('courses.view_quizattempt', 'courses.view_certificate'), raise_exception=True)
 @require_GET
 def course_completed_email_attachment(
     request,

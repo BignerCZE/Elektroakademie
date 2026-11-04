@@ -48,7 +48,7 @@ class RegistrationOrderControlsTests(TestCase):
         )
         self.assertContains(
             response,
-            'courses/js/registration.js?v=4',
+            'courses/js/registration.js?v=5',
         )
         self.assertContains(
             response,

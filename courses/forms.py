@@ -1,4 +1,5 @@
 from datetime import date
+import re
 
 from django import forms
 from django.contrib.auth import password_validation
@@ -50,6 +51,22 @@ class BaseParticipantFormSet(BaseFormSet):
 
         if any(self.errors):
             return
+
+        # Reject stale or tampered formset indices instead of silently dropping
+        # participants whose index falls outside TOTAL_FORMS.
+        pattern = re.compile(
+            rf"^{re.escape(self.prefix)}-(\d+)-(?:first_name|last_name|email)$"
+        )
+        submitted_indices = {
+            int(match.group(1))
+            for key in self.data
+            if (match := pattern.match(key))
+        }
+        if submitted_indices != set(range(self.total_form_count())):
+            raise forms.ValidationError(
+                "Seznam účastníků se nepodařilo ověřit. "
+                "Obnovte formulář a zkontrolujte všechny účastníky."
+            )
 
         used_emails = set()
 

@@ -5,11 +5,12 @@ const fs = require('node:fs');
 const path = require('node:path');
 const source = fs.readFileSync(path.join(__dirname, '../static/courses/js/cookies.js'), 'utf8');
 function setup(preferences=null, measurementId='G-TEST', failure=false) {
-    const buttons = ['all','none','save','settings'].map(action => ({dataset:{cookieChoice:action}, addEventListener:(_,fn)=>buttons.find(b=>b.dataset.cookieChoice===action).click=fn, focus(){}}));
+    const buttons = ['all','none','save','settings'].map(action => ({dataset:{cookieChoice:action}, addEventListener:(_,fn)=>buttons.find(b=>b.dataset.cookieChoice===action).click=fn, focus(){}, setAttribute(){}}));
+    const infoHeading = {setAttribute(){},focus(options){this.focusOptions=options;this.focused=true;}};
     const elements = {
         'ea-cookie-config':{textContent:JSON.stringify({preferences,measurementId,page:'index'})},
         'cookie-banner':{hidden:true,querySelector:()=>buttons[0]},
-        'cookie-consent-panel':{hidden:false,querySelector:()=>buttons[0]}, 'cookie-info-panel':{hidden:true,querySelector:()=>buttons[0]}, 'cookie-dialog':{setAttribute(){},removeAttribute(){}},
+        'cookie-consent-panel':{hidden:false,querySelector:()=>buttons[0]}, 'cookie-info-panel':{hidden:true,querySelector:selector=>selector==='h1'?infoHeading:buttons[0]}, 'cookie-dialog':{setAttribute(){},removeAttribute(){}},
         'cookie-settings-toggle':{setAttribute(){}}, 'cookie-options':{hidden:true}, 'cookie-analytics':{checked:false}, 'cookie-media':{checked:false}, 'cookie-status':{},
         'cookie-form':{action:'/cookies/souhlas/',querySelector:()=>({value:'csrf-token'}),querySelectorAll:()=>buttons}
     };
@@ -22,7 +23,7 @@ function setup(preferences=null, measurementId='G-TEST', failure=false) {
     const context={window,document,URL,location:{origin:'https://example.cz',hostname:'example.cz',reload:()=>reloads++},
         fetch:async(url,options)=>({ok:!failure,json:async()=>JSON.parse(options.body)})};
     vm.runInNewContext(source,context);
-    return {window,elements,scripts,buttons,infoLink,closeButton,get reloads(){return reloads;}};
+    return {window,elements,scripts,buttons,infoLink,closeButton,infoHeading,get reloads(){return reloads;}};
 }
 test('no consent: no Google script or events',()=>{const x=setup();assert.equal(x.scripts.length,0);assert.equal(x.window.dataLayer.length,0);assert.equal(x.elements['cookie-banner'].hidden,false);});
 test('media only does not load Analytics',()=>{const x=setup({analytics:false,media:true});assert.equal(x.scripts.length,0);assert.equal(x.window.EACookies.mediaAllowed(),true);});
@@ -67,4 +68,13 @@ test('closing without decision leaves optional services disabled',()=>{
     assert.equal(x.elements['cookie-banner'].hidden,true);
     assert.equal(x.scripts.length,0);
     assert.equal(x.window.EACookies.mediaAllowed(),false);
+});
+
+test('long cookie information opens at its heading without scrolling to bottom actions',()=>{
+    const x=setup({analytics:false,media:false});
+    x.elements['cookie-dialog'].scrollTop=900;
+    x.infoLink.click({preventDefault(){}});
+    assert.equal(x.elements['cookie-dialog'].scrollTop,0);
+    assert.equal(x.infoHeading.focused,true);
+    assert.equal(x.infoHeading.focusOptions.preventScroll,true);
 });

@@ -1,14 +1,16 @@
 from datetime import date
 from unittest.mock import patch
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.utils import timezone
+from django.core import mail
 
 from django.urls import reverse
 
 from courses.models import (
     Order,
     OrderParticipant,
+    EmailLog,
     RegistrationNumberSequence,
 )
 from courses.services import (
@@ -248,6 +250,10 @@ class MarkOrderAsPaidTests(TestCase):
             "EA-04-202608-00001",
         )
 
+@override_settings(
+    EMAIL_TRANSPORT="preview",
+    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+)
 class OrderPaymentSuccessEmailPreviewTests(TestCase):
     def setUp(self):
         self.order = Order.objects.create(
@@ -336,3 +342,7 @@ class OrderPaymentSuccessEmailPreviewTests(TestCase):
         self.assertIsNone(
             self.participant.activation_sent_at,
         )
+        logs = EmailLog.objects.filter(order=self.order)
+        self.assertEqual(logs.count(), 2)
+        self.assertTrue(all(log.status == EmailLog.STATUS_PREVIEW for log in logs))
+        self.assertFalse(mail.outbox)

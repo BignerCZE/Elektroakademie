@@ -1101,6 +1101,16 @@ document.addEventListener("DOMContentLoaded", function () {
     function refreshParticipants() {
         const participants = wrapper.querySelectorAll(".participant-item");
         participants.forEach(function (participant, index) {
+            // Django formsets consume exactly 0..TOTAL_FORMS-1. Reindex every
+            // reference after deleting a row, including accessible labels.
+            [participant, ...participant.querySelectorAll("*")].forEach(function (element) {
+                ["name", "id", "for", "aria-describedby", "aria-labelledby", "aria-controls"].forEach(function (attribute) {
+                    const value = element.getAttribute(attribute);
+                    if (value) {
+                        element.setAttribute(attribute, value.replace(/participants-\d+-/g, "participants-" + index + "-"));
+                    }
+                });
+            });
             participant.querySelector("h2").textContent = "Účastník " + (index + 1);
 
             const removeButton = participant.querySelector(".remove-participant-button");

@@ -4,7 +4,7 @@
     box-sizing: border-box;
     padding: 12px;
     text-align: center;
-    background: transparent;
+    background: var(--page-blue-bg);
     color: #fff;
     font-size: 14px;
     line-height: 1.5;
@@ -76,6 +76,7 @@
     flex: 0 0 auto;
     align-self: stretch;
     margin-top: 12px;
+    background: transparent;
 }
 
 .cookie-banner .cookie-dismiss {

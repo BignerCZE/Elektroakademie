@@ -49,7 +49,7 @@
                 </div>
                 <div class="checkout-layout" id="checkout-layout">
                     <form method="post" class="register-form" id="registration-form"
-                        data-participant-server-errors="{{ participant_formset.errors|yesno:'true,false' }}"
+                        data-participant-server-errors="{{ participant_formset.total_error_count|yesno:'true,false' }}"
                         data-billing-server-errors="{{ billing_form.errors|yesno:'true,false' }}"
                         data-check-emails-url="{% url 'check_participant_emails' %}" data-index-url="{% url 'index' %}"
                         data-contact-url="{% url 'index' %}#contact">
@@ -434,5 +434,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'courses/js/registration.js' %}?v=4" defer></script>
+<script src="{% static 'courses/js/registration.js' %}?v=5" defer></script>
 {% endblock %}
