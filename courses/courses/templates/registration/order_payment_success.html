@@ -1,0 +1,78 @@
+{% extends 'courses/base.html' %}
+{% load static %}
+
+{% block title %}Platba dokončena | Elektroakademie{% endblock %}
+
+{% block content %}
+<main class="page-shell page-shell--centered" data-index-url="{% url 'index' %}">
+    <div class="container">
+        <section class="content-card content-card--narrow">
+            <h1>Služba byla zaplacena</h1>
+
+            <p>
+                Děkujeme. Objednávka č. {{ order.id }} byla označena jako zaplacená.
+            </p>
+
+            <p>
+                Za <strong id="redirect-countdown">30</strong> sekund budete přesměrováni
+                na úvodní stránku.
+            </p>
+
+            <a href="{% url 'index' %}" class="button-primary">
+                Zpět na úvod
+            </a>
+
+            {% if invoice_access and invoice_ready %}
+            <p><a href="{% url 'invoice_download' order.id %}" class="button-secondary" target="_blank" rel="noopener">Náhled faktury PDF</a></p>
+            {% endif %}
+            <section class="activation-links">
+                <h2>Aktivační odkazy účastníků</h2>
+
+                <p>
+                    Pro testování se odkazy zatím zobrazují přímo zde.
+                </p>
+
+                {% for item in activation_links %}
+                <article class="activation-link-card">
+                    <div class="activation-link-person">
+                        <strong>
+                            {{ item.participant.first_name }}
+                            {{ item.participant.last_name }}
+                        </strong>
+
+                        <span>
+                            {{ item.participant.registration_number }}
+                        </span>
+                    </div>
+
+                    <input type="text" value="{{ item.url }}" readonly id="activation-link-{{ forloop.counter }}"
+                        aria-label="
+            Aktivační odkaz pro
+            {{ item.participant.first_name }}
+            {{ item.participant.last_name }}
+        ">
+
+                    <div class="activation-link-actions">
+                        <button type="button" class="button-primary"
+                            data-copy-link="activation-link-{{ forloop.counter }}">
+                            Kopírovat odkaz
+                        </button>
+
+                        <a href="{{ item.email_preview_url }}" class="button-secondary" target="_blank" rel="noopener">
+                            Náhled aktivačního e-mailu
+                        </a>
+                    </div>
+                </article>
+                {% empty %}
+                <p>Objednávka neobsahuje žádné účastníky.</p>
+                {% endfor %}
+            </section>
+        </section>
+    </div>
+</main>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'courses/js/payment-success.js' %}?v=2" defer></script>
+{% endblock %}

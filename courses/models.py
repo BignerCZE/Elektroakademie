@@ -141,6 +141,7 @@ class Order(models.Model):
         max_length=10,
         choices=COURSE_CHOICES,
     )
+    invoice_items = models.JSONField(default=list, blank=True, editable=False)
     total_price = models.PositiveIntegerField(default=0)
     status = models.CharField(
         max_length=30,
@@ -673,3 +674,28 @@ class CookieConsent(models.Model):
     analytics = models.BooleanField(default=False)
     media = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+class InvoiceSequence(models.Model):
+    period = models.CharField(max_length=6, unique=True)
+    last_number = models.PositiveIntegerField(default=0)
+
+
+class Invoice(models.Model):
+    order = models.OneToOneField(Order, on_delete=models.PROTECT, related_name="invoice")
+    number = models.CharField(max_length=9, unique=True)
+    issued_on = models.DateField()
+    period = models.CharField(max_length=6)
+    sequence = models.PositiveIntegerField()
+    snapshot = models.JSONField()
+    pdf_content = models.BinaryField(default=bytes, blank=True)
+
+    class Meta:
+        verbose_name = "Faktura"
+        verbose_name_plural = "Faktury"
+        constraints = [
+            models.UniqueConstraint(fields=["period", "sequence"], name="invoice_period_sequence_unique"),
+        ]
+
+    def __str__(self):
+        return self.number

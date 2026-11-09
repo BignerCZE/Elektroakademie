@@ -1,7 +1,10 @@
 import logging
-from dataclasses import dataclass
+from time import monotonic, sleep
+from dataclasses import dataclass, replace
 
 from django.conf import settings
+from django.db import connection, OperationalError, transaction
+from django.db.models import F
 
 from .emails.builders import (
     COURSE_COMPLETED_SUBJECT,
@@ -13,7 +16,9 @@ from .emails.delivery import (
     deliver_email,
     record_email_failure,
 )
-from .models import EmailLog, QuizAttempt
+from .models import EmailLog, Order, QuizAttempt
+from .invoices import issue_invoice, invoice_pdf
+from .emails.types import EmailAttachment
 from .services import (
     generate_certificate,
     generate_certificate_pdf,
@@ -73,6 +78,24 @@ def _email_already_completed(**filters):
     ).exists()
 
 
+def _mark_order_paid_serialized(order_id):
+    # Acquire SQLite's writer lock before mark_order_as_paid reads the order.
+    deadline = monotonic() + 5
+    while True:
+        acquired = False
+        try:
+            with transaction.atomic():
+                Order.objects.filter(pk=order_id).update(status=F("status"))
+                acquired = True
+                result = mark_order_as_paid(order_id)
+            return result
+        except OperationalError as exc:
+            if (acquired or connection.vendor != "sqlite"
+                    or "locked" not in str(exc).lower() or monotonic() >= deadline):
+                raise
+            sleep(0.01)
+
+
 def process_order_payment(order_id):
     """
     Kompletní workflow po přijetí platby.
@@ -81,11 +104,21 @@ def process_order_payment(order_id):
     E-mailové kroky se následně reconciliují i pro již zaplacenou
     objednávku, takže workflow umí opravit dříve nedokončený krok.
     """
-    order, participants, status_changed = mark_order_as_paid(
+    order, participants, status_changed = _mark_order_paid_serialized(
         order_id
     )
     participants = tuple(participants)
     errors = []
+    invoice_attachment = None
+    try:
+        invoice = issue_invoice(order.pk)
+        invoice_attachment = EmailAttachment(
+            filename=f"faktura-{invoice.number}.pdf",
+            content=invoice_pdf(invoice), mimetype="application/pdf",
+        )
+    except Exception as exc:
+        errors.append(f"Faktura objednávky {order.pk}: {exc}")
+        logger.exception("Příprava faktury selhala pro objednávku %s", order.pk)
 
     for participant in participants:
         log_filters = {
@@ -137,7 +170,7 @@ def process_order_payment(order_id):
         "recipient": order.contact_email,
     }
 
-    if not _email_already_completed(
+    if invoice_attachment is not None and not _email_already_completed(
         **payment_log_filters
     ):
         try:
@@ -145,6 +178,7 @@ def process_order_payment(order_id):
                 order,
                 participants,
             )
+            email = replace(email, attachments=(*email.attachments, invoice_attachment))
             deliver_email(
                 email,
                 email_type=EmailLog.TYPE_PAYMENT_COMPLETED,

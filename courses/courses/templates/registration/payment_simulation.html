@@ -1,0 +1,35 @@
+{% extends 'courses/base.html' %}
+{% load static %}
+
+{% block title %}Platba | Elektroakademie{% endblock %}
+
+{% block content %}
+<main class="page-shell page-shell--centered" data-success-url="{% url 'order_payment_success' order.id %}">
+    <div class="container">
+        <section class="content-card content-card--narrow">
+            <h1>Zde proběhne platba</h1>
+
+            <p>
+                Toto je pouze simulace platební brány. Za několik sekund budete přesměrováni zpět na web.
+            </p>
+
+            <p>
+                Objednávka č. {{ order.id }}<br>
+                Celková částka: {{ order.total_price }} Kč
+            </p>
+
+            {% if invoice_access %}
+            <p><a class="button-secondary" href="{% url 'invoice_preview' order.id %}" target="_blank" rel="noopener">Náhled faktury (před vystavením)</a></p>
+            {% endif %}
+            <p>
+                Přesměrování za <strong id="payment-countdown">30</strong> sekund.
+            </p>
+        </section>
+    </div>
+</main>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'courses/js/payment-simulation.js' %}?v=3" defer></script>
+{% endblock %}

@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const paymentPage = document.querySelector("main[data-success-url]");
 
-    let seconds = 5;
+    let seconds = 30;
     const countdown = document.getElementById("payment-countdown");
 
     const timer = setInterval(function () {

@@ -1,0 +1,2016 @@
+import random
+import re
+import json
+import logging
+
+import requests
+from django.conf import settings
+from django.contrib.auth import get_user_model, login
+from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.admin.views.decorators import staff_member_required
+from django.db import transaction
+from django.db.models import Max, Q
+from django.forms import formset_factory
+from django.http import Http404, HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.utils import timezone
+from django.views.decorators.http import require_GET, require_POST
+
+
+from .emails.builders import (
+    build_course_completed_email,
+    build_participant_activation_email,
+    build_payment_completed_email,
+)
+
+from .forms import (
+    BaseParticipantFormSet,
+    BillingForm,
+    ParticipantActivationForm,
+    ParticipantForm,
+)
+
+from .models import (
+    Certificate,
+    Choice,
+    Course,
+    EmailLog,
+    Order,
+    OrderParticipant,
+    ParticipantProfile,
+    Payment,
+    Question,
+    QuizAttempt,
+    QuizAttemptQuestion,
+)
+
+from .services import (
+    generate_certificate_pdf,
+    generate_quiz_result_pdf,
+)
+from .workflows import (
+    process_order_payment,
+    process_quiz_completion,
+)
+
+from .invoice_views import can_view_invoice
+from .quiz_state import serialized_quiz_attempt
+
+User = get_user_model()
+logger = logging.getLogger(__name__)
+
+
+
+COURSE_PRICES = {
+    "4": 990,
+    "6": 2990,
+    "7": 3490,
+}
+
+
+def get_dashboard_context(
+    request,
+    active_course=None,
+    sidebar_page=None,
+):
+    purchased_courses = Course.objects.none()
+    participant = None
+    participant_profile = None
+
+    has_paid = (
+        request.user.is_authenticated
+        and getattr(request.user, "is_paid", False)
+    )
+
+    if request.user.is_authenticated:
+        participant = (
+            OrderParticipant.objects
+            .select_related(
+                "order",
+                "profile",
+            )
+            .filter(user=request.user)
+            .order_by(
+                "-activation_completed_at",
+                "-id",
+            )
+            .first()
+        )
+
+        if participant:
+            participant_profile = getattr(
+                participant,
+                "profile",
+                None,
+            )
+
+    # V současné etapě existuje pouze kurz §4.
+    # Přístup získá aktivovaný účastník i účet
+    # ručně povolený v administraci.
+    if has_paid:
+        purchased_courses = Course.objects.all()
+
+    if active_course is None:
+        active_course = purchased_courses.first()
+
+    return {
+        "participant": participant,
+        "participant_profile": participant_profile,
+        "is_manual_account": (
+            has_paid and participant is None
+        ),
+        "purchased_courses": purchased_courses,
+        "active_course": active_course,
+        "course_for_payment": active_course,
+        "has_paid": has_paid,
+        "sidebar_page": sidebar_page,
+    }
+def index(request):
+    courses = Course.objects.all()
+    return render(request, "courses/index.html", {"courses": courses})
+
+
+def landing(request):
+    return render(request, "courses/landing.html")
+
+
+def register(request):
+    ParticipantFormSet = formset_factory(
+        ParticipantForm,
+        formset=BaseParticipantFormSet,
+        extra=0,
+        min_num=1,
+        validate_min=True,
+    )
+
+    if request.method == "POST":
+        participant_formset = ParticipantFormSet(
+            request.POST,
+            prefix="participants",
+        )
+        billing_form = BillingForm(request.POST)
+        selected_course = request.POST.get("selected_course")
+
+        if (
+            selected_course in COURSE_PRICES
+            and participant_formset.is_valid()
+            and billing_form.is_valid()
+        ):
+            participants = [
+                form.cleaned_data
+                for form in participant_formset
+                if form.cleaned_data
+            ]
+
+            participant_count = len(participants)
+            total_price = (
+                COURSE_PRICES[selected_course]
+                * participant_count
+            )
+
+            with transaction.atomic():
+                order = Order.objects.create(
+                    course_type=selected_course,
+                    total_price=total_price,
+                    invoice_items=[{
+                        "description": dict(Order.COURSE_CHOICES)[selected_course],
+                        "quantity": participant_count,
+                        "unit_gross": str(COURSE_PRICES[selected_course]),
+                    }],
+                    status="pending_payment",
+                    ico=billing_form.cleaned_data.get("ico", ""),
+                    dic=billing_form.cleaned_data.get("dic", ""),
+                    company_name=billing_form.cleaned_data[
+                        "company_name"
+                    ],
+                    street=billing_form.cleaned_data["street"],
+                    city=billing_form.cleaned_data["city"],
+                    zip_code=billing_form.cleaned_data["zip_code"],
+                    country=billing_form.cleaned_data["country"],
+                    contact_first_name=billing_form.cleaned_data[
+                        "contact_first_name"
+                    ],
+                    contact_last_name=billing_form.cleaned_data[
+                        "contact_last_name"
+                    ],
+                    contact_phone_prefix=billing_form.cleaned_data[
+                        "contact_phone_prefix"
+                    ],
+                    contact_phone=billing_form.cleaned_data[
+                        "contact_phone"
+                    ],
+                    contact_email=billing_form.cleaned_data[
+                        "contact_email"
+                    ],
+                    note=billing_form.cleaned_data.get("note", ""),
+                )
+
+                OrderParticipant.objects.bulk_create(
+                    [
+                        OrderParticipant(
+                            order=order,
+                            first_name=participant["first_name"],
+                            last_name=participant["last_name"],
+                            email=participant["email"].strip().lower(),
+                        )
+                        for participant in participants
+                    ]
+                )
+
+            request.session["invoice_order_ids"] = (
+                request.session.get("invoice_order_ids", []) + [order.pk]
+            )[-50:]
+            request.session["analytics_order_created"] = True
+            return redirect(
+                "order_payment_simulation",
+                order_id=order.id,
+            )
+
+    else:
+        participant_formset = ParticipantFormSet(
+            prefix="participants",
+        )
+        billing_form = BillingForm()
+
+    return render(
+        request,
+        "registration/register.html",
+        {
+            "participant_formset": participant_formset,
+            "billing_form": billing_form,
+        },
+    )
+
+
+@require_GET
+def ares_company_detail(request, ico):
+    ico = re.sub(r"\D", "", ico)
+
+    if len(ico) != 8:
+        return JsonResponse(
+            {
+                "success": False,
+                "message": "IČO musí obsahovat přesně 8 číslic.",
+            },
+            status=400,
+        )
+
+    url = (
+        "https://ares.gov.cz/"
+        f"ekonomicke-subjekty-v-be/rest/ekonomicke-subjekty/{ico}"
+    )
+
+    try:
+        response = requests.get(
+            url,
+            timeout=8,
+            headers={
+                "Accept": "application/json",
+                "User-Agent": "Elektroakademie/1.0",
+            },
+        )
+    except requests.RequestException:
+        return JsonResponse(
+            {
+                "success": False,
+                "message": "ARES je momentálně nedostupný.",
+            },
+            status=503,
+        )
+
+    if response.status_code == 404:
+        return JsonResponse(
+            {
+                "success": False,
+                "message": "Subjekt s tímto IČO nebyl nalezen.",
+            },
+            status=404,
+        )
+
+    if not response.ok:
+        return JsonResponse(
+            {
+                "success": False,
+                "message": "Nepodařilo se načíst údaje z ARES.",
+            },
+            status=502,
+        )
+    try:
+        data = response.json()
+    except ValueError:
+        return JsonResponse(
+            {
+                "success": False,
+                "message": "Nepodařilo se načíst údaje z ARES.",
+            },
+            status=502,
+        )
+    sidlo = data.get("sidlo") or {}
+
+    street = sidlo.get("nazevUlice") or sidlo.get("nazevCastiObce") or ""
+
+    house_number = sidlo.get("cisloDomovni")
+    orientation_number = sidlo.get("cisloOrientacni")
+
+    number_parts = []
+
+    if house_number:
+        number_parts.append(str(house_number))
+
+    if orientation_number:
+        if number_parts:
+            number_parts[-1] += f"/{orientation_number}"
+        else:
+            number_parts.append(str(orientation_number))
+
+    address_line = " ".join(
+        part for part in [street, " ".join(number_parts)] if part
+    )
+
+    return JsonResponse(
+        {
+            "success": True,
+            "company": {
+                "ico": data.get("ico", ico),
+                "dic": data.get("dic", ""),
+                "name": data.get("obchodniJmeno", ""),
+                "street": address_line,
+                "city": sidlo.get("nazevObce", ""),
+                "postal_code": str(sidlo.get("psc") or ""),
+                "country": sidlo.get("nazevStatu", "Česká republika"),
+            },
+        }
+    )
+
+@require_POST
+def check_participant_emails(request):
+    try:
+        data = json.loads(request.body)
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return JsonResponse(
+            {
+                "success": False,
+                "message": "Neplatná data požadavku.",
+            },
+            status=400,
+        )
+
+    submitted_emails = data.get("emails", [])
+
+    if not isinstance(submitted_emails, list):
+        return JsonResponse(
+            {
+                "success": False,
+                "message": "Neplatný seznam e-mailových adres.",
+            },
+            status=400,
+        )
+
+    normalized_emails = []
+    duplicate_emails = set()
+    seen_emails = set()
+
+    for submitted_email in submitted_emails:
+        if not isinstance(submitted_email, str):
+            continue
+
+        normalized_email = submitted_email.strip().lower()
+
+        if not normalized_email:
+            continue
+
+        normalized_emails.append(normalized_email)
+
+        if normalized_email in seen_emails:
+            duplicate_emails.add(normalized_email)
+        else:
+            seen_emails.add(normalized_email)
+
+    existing_users = User.objects.filter(
+        Q(email__in=normalized_emails)
+        | Q(username__in=normalized_emails)
+    ).values_list(
+        "email",
+        "username",
+    )
+
+    occupied_emails = set()
+
+    for user_email, username in existing_users:
+        normalized_user_email = (user_email or "").strip().lower()
+        normalized_username = (username or "").strip().lower()
+
+        if normalized_user_email in seen_emails:
+            occupied_emails.add(normalized_user_email)
+
+        if normalized_username in seen_emails:
+            occupied_emails.add(normalized_username)
+
+    return JsonResponse(
+        {
+            "success": True,
+            "occupied_emails": sorted(occupied_emails),
+            "duplicate_emails": sorted(duplicate_emails),
+        }
+    )
+
+
+def order_payment_simulation(request, order_id):
+    order = get_object_or_404(
+        Order,
+        id=order_id,
+    )
+
+    return render(
+        request,
+        "registration/payment_simulation.html",
+        {
+            "invoice_access": can_view_invoice(request, order.pk),
+            "order": order,
+        },
+    )
+
+
+def order_payment_success(request, order_id):
+    workflow_result = process_order_payment(
+        order_id
+    )
+    order = workflow_result.order
+    participants = workflow_result.participants
+
+    activation_links = [
+        {
+            "participant": participant,
+            "url": request.build_absolute_uri(
+                reverse(
+                    "participant_activation",
+                    kwargs={
+                        "token": participant.activation_token,
+                    },
+                )
+            ),
+            "email_preview_url": reverse(
+                "participant_activation_email_preview",
+                kwargs={
+                    "token": participant.activation_token,
+                },
+            ),
+        }
+        for participant in participants
+    ]
+
+    return render(
+        request,
+        "registration/order_payment_success.html",
+        {
+            "order": order,
+            "participants": participants,
+            "activation_links": activation_links,
+            "invoice_access": can_view_invoice(request, order.pk),
+            "invoice_ready": hasattr(order, "invoice"),
+        },
+    )
+
+
+@staff_member_required
+@permission_required(('courses.view_orderparticipant', 'courses.view_order'), raise_exception=True)
+@require_GET
+def participant_activation_email_preview(request, token):
+    participant = get_object_or_404(
+        OrderParticipant.objects.select_related("order"),
+        activation_token=token,
+    )
+
+    email = build_participant_activation_email(participant)
+
+    preview_format = request.GET.get(
+        "format",
+        "html",
+    ).lower()
+
+    if preview_format == "text":
+        return HttpResponse(
+            email.text_body,
+            content_type="text/plain; charset=utf-8",
+        )
+
+    if preview_format != "html":
+        return HttpResponse(
+            "Neplatný formát náhledu.",
+            status=400,
+            content_type="text/plain; charset=utf-8",
+        )
+
+    return HttpResponse(
+        email.html_body,
+        content_type="text/html; charset=utf-8",
+    )
+
+@staff_member_required
+@permission_required(('courses.view_order', 'courses.view_orderparticipant'), raise_exception=True)
+@require_GET
+def payment_completed_email_preview(request, order_id):
+    order = get_object_or_404(
+        Order.objects.prefetch_related("participants"),
+        pk=order_id,
+        status="paid",
+    )
+
+    participants = list(
+        order.participants.all()
+    )
+
+    email = build_payment_completed_email(
+        order,
+        participants,
+    )
+
+    preview_format = request.GET.get(
+        "format",
+        "html",
+    ).lower()
+
+    if preview_format == "text":
+        return HttpResponse(
+            email.text_body,
+            content_type="text/plain; charset=utf-8",
+        )
+
+    if preview_format != "html":
+        return HttpResponse(
+            "Neplatný formát náhledu.",
+            status=400,
+            content_type="text/plain; charset=utf-8",
+        )
+
+    return HttpResponse(
+        email.html_body,
+        content_type="text/html; charset=utf-8",
+    )
+
+def participant_activation(request, token):
+    participant = get_object_or_404(
+        OrderParticipant.objects.select_related(
+            "order",
+            "user",
+        ),
+        activation_token=token,
+    )
+
+    if participant.activation_completed_at:
+        return render(
+            request,
+            "registration/participant_activation_used.html",
+            {
+                "participant": participant,
+            },
+        )
+
+    if participant.order.status != "paid":
+        return render(
+            request,
+            "registration/participant_activation_unavailable.html",
+            {
+                "participant": participant,
+            },
+            status=403,
+        )
+
+    country_names = {
+        "CZ": "Česká republika",
+        "SK": "Slovensko",
+    }
+    employer_country = country_names.get(
+        participant.order.country,
+        participant.order.country,
+    )
+
+    employer_address = ", ".join(
+        part
+        for part in [
+            participant.order.street,
+            " ".join(
+                part
+                for part in [
+                    participant.order.zip_code,
+                    participant.order.city,
+                ]
+                if part
+            ),
+            employer_country,
+        ]
+        if part
+    )
+
+    initial_data = {
+        "employer_name": participant.order.company_name,
+        "employer_address": employer_address,
+    }
+
+    temporary_user = User(
+        username=participant.email,
+        email=participant.email,
+        first_name=participant.first_name,
+        last_name=participant.last_name,
+    )
+
+    if request.method == "POST":
+        form = ParticipantActivationForm(
+            request.POST,
+            user=temporary_user,
+        )
+
+        if form.is_valid():
+            with transaction.atomic():
+                participant = (
+                    OrderParticipant.objects
+                    .select_for_update()
+                    .select_related("order", "user")
+                    .get(pk=participant.pk)
+                )
+
+                if participant.activation_completed_at:
+                    return redirect(
+                        "participant_activation",
+                        token=participant.activation_token,
+                    )
+
+                if participant.order.status != "paid":
+                    return render(
+                        request,
+                        "registration/participant_activation_unavailable.html",
+                        {
+                            "participant": participant,
+                        },
+                        status=403,
+                    )
+
+                normalized_email = participant.email.strip().lower()
+
+                existing_user = (
+                    User.objects
+                    .filter(
+                        Q(email__iexact=normalized_email)
+                        | Q(username__iexact=normalized_email)
+                    )
+                    .first()
+                )
+
+                if existing_user:
+                    form.add_error(
+                        None,
+                        (
+                            "Účet s touto e-mailovou adresou již existuje. "
+                            "Aktivaci proto nelze dokončit."
+                        ),
+                    )
+
+                    return render(
+                        request,
+                        "registration/participant_activation.html",
+                        {
+                            "form": form,
+                            "participant": participant,
+                        },
+                        status=409,
+                    )
+
+                user = User(
+                    username=normalized_email,
+                    email=normalized_email,
+                )
+
+                user.username = normalized_email
+                user.email = normalized_email
+                user.first_name = participant.first_name
+                user.last_name = participant.last_name
+                user.is_active = True
+                user.is_paid = True
+                user.set_password(
+                    form.cleaned_data["password1"]
+                )
+                user.save()
+
+                ParticipantProfile.objects.update_or_create(
+                    participant=participant,
+                    defaults={
+                        "birth_date": form.cleaned_data[
+                            "birth_date"
+                        ],
+                        "birth_place": form.cleaned_data[
+                            "birth_place"
+                        ],
+                        "permanent_address": form.cleaned_data[
+                            "permanent_address"
+                        ],
+                        "employer_name": form.cleaned_data[
+                            "employer_name"
+                        ],
+                        "employer_address": form.cleaned_data[
+                            "employer_address"
+                        ],
+                        "employer_ico": form.cleaned_data["employer_ico"],
+                    },
+                )
+
+                participant.user = user
+                participant.activation_completed_at = timezone.now()
+                participant.save(
+                    update_fields=[
+                        "user",
+                        "activation_completed_at",
+                    ]
+                )
+
+            login(
+                request,
+                user,
+                backend="django.contrib.auth.backends.ModelBackend",
+            )
+
+            return redirect("dashboard")
+
+    else:
+        form = ParticipantActivationForm(
+            initial=initial_data,
+            user=temporary_user,
+        )
+
+    return render(
+        request,
+        "registration/participant_activation.html",
+        {
+            "form": form,
+            "participant": participant,
+        },
+    )
+
+
+
+
+def password_setup_sent(request):
+    return render(
+        request,
+        "registration/password_setup_sent.html",
+    )
+
+
+@login_required
+def profile(request):
+    context = get_dashboard_context(
+        request,
+        sidebar_page="profile",
+    )
+
+    return render(
+        request,
+        "courses/profile.html",
+        context,
+    )
+
+
+@login_required
+def buy_course(request, course_id):
+    course = get_object_or_404(
+        Course,
+        id=course_id,
+    )
+
+    if request.method == "POST":
+        Payment.objects.create(
+            user=request.user,
+            course=course,
+            amount=999.00,
+            is_successful=True,
+        )
+
+        request.user.is_paid = True
+        request.user.save()
+
+        return redirect(
+            "payment_success",
+            course_id=course.id,
+        )
+
+    context = {
+        "course": course,
+    }
+    context.update(
+        get_dashboard_context(
+            request,
+            active_course=course,
+        )
+    )
+
+    return render(
+        request,
+        "courses/buy_course.html",
+        context,
+    )
+
+
+@login_required
+def payment_success(request, course_id):
+    course = get_object_or_404(
+        Course,
+        id=course_id,
+    )
+
+    context = {
+        "course": course,
+    }
+    context.update(
+        get_dashboard_context(
+            request,
+            active_course=course,
+        )
+    )
+
+    return render(
+        request,
+        "courses/payment_success.html",
+        context,
+    )
+
+
+@login_required
+def video_detail(request, course_id):
+    course = get_object_or_404(
+        Course,
+        id=course_id,
+    )
+
+    if not request.user.is_paid:
+        return redirect(
+            "buy_course",
+            course_id=course.id,
+        )
+
+    context = {
+        "course": course,
+    }
+
+    context.update(
+        get_dashboard_context(
+            request,
+            active_course=course,
+            sidebar_page="video",
+        )
+    )
+
+    return render(
+        request,
+        "courses/video_detail.html",
+        context,
+    )
+
+
+@login_required
+def quiz_dashboard(request, course_id):
+    course = get_object_or_404(
+        Course,
+        id=course_id,
+    )
+
+    if not request.user.is_paid:
+        return redirect(
+            "buy_course",
+            course_id=course.id,
+        )
+
+    active_attempt = (
+        QuizAttempt.objects
+        .filter(
+            user=request.user,
+            course=course,
+            status=QuizAttempt.STATUS_IN_PROGRESS,
+        )
+        .first()
+    )
+
+    active_attempt_resume_order = 1
+
+    if active_attempt:
+        first_unanswered_question = (
+            active_attempt.attempt_questions
+            .filter(selected_choice__isnull=True)
+            .order_by("order")
+            .first()
+        )
+
+        if first_unanswered_question:
+            active_attempt_resume_order = (
+                first_unanswered_question.order
+            )
+
+    past_attempts = (
+        QuizAttempt.objects
+        .filter(
+            user=request.user,
+            course=course,
+            status=QuizAttempt.STATUS_SUBMITTED,
+        )
+        .order_by(
+            "-submitted_at",
+            "-started_at",
+        )
+    )
+
+    context = {
+        "course": course,
+        "active_attempt": active_attempt,
+        "active_attempt_resume_order": (
+            active_attempt_resume_order
+        ),
+        "past_attempts": past_attempts,
+    }
+
+    context.update(
+        get_dashboard_context(
+            request,
+            active_course=course,
+            sidebar_page="quiz",
+        )
+    )
+
+    return render(
+        request,
+        "courses/quiz_dashboard.html",
+        context,
+    )
+
+@login_required
+def quiz_start(request, course_id):
+    course = get_object_or_404(
+        Course,
+        id=course_id,
+    )
+
+    if not request.user.is_paid:
+        return redirect(
+            "buy_course",
+            course_id=course.id,
+        )
+
+    active_attempt = (
+        QuizAttempt.objects
+        .filter(
+            user=request.user,
+            course=course,
+            status=QuizAttempt.STATUS_IN_PROGRESS,
+        )
+        .first()
+    )
+
+    if active_attempt:
+        first_unanswered_question = (
+            active_attempt.attempt_questions
+            .filter(selected_choice__isnull=True)
+            .order_by("order")
+            .first()
+        )
+
+        target_order = (
+            first_unanswered_question.order
+            if first_unanswered_question
+            else 1
+        )
+
+        return redirect(
+            "quiz_question",
+            attempt_id=active_attempt.id,
+            order=target_order,
+        )
+
+    category_counts = getattr(
+        settings,
+        "QUIZ_CATEGORY_COUNTS",
+        [
+            ("obecne", 8),
+            ("zdravotni", 2),
+        ],
+    )
+
+    selected_questions = []
+
+    for category_slug, count in category_counts:
+        questions = list(
+            Question.objects.filter(
+                course=course,
+                category__slug=category_slug,
+            )
+        )
+
+        if len(questions) < count:
+            return HttpResponse(
+                f"V kategorii '{category_slug}' není dostatek otázek. "
+                f"Požadováno: {count}, dostupné: {len(questions)}.",
+                status=400,
+            )
+
+        selected_questions.extend(
+            random.sample(
+                questions,
+                count,
+            )
+        )
+
+    current_max_attempt_number = (
+        QuizAttempt.objects
+        .filter(user=request.user)
+        .aggregate(
+            max_number=Max("attempt_number")
+        )
+        .get("max_number")
+        or 0
+    )
+
+    next_attempt_number = (
+        current_max_attempt_number + 1
+    )
+
+    attempt = QuizAttempt.objects.create(
+        user=request.user,
+        course=course,
+        total_questions=len(selected_questions),
+        attempt_number=next_attempt_number,
+    )
+
+    for index, question in enumerate(
+        selected_questions,
+        start=1,
+    ):
+        QuizAttemptQuestion.objects.create(
+            attempt=attempt,
+            question=question,
+            order=index,
+        )
+
+    return redirect(
+        "quiz_question",
+        attempt_id=attempt.id,
+        order=1,
+    )
+
+
+@login_required
+def quiz_question(request, attempt_id, order):
+    if request.method == "POST":
+        with serialized_quiz_attempt(attempt_id, request.user) as attempt:
+            if attempt.status == QuizAttempt.STATUS_SUBMITTED:
+                return redirect("quiz_attempt_detail", attempt_id=attempt.id, order=1)
+            attempt_question = get_object_or_404(
+                QuizAttemptQuestion.objects.select_related("question"),
+                attempt=attempt, order=order,
+            )
+
+            total_questions = attempt.attempt_questions.count()
+            if "leave_test" in request.POST:
+                return redirect(
+                    "quiz",
+                    course_id=attempt.course.id,
+                )
+
+            choice_id = request.POST.get("choice")
+
+            if choice_id:
+                choice = (
+                    Choice.objects
+                    .filter(
+                        id=choice_id,
+                        question=attempt_question.question,
+                    )
+                    .first()
+                )
+
+                if choice:
+                    attempt_question.selected_choice = choice
+                    attempt_question.save(
+                        update_fields=["selected_choice"]
+                    )
+
+            if "previous" in request.POST:
+                return redirect(
+                    "quiz_question",
+                    attempt_id=attempt.id,
+                    order=max(order - 1, 1),
+                )
+
+            if "next" in request.POST:
+                return redirect(
+                    "quiz_question",
+                    attempt_id=attempt.id,
+                    order=min(order + 1, total_questions),
+                )
+
+            if "go_to" in request.POST:
+                try:
+                    target_order = int(request.POST["go_to"])
+                except (TypeError, ValueError):
+                    target_order = order
+
+                target_order = min(
+                    max(target_order, 1),
+                    total_questions,
+                )
+
+                return redirect(
+                    "quiz_question",
+                    attempt_id=attempt.id,
+                    order=target_order,
+                )
+
+            return redirect(
+                "quiz_question",
+                attempt_id=attempt.id,
+                order=order,
+            )
+
+    attempt = get_object_or_404(
+        QuizAttempt,
+        id=attempt_id,
+        user=request.user,
+    )
+
+    if attempt.status == QuizAttempt.STATUS_SUBMITTED:
+        return redirect(
+            "quiz_attempt_detail",
+            attempt_id=attempt.id,
+            order=1,
+        )
+
+    total_questions = attempt.attempt_questions.count()
+
+    attempt_question = get_object_or_404(
+        QuizAttemptQuestion.objects.select_related("question"),
+        attempt=attempt,
+        order=order,
+    )
+
+
+    choices = []
+
+    for choice in attempt_question.question.choice_set.all():
+        choices.append(
+            {
+                "id": choice.id,
+                "text": choice.text,
+                "checked": (
+                    "checked"
+                    if choice.id
+                    == attempt_question.selected_choice_id
+                    else ""
+                ),
+            }
+        )
+
+    answered_question_orders = set(
+        attempt.attempt_questions
+        .filter(selected_choice__isnull=False)
+        .values_list(
+            "order",
+            flat=True,
+        )
+    )
+
+    unanswered_questions = [
+        number
+        for number in range(
+            1,
+            total_questions + 1,
+        )
+        if number not in answered_question_orders
+    ]
+
+    question_numbers = []
+
+    for number in range(
+        1,
+        total_questions + 1,
+    ):
+        question_numbers.append(
+            {
+                "number": number,
+                "is_current": number == order,
+                "is_answered": (
+                    number in answered_question_orders
+                ),
+            }
+        )
+
+    context = {
+        "attempt": attempt,
+        "attempt_question": attempt_question,
+        "course": attempt.course,
+        "order": order,
+        "total_questions": total_questions,
+        "question_numbers": question_numbers,
+        "unanswered_count": len(unanswered_questions),
+        "unanswered_questions": unanswered_questions,
+        "choices": choices,
+        "is_first": order == 1,
+        "is_last": order == total_questions,
+        "current_is_answered": (
+            order in answered_question_orders
+        ),
+    }
+
+    context.update(
+        get_dashboard_context(
+            request,
+            active_course=attempt.course,
+            sidebar_page="quiz",
+        )
+    )
+
+    return render(
+        request,
+        "courses/quiz_question.html",
+        context,
+    )
+
+@login_required
+def quiz_attempt(request, attempt_id):
+    if request.method == "POST":
+        with serialized_quiz_attempt(attempt_id, request.user) as attempt:
+            if attempt.status == QuizAttempt.STATUS_SUBMITTED:
+                return redirect("quiz_attempt_detail", attempt_id=attempt.id, order=1)
+
+            attempt_questions = (
+                attempt.attempt_questions
+                .select_related("question")
+            )
+
+            for attempt_question in attempt_questions:
+                choice_id = request.POST.get(
+                    f"question_{attempt_question.id}"
+                )
+
+                if choice_id:
+                    choice = (
+                        Choice.objects
+                        .filter(
+                            id=choice_id,
+                            question=attempt_question.question,
+                        )
+                        .first()
+                    )
+
+                    if choice:
+                        attempt_question.selected_choice = choice
+                        attempt_question.save(
+                            update_fields=["selected_choice"]
+                        )
+
+            return redirect(
+                "quiz_attempt",
+                attempt_id=attempt.id,
+            )
+
+    attempt = get_object_or_404(
+        QuizAttempt,
+        id=attempt_id,
+        user=request.user,
+    )
+
+    if attempt.status == QuizAttempt.STATUS_SUBMITTED:
+        return redirect(
+            "quiz_attempt_detail",
+            attempt_id=attempt.id,
+            order=1,
+        )
+
+
+    context = {
+        "attempt": attempt,
+        "course": attempt.course,
+    }
+    context.update(
+        get_dashboard_context(
+            request,
+            active_course=attempt.course,
+            sidebar_page="quiz",
+        )
+    )
+
+    return render(
+        request,
+        "courses/quiz_attempt.html",
+        context,
+    )
+
+
+@login_required
+@require_POST
+def quiz_submit(request, attempt_id):
+    with serialized_quiz_attempt(attempt_id, request.user) as attempt:
+        if attempt.status == QuizAttempt.STATUS_SUBMITTED:
+            detail_url = reverse(
+                "quiz_attempt_detail", kwargs={"attempt_id": attempt.id, "order": 1},
+            )
+            return redirect(f"{detail_url}?from=result")
+
+        current_question_id = request.POST.get(
+            "current_question_id"
+        )
+        choice_id = request.POST.get("choice")
+
+        if current_question_id and choice_id:
+            current_attempt_question = (
+                QuizAttemptQuestion.objects
+                .select_related("question")
+                .filter(
+                    id=current_question_id,
+                    attempt=attempt,
+                )
+                .first()
+            )
+
+            if current_attempt_question:
+                selected_choice = (
+                    Choice.objects
+                    .filter(
+                        id=choice_id,
+                        question=current_attempt_question.question,
+                    )
+                    .first()
+                )
+
+                if selected_choice:
+                    current_attempt_question.selected_choice = (
+                        selected_choice
+                    )
+                    current_attempt_question.save(
+                        update_fields=["selected_choice"]
+                    )
+
+        unanswered_question = (
+            attempt.attempt_questions
+            .filter(selected_choice__isnull=True)
+            .order_by("order")
+            .first()
+        )
+
+        if unanswered_question:
+            return redirect(
+                "quiz_question",
+                attempt_id=attempt.id,
+                order=unanswered_question.order,
+            )
+
+        total_questions = attempt.attempt_questions.count()
+
+        correct_answers = (
+            attempt.attempt_questions
+            .filter(selected_choice__is_correct=True)
+            .count()
+        )
+
+        score_percent = 0
+
+        if total_questions:
+            score_percent = round(
+                (correct_answers / total_questions) * 100,
+                2,
+            )
+
+        pass_percentage = getattr(
+            settings,
+            "QUIZ_PASS_PERCENTAGE",
+            70,
+        )
+
+        passed = score_percent >= pass_percentage
+
+        attempt.total_questions = total_questions
+        attempt.correct_answers = correct_answers
+        attempt.score_percent = score_percent
+        attempt.passed = passed
+        attempt.status = QuizAttempt.STATUS_SUBMITTED
+        attempt.submitted_at = timezone.now()
+
+        attempt.save(
+            update_fields=[
+                "total_questions",
+                "correct_answers",
+                "score_percent",
+                "passed",
+                "status",
+                "submitted_at",
+            ]
+        )
+
+        if passed:
+            request.user.passed_quiz = True
+            request.user.save(
+                update_fields=["passed_quiz"]
+            )
+
+    # The lock is committed before PDF/SMTP work. Only the request that
+    # changed in_progress -> submitted can start this workflow.
+    if passed:
+        try:
+            workflow_result = process_quiz_completion(
+                attempt
+            )
+            if workflow_result.errors:
+                logger.warning(
+                    "Workflow dokončení QuizAttempt %s skončil "
+                    "s chybami e-mailu: %s",
+                    attempt.id,
+                    "; ".join(workflow_result.errors),
+                )
+        except ValueError as error:
+            logger.warning(
+                "Workflow dokončení QuizAttempt %s nebyl dokončen: %s",
+                attempt.id,
+                error,
+            )
+        except Exception:
+            logger.exception(
+                "Neočekávaná chyba workflow dokončení "
+                "QuizAttempt %s.",
+                attempt.id,
+            )
+
+    detail_url = reverse(
+        "quiz_attempt_detail",
+        kwargs={
+            "attempt_id": attempt.id,
+            "order": 1,
+        },
+    )
+
+    return redirect(
+        f"{detail_url}?from=result"
+    )
+
+@login_required
+def quiz_result(request, attempt_id):
+    attempt = get_object_or_404(
+        QuizAttempt.objects.select_related("course"),
+        id=attempt_id,
+        user=request.user,
+        status=QuizAttempt.STATUS_SUBMITTED,
+    )
+
+    return redirect(
+        "quiz_attempt_detail",
+        attempt_id=attempt.id,
+        order=1,
+    )
+
+
+@login_required
+def quiz_attempt_detail(
+    request,
+    attempt_id,
+    order,
+):
+    attempt = get_object_or_404(
+        QuizAttempt.objects.select_related("course"),
+        id=attempt_id,
+        user=request.user,
+        status=QuizAttempt.STATUS_SUBMITTED,
+    )
+
+    attempt_questions = (
+        QuizAttemptQuestion.objects
+        .filter(attempt=attempt)
+        .select_related(
+            "question",
+            "selected_choice",
+        )
+        .prefetch_related(
+            "question__choice_set"
+        )
+        .order_by("order")
+    )
+
+    total_questions = (
+        attempt_questions.count()
+    )
+
+    attempt_question = get_object_or_404(
+        attempt_questions,
+        order=order,
+    )
+
+    question_numbers = []
+
+    for item in attempt_questions:
+        selected_choice = item.selected_choice
+
+        is_correct = bool(
+            selected_choice
+            and selected_choice.is_correct
+        )
+
+        question_numbers.append({
+            "order": item.order,
+            "is_current": item.order == order,
+            "is_correct": is_correct,
+        })
+
+    context = {
+        "attempt": attempt,
+        "attempt_question": attempt_question,
+        "question_numbers": question_numbers,
+        "order": order,
+        "total_questions": total_questions,
+        "is_first": order == 1,
+        "is_last": order == total_questions,
+        "came_from_result": (
+            request.GET.get("from")
+            == "result"
+        ),
+    }
+
+    context.update(
+        get_dashboard_context(
+            request,
+            active_course=attempt.course,
+        )
+    )
+
+    return render(
+        request,
+        "courses/quiz_attempt_detail.html",
+        context,
+    )
+
+
+@login_required
+def certificate_success(request, course_id):
+    course = get_object_or_404(
+        Course,
+        id=course_id,
+    )
+
+    if not request.user.is_paid:
+        return redirect(
+            "buy_course",
+            course_id=course.id,
+        )
+
+    if not request.user.passed_quiz:
+        return redirect(
+            "quiz",
+            course_id=course.id,
+        )
+
+    certificate = (
+        Certificate.objects
+        .select_related(
+            "participant",
+            "participant__profile",
+            "participant__order",
+            "participant__user",
+            "quiz_attempt",
+            "quiz_attempt__course",
+            "quiz_attempt__user",
+        )
+        .filter(
+            Q(participant__user=request.user)
+            | Q(quiz_attempt__user=request.user),
+            quiz_attempt__course=course,
+        )
+        .order_by(
+            "-issued_at",
+            "-id",
+        )
+        .first()
+    )
+
+    if certificate is None:
+        return HttpResponse(
+            "Pro tento kurz nebylo nalezeno žádné osvědčení.",
+            status=404,
+        )
+
+    participant = certificate.participant
+
+    context = {
+        "course": course,
+        "certificate": certificate,
+        "participant": participant,
+        "participant_profile": getattr(
+            participant,
+            "profile",
+            None,
+        ),
+        "completion_date": certificate.issued_at,
+    }
+
+    context.update(
+        get_dashboard_context(
+            request,
+            active_course=course,
+            sidebar_page="certificate",
+        )
+    )
+
+    return render(
+        request,
+        "courses/certificate_success.html",
+        context,
+    )
+
+
+@login_required
+def certificate_pdf(request, course_id):
+    course = get_object_or_404(
+        Course,
+        id=course_id,
+    )
+
+    if not request.user.is_paid:
+        return redirect(
+            "buy_course",
+            course_id=course.id,
+        )
+
+    if not request.user.passed_quiz:
+        return redirect(
+            "quiz",
+            course_id=course.id,
+        )
+
+    certificate = (
+        Certificate.objects
+        .select_related(
+            "participant",
+            "participant__profile",
+            "participant__order",
+            "participant__user",
+            "quiz_attempt",
+            "quiz_attempt__course",
+            "quiz_attempt__user",
+        )
+        .filter(
+            Q(participant__user=request.user)
+            | Q(quiz_attempt__user=request.user),
+            quiz_attempt__course=course,
+        )
+        .order_by(
+            "-issued_at",
+            "-id",
+        )
+        .first()
+    )
+
+    if certificate is None:
+        return HttpResponse(
+            "Pro tento kurz nebylo nalezeno žádné osvědčení.",
+            status=404,
+        )
+
+    try:
+        pdf_content = generate_certificate_pdf(
+            certificate
+        )
+    except ValueError as error:
+        return HttpResponse(
+            str(error),
+            status=500,
+        )
+
+    response = HttpResponse(
+        pdf_content,
+        content_type="application/pdf",
+    )
+
+    response["Content-Disposition"] = (
+        "inline; "
+        f'filename="{certificate.certificate_number}.pdf"'
+    )
+
+    return response
+
+
+@login_required
+def dashboard(request):
+    context = get_dashboard_context(
+        request,
+        sidebar_page="dashboard",
+    )
+
+    participant = context.get("participant")
+    active_course = context.get("active_course")
+
+    if participant:
+        context["course_name"] = (
+            participant.order.get_course_type_display()
+        )
+    elif active_course:
+        # Účet vytvořený ručně v administraci.
+        context["course_name"] = active_course.title
+    else:
+        context["course_name"] = None
+
+    submitted_attempts = QuizAttempt.objects.none()
+    active_attempt = None
+    latest_attempt = None
+    best_attempt = None
+
+    if active_course:
+        active_attempt = (
+            QuizAttempt.objects
+            .filter(
+                user=request.user,
+                course=active_course,
+                status=QuizAttempt.STATUS_IN_PROGRESS,
+            )
+            .order_by("-started_at")
+            .first()
+        )
+
+        submitted_attempts = (
+            QuizAttempt.objects
+            .filter(
+                user=request.user,
+                course=active_course,
+                status=QuizAttempt.STATUS_SUBMITTED,
+            )
+        )
+
+        latest_attempt = (
+            submitted_attempts
+            .order_by(
+                "-submitted_at",
+                "-started_at",
+            )
+            .first()
+        )
+
+        best_attempt = (
+            submitted_attempts
+            .order_by(
+                "-score_percent",
+                "-submitted_at",
+                "-started_at",
+            )
+            .first()
+        )
+
+    context.update({
+        "active_attempt": active_attempt,
+        "latest_attempt": latest_attempt,
+        "best_attempt": best_attempt,
+        "submitted_attempts_count": submitted_attempts.count(),
+    })
+
+    return render(
+        request,
+        "courses/dashboard.html",
+        context,
+    )
+
+
+def course_selector(request):
+    return render(
+        request,
+        "courses/course_selector.html",
+    )
+
+
+def terms_and_conditions(request):
+    return render(
+        request,
+        "courses/terms_and_conditions.html",
+    )
+
+
+def privacy_policy(request):
+    return render(
+        request,
+        "courses/privacy_policy.html",
+    )
+
+@login_required
+@require_GET
+def quiz_result_pdf(request, attempt_id):
+    attempt = get_object_or_404(
+        QuizAttempt.objects.select_related(
+            "user",
+            "course",
+        ),
+        id=attempt_id,
+        user=request.user,
+        status=QuizAttempt.STATUS_SUBMITTED,
+        passed=True,
+    )
+
+    try:
+        pdf_content = generate_quiz_result_pdf(
+            attempt
+        )
+    except ValueError as error:
+        return HttpResponse(
+            str(error),
+            status=500,
+            content_type="text/plain; charset=utf-8",
+        )
+
+    response = HttpResponse(
+        pdf_content,
+        content_type="application/pdf",
+    )
+
+    response["Content-Disposition"] = (
+        "inline; "
+        f'filename="vysledek-testu-{attempt.id}.pdf"'
+    )
+
+    return response
+
+@staff_member_required
+@permission_required(('courses.view_quizattempt', 'courses.view_certificate'), raise_exception=True)
+@require_GET
+def course_completed_email_preview(request, attempt_id):
+    attempt = get_object_or_404(
+        QuizAttempt.objects.select_related(
+            "user",
+            "course",
+        ),
+        pk=attempt_id,
+        status=QuizAttempt.STATUS_SUBMITTED,
+        passed=True,
+    )
+
+    try:
+        email = build_course_completed_email(
+            attempt
+        )
+    except ValueError as error:
+        return HttpResponse(
+            str(error),
+            status=400,
+            content_type="text/plain; charset=utf-8",
+        )
+
+    preview_format = request.GET.get(
+        "format",
+        "preview",
+    ).lower()
+
+    if preview_format == "html":
+        return HttpResponse(
+            email.html_body,
+            content_type="text/html; charset=utf-8",
+        )
+
+    if preview_format == "text":
+        return HttpResponse(
+            email.text_body,
+            content_type="text/plain; charset=utf-8",
+        )
+
+    if preview_format != "preview":
+        return HttpResponse(
+            "Neplatný formát náhledu.",
+            status=400,
+            content_type="text/plain; charset=utf-8",
+        )
+
+    attachments = []
+
+    for index, attachment in enumerate(
+        email.attachments
+    ):
+        attachments.append({
+            "index": index,
+            "filename": attachment.filename,
+            "mimetype": attachment.mimetype,
+            "size": len(attachment.content),
+        })
+
+    return render(
+        request,
+        "emails/course_completed_preview.html",
+        {
+            "attempt": attempt,
+            "email": email,
+            "attachments": attachments,
+        },
+    )
+
+@staff_member_required
+@permission_required(('courses.view_quizattempt', 'courses.view_certificate'), raise_exception=True)
+@require_GET
+def course_completed_email_attachment(
+    request,
+    attempt_id,
+    attachment_index,
+):
+    attempt = get_object_or_404(
+        QuizAttempt.objects.select_related(
+            "user",
+            "course",
+        ),
+        pk=attempt_id,
+        status=QuizAttempt.STATUS_SUBMITTED,
+        passed=True,
+    )
+
+    try:
+        email = build_course_completed_email(
+            attempt
+        )
+    except ValueError as error:
+        return HttpResponse(
+            str(error),
+            status=400,
+            content_type="text/plain; charset=utf-8",
+        )
+
+    if (
+        attachment_index < 0
+        or attachment_index >= len(email.attachments)
+    ):
+        raise Http404(
+            "Příloha nebyla nalezena."
+        )
+
+    attachment = email.attachments[attachment_index]
+
+    response = HttpResponse(
+        attachment.content,
+        content_type=attachment.mimetype,
+    )
+
+    response["Content-Disposition"] = (
+        f'inline; filename="{attachment.filename}"'
+    )
+
+    return response
+
+
+@login_required
+@require_GET
+def certificate_print_preview(request, course_id):
+    course = get_object_or_404(
+        Course,
+        id=course_id,
+    )
+
+    if not request.user.is_paid:
+        return redirect(
+            "buy_course",
+            course_id=course.id,
+        )
+
+    if not request.user.passed_quiz:
+        return redirect(
+            "quiz",
+            course_id=course.id,
+        )
+
+    certificate = (
+        Certificate.objects
+        .select_related(
+            "participant",
+            "participant__profile",
+            "participant__order",
+            "participant__user",
+            "quiz_attempt",
+            "quiz_attempt__course",
+            "quiz_attempt__user",
+        )
+        .filter(
+            Q(participant__user=request.user)
+            | Q(quiz_attempt__user=request.user),
+            quiz_attempt__course=course,
+        )
+        .order_by(
+            "-issued_at",
+            "-id",
+        )
+        .first()
+    )
+
+    if certificate is None:
+        return HttpResponse(
+            "Pro tento kurz nebylo nalezeno žádné osvědčení.",
+            status=404,
+        )
+
+    participant = certificate.participant
+
+    return render(
+        request,
+        "courses/certificate_print.html",
+        {
+            "course": course,
+            "certificate": certificate,
+            "participant": participant,
+            "participant_profile": getattr(
+                participant,
+                "profile",
+                None,
+            ),
+            "completion_date": certificate.issued_at,
+        },
+    )
+

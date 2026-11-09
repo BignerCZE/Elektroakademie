@@ -22,6 +22,9 @@
                 Zpět na úvod
             </a>
 
+            {% if invoice_access and invoice_ready %}
+            <p><a href="{% url 'invoice_download' order.id %}" class="button-secondary" target="_blank" rel="noopener">Náhled faktury PDF</a></p>
+            {% endif %}
             <section class="activation-links">
                 <h2>Aktivační odkazy účastníků</h2>
 

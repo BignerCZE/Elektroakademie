@@ -1,3 +1,4 @@
+from .invoice_views import invoice_preview, invoice_download
 from django.contrib.auth import views as auth_views
 from django.urls import path
 
@@ -6,6 +7,8 @@ from .registration_policy import prevent_contact_only_course_order
 
 
 urlpatterns = [
+    path("objednavka/<int:order_id>/faktura/nahled/", invoice_preview, name="invoice_preview"),
+    path("objednavka/<int:order_id>/faktura/pdf/", invoice_download, name="invoice_download"),
     path("cookies/", consent.consent_settings, name="cookies"),
     path("cookies/souhlas/", consent.save_consent, name="cookie_consent"),
     # Domovská stránka

@@ -241,7 +241,7 @@ def generate_certificate_pdf(certificate):
             ),
             "completion_date": certificate.issued_at,
             "certificate_logo_uri": load_static_data_uri(
-                "courses/img/cz_svetle_pozadi.svg", "image/svg+xml"
+                "courses/img/svetle_pozadi_bez_sloganu.svg", "image/svg+xml"
             ),
             "certificate_signature_uri": load_static_data_uri(
                 "courses/images/signature_jakub_jirak.png", "image/png"

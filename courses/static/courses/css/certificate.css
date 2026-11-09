@@ -127,7 +127,7 @@ body.certificate-modal-open {
     flex: 0 0 auto;
     width: 210mm;
     min-height: 297mm;
-    padding: 8mm 10mm;
+    padding: 8mm 10mm 6mm;
     background: #fff;
     color: #182432;
     font-family: Arial, Helvetica, sans-serif;
@@ -161,14 +161,14 @@ body.certificate-modal-open {
 .certificate-section li { margin: 0 0 .5mm; padding-left: .5mm; }
 .certificate-conditions { margin-top: 2mm; }
 .certificate-conditions p { margin-bottom: 1.3mm; }
-.certificate-dates { display: flex; justify-content: space-between; gap: 4mm; margin: 2mm 0 0; padding-top: 2mm; border-top: .3mm solid #073a78; }
-.certificate-signatures { display: grid; grid-template-columns: 1fr 1.25fr 1fr; gap: 5mm; text-align: center; margin-top: 1mm; break-inside: avoid; }
-.certificate-signature-space { height: 11mm; display: flex; justify-content: center; align-items: center; }
-.certificate-signature-space img { max-width: 32mm; max-height: 11mm; }
-.certificate-signature-box p { font-size: 8pt; margin: 0 0 1mm; }
+.certificate-dates { display: flex; justify-content: space-between; gap: 4mm; margin: 2mm 0 0; padding-top: 1mm; border-top: .3mm solid #073a78; }
+.certificate-signatures { display: grid; grid-template-columns: 1fr 1.25fr 1fr; gap: 5mm; text-align: center; margin-top: 0; break-inside: avoid; }
+.certificate-signature-space { height: 22mm; display: flex; justify-content: center; align-items: center; }
+.certificate-signature-space img { max-width: 45mm; max-height: 22mm; }
+.certificate-signature-box p { font-size: 8pt; margin: 0 0 .5mm; }
 .certificate-signature-line { display: block; border-top: .2mm solid #657487; padding-top: .8mm; font-size: 7pt; }
 .certificate-signature-box strong { display: block; font-size: 8pt; }
-.certificate-footer { margin-top: 2mm; text-align: center; font-size: 7pt; }
+.certificate-footer { margin-top: 1mm; text-align: center; font-size: 7pt; }
 .certificate-footer p:last-child { font-size: 6.5pt; color: #46586b; }
 /* Keep longer profiles on A4 with a readable minimum of 8 pt.
    Truly exceptional data can flow onto a further page instead of being clipped. */

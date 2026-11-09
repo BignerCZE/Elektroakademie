@@ -72,7 +72,7 @@ class FrontendStaticAssetTests(TestCase):
         self.assertTemplateUsed(response, "registration/register.html")
         self.assertNotContains(
             response,
-            "/static/courses/js/payment-simulation.js?v=2",
+            "/static/courses/js/payment-simulation.js?v=3",
         )
         self.assertNotContains(
             response,
@@ -119,7 +119,7 @@ class FrontendStaticAssetTests(TestCase):
         )
         self.assertContains(
             response,
-            "/static/courses/js/payment-simulation.js?v=2",
+            "/static/courses/js/payment-simulation.js?v=3",
         )
 
     def test_shared_draft_storage_supports_all_known_keys(self):

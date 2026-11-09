@@ -20,6 +20,7 @@ from .models import (
     Course,
     CustomUser,
     EmailLog,
+    Invoice,
     Order,
     OrderParticipant,
     Payment,
@@ -5030,3 +5031,25 @@ class EmailLogAdmin(admin.ModelAdmin):
 admin.site.site_header = "Elektroakademie – Administrace"
 admin.site.site_title = "Elektroakademie"
 admin.site.index_title = "Správa systému"
+
+
+@admin.register(Invoice)
+class InvoiceAdmin(admin.ModelAdmin):
+    list_display = ("number", "order", "issued_on", "pdf_link")
+    search_fields = ("number", "order__company_name")
+    readonly_fields = ("number", "order", "issued_on", "period", "sequence", "snapshot", "pdf_link")
+    exclude = ("pdf_content",)
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    @admin.display(description="PDF")
+    def pdf_link(self, obj):
+        return format_html('<a href="{}" target="_blank" rel="noopener">Otevřít PDF</a>',
+                           reverse("invoice_download", args=[obj.order_id]))

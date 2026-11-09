@@ -54,6 +54,7 @@ from .workflows import (
     process_quiz_completion,
 )
 
+from .invoice_views import can_view_invoice
 from .quiz_state import serialized_quiz_attempt
 
 User = get_user_model()
@@ -172,6 +173,11 @@ def register(request):
                 order = Order.objects.create(
                     course_type=selected_course,
                     total_price=total_price,
+                    invoice_items=[{
+                        "description": dict(Order.COURSE_CHOICES)[selected_course],
+                        "quantity": participant_count,
+                        "unit_gross": str(COURSE_PRICES[selected_course]),
+                    }],
                     status="pending_payment",
                     ico=billing_form.cleaned_data.get("ico", ""),
                     dic=billing_form.cleaned_data.get("dic", ""),
@@ -212,6 +218,9 @@ def register(request):
                     ]
                 )
 
+            request.session["invoice_order_ids"] = (
+                request.session.get("invoice_order_ids", []) + [order.pk]
+            )[-50:]
             request.session["analytics_order_created"] = True
             return redirect(
                 "order_payment_simulation",
@@ -417,6 +426,7 @@ def order_payment_simulation(request, order_id):
         request,
         "registration/payment_simulation.html",
         {
+            "invoice_access": can_view_invoice(request, order.pk),
             "order": order,
         },
     )
@@ -457,6 +467,8 @@ def order_payment_success(request, order_id):
             "order": order,
             "participants": participants,
             "activation_links": activation_links,
+            "invoice_access": can_view_invoice(request, order.pk),
+            "invoice_ready": hasattr(order, "invoice"),
         },
     )
 

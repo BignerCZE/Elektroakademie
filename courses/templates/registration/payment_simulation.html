@@ -18,8 +18,11 @@
                 Celková částka: {{ order.total_price }} Kč
             </p>
 
+            {% if invoice_access %}
+            <p><a class="button-secondary" href="{% url 'invoice_preview' order.id %}" target="_blank" rel="noopener">Náhled faktury (před vystavením)</a></p>
+            {% endif %}
             <p>
-                Přesměrování za <strong id="payment-countdown">5</strong> sekund.
+                Přesměrování za <strong id="payment-countdown">30</strong> sekund.
             </p>
         </section>
     </div>
@@ -28,5 +31,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'courses/js/payment-simulation.js' %}?v=2" defer></script>
+<script src="{% static 'courses/js/payment-simulation.js' %}?v=3" defer></script>
 {% endblock %}
