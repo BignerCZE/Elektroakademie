@@ -18,7 +18,7 @@ class PortalOverviewTests(CertificateTestBase):
         self.assertIn('Odhlásit se', account)
         self.assertIn(reverse('profile'), account)
         self.assertNotContains(response, 'dashboard-shell-sidebar')
-        self.assertNotContains(response, 'Vítejte,')
+        self.assertContains(response, 'Vítejte,')
         self.assertNotContains(response, 'portal-course-description')
         self.assertContains(response, 'Jan Novák')
         self.assertContains(response, 'EA-04-202608-00001')

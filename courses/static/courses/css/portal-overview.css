@@ -76,3 +76,12 @@ body.portal-dialog-open { overflow: hidden; }
 .portal-review-pane .quiz-result-strip h1 { font-size: 1.25rem; }
 .portal-review-pane .quiz-result-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 @media (max-width: 600px) { .portal-review-pane { padding: 16px; } .portal-review-pane .quiz-actions { align-items: stretch; } .portal-history-dialog .portal-dialog-header { flex-wrap: wrap; } .portal-history-dialog .portal-dialog-header > div { flex: 1 0 100%; } }
+/* Explicit centering overrides the global margin reset for native dialogs. */
+.portal-dialog { position: fixed; inset: 0; margin: auto; }
+.portal-active-quiz-dialog { width: min(1100px, 94vw); height: min(86dvh, 900px); border-radius: 24px; overflow: hidden; }
+.portal-active-quiz-dialog[open] { display: flex; flex-direction: column; }
+.portal-active-quiz-dialog::backdrop { background: rgba(5,18,42,.68); backdrop-filter: blur(4px); }
+.portal-active-quiz-dialog .portal-dialog-header { flex: 0 0 auto; border-bottom: 1px solid #d8deea; padding: 18px 24px; }
+.portal-active-quiz-dialog .portal-dialog-header button { width: auto; height: auto; min-height: 40px; padding: 0 14px; border: 1px solid #d8deea; border-radius: 999px; background: white; color: #173f84; font: inherit; font-weight: 700; }
+.portal-active-quiz-frame { width: 100%; flex: 1 1 auto; min-height: 0; border: 0; background: white; }
+.portal-video-dialog, .portal-certificate-dialog { height: fit-content; }

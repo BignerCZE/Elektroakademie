@@ -6,7 +6,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'courses/css/dashboard_shell.css' %}?v=6">
-<link rel="stylesheet" href="{% static 'courses/css/portal-shell.css' %}?v=4">
+<link rel="stylesheet" href="{% static 'courses/css/portal-shell.css' %}?v=6">
 {% block dashboard_extra_css %}{% endblock %}
 {% endblock %}
 
@@ -15,7 +15,7 @@
     <div class="container">
         <header class="portal-account-bar">
             <div class="portal-account-identity">
-                <strong>{% if user.first_name %}{{ user.first_name }} {{ user.last_name }}{% else %}{{ user.username }}{% endif %}</strong>
+                <strong class="portal-account-greeting">Vítejte, {% if user.first_name %}{{ user.first_name }} {{ user.last_name }}{% else %}{{ user.username }}{% endif %}</strong>
                 <span>{% if participant and participant.registration_number %}Účastnický kód: {{ participant.registration_number }}{% elif is_manual_account %}Administrativní účet{% else %}Účastnický kód: Neuvedeno{% endif %}</span>
             </div>
             <nav class="portal-account-actions" aria-label="Účet účastníka">

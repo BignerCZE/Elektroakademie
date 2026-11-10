@@ -34,7 +34,7 @@ class CertificateDocumentTests(CertificateTestBase):
             "EA-04-202608-00001", "Jan Novák",
             "7. 8. 2026", "6. 8. 2029", "data:image/svg+xml;base64,",
             "data:image/png;base64,", "Pracovní a technologické postupy",
-            "byla prakticky zacvičena", "samostatně vyplnila test",
+            "samostatně vyplnila test",
             "a osobou odpovědnou za zaměstnavatele.",
         ):
             with self.subTest(value=value):
@@ -44,6 +44,8 @@ class CertificateDocumentTests(CertificateTestBase):
         self.assertEqual(html.count('class="certificate-writing-line"'), 4)
         self.assertNotIn('src="/static/', html)
         self.assertNotIn("VYPÍŠE ZAMĚSTNANEC", html)
+        self.assertNotIn("Rozsah činností, které může osoba poučená zejména vykonávat", html)
+        self.assertNotIn("byla prakticky zacvičena", html)
 
     def test_legacy_profile_does_not_use_billing_ico_as_employer_ico(self):
         self.order.ico = "87654321"

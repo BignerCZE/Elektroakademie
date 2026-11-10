@@ -1,3 +1,4 @@
+from .quiz_popup import quiz_popup_navigation
 import random
 import re
 import json
@@ -945,6 +946,7 @@ def quiz_dashboard(request, course_id):
     )
 
 @login_required
+@quiz_popup_navigation
 def quiz_start(request, course_id):
     course = get_object_or_404(
         Course,
@@ -1059,6 +1061,7 @@ def quiz_start(request, course_id):
 
 
 @login_required
+@quiz_popup_navigation
 def quiz_question(request, attempt_id, order):
     if request.method == "POST":
         with serialized_quiz_attempt(attempt_id, request.user) as attempt:
@@ -1070,12 +1073,6 @@ def quiz_question(request, attempt_id, order):
             )
 
             total_questions = attempt.attempt_questions.count()
-            if "leave_test" in request.POST:
-                return redirect(
-                    "quiz",
-                    course_id=attempt.course.id,
-                )
-
             choice_id = request.POST.get("choice")
 
             if choice_id:
@@ -1093,6 +1090,9 @@ def quiz_question(request, attempt_id, order):
                     attempt_question.save(
                         update_fields=["selected_choice"]
                     )
+
+            if "leave_test" in request.POST:
+                return redirect("dashboard")
 
             if "previous" in request.POST:
                 return redirect(
@@ -1204,6 +1204,8 @@ def quiz_question(request, attempt_id, order):
         )
 
     context = {
+        "quiz_popup": request.GET.get("popup") == "1",
+        "quiz_base_template": "courses/quiz_popup_base.html" if request.GET.get("popup") == "1" else "courses/dashboard_base.html",
         "attempt": attempt,
         "attempt_question": attempt_question,
         "course": attempt.course,
@@ -1307,6 +1309,7 @@ def quiz_attempt(request, attempt_id):
 
 @login_required
 @require_POST
+@quiz_popup_navigation
 def quiz_submit(request, attempt_id):
     with serialized_quiz_attempt(attempt_id, request.user) as attempt:
         if attempt.status == QuizAttempt.STATUS_SUBMITTED:

@@ -1,0 +1,2 @@
+{% load static %}<!DOCTYPE html><html lang="cs"><head><meta charset="utf-8"><title>Test</title></head>
+<body><p>Načítání přehledu kurzu…</p>{{ quiz_event|json_script:'quiz-popup-event' }}<script src="{% static 'courses/js/quiz-popup-event.js' %}" defer></script></body></html>

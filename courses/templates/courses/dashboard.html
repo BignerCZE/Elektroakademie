@@ -2,8 +2,8 @@
 {% load static %}
 {% block title %}Přehled | Elektroakademie{% endblock %}
 {% block dashboard_extra_css %}
-<link rel="stylesheet" href="{% static 'courses/css/certificate.css' %}?v=3">
-<link rel="stylesheet" href="{% static 'courses/css/portal-overview.css' %}?v=3">
+<link rel="stylesheet" href="{% static 'courses/css/certificate.css' %}?v=4">
+<link rel="stylesheet" href="{% static 'courses/css/portal-overview.css' %}?v=4">
 <link rel="stylesheet" href="{% static 'courses/css/quiz-review.css' %}">
 <link rel="stylesheet" href="{% static 'courses/css/portal-workspace.css' %}?v=4">
 {% endblock %}
@@ -25,13 +25,13 @@
                 <h2 id="portal-test-title">2. krok - Vyplnit test</h2>
                 {% if active_attempt %}
                 <p>Máte rozpracovaný test. Pokračujte tam, kde jste skončili.</p>
-                <a class="button-primary" href="{% url 'quiz_start' active_course.id %}">Pokračovat v testu</a>
+                <a class="button-primary" data-portal-active-quiz href="{% url 'quiz_start' active_course.id %}">Pokračovat v testu</a>
                 {% elif user.passed_quiz %}
                 <p class="portal-success">Test úspěšně splněn</p>
                 {% if best_attempt %}<a class="portal-faq-action" data-portal-review href="{% url 'quiz_attempt_detail' best_attempt.id 1 %}"><span>Zobrazit odpovědi</span><span aria-hidden="true">›</span></a>{% endif %}
                 {% else %}
                 <p>{% if latest_attempt %}Předchozí pokus nebyl úspěšný. Test můžete zopakovat.{% else %}Po prostudování videa můžete spustit závěrečný test.{% endif %}</p>
-                <form method="post" action="{% url 'quiz_start' active_course.id %}">
+                <form method="post" data-portal-start-quiz action="{% url 'quiz_start' active_course.id %}">
                     {% csrf_token %}<button type="submit" class="button-primary">{% if latest_attempt %}Spustit nový test{% else %}Spustit test{% endif %}</button>
                 </form>
                 {% endif %}
@@ -51,6 +51,10 @@
     {% endif %}
 </section>
 {% if has_paid and active_course %}
+<dialog class="portal-dialog portal-active-quiz-dialog" id="portal-active-quiz-dialog" aria-labelledby="portal-active-quiz-title">
+    <div class="portal-dialog-header"><h2 id="portal-active-quiz-title">Závěrečný test</h2><button type="button" data-portal-close aria-label="Opustit rozpracovaný test">Opustit test <span aria-hidden="true">×</span></button></div>
+    <iframe name="portal-active-quiz-frame" id="portal-active-quiz-frame" class="portal-active-quiz-frame" title="Vyplnění závěrečného testu"></iframe>
+</dialog>
 <dialog class="portal-dialog portal-history-dialog" id="portal-history-dialog" aria-labelledby="portal-history-title">
     <div class="portal-dialog-header"><div><h2 id="portal-history-title">Historie testů</h2><p id="portal-history-subtitle">Dokončené pokusy: {{ submitted_attempts_count }}</p></div><button type="button" data-portal-history-back hidden>Zpět na historii</button><button type="button" data-portal-close aria-label="Zavřít okno testů">Zavřít <span aria-hidden="true">×</span></button></div>
     <div class="portal-test-history" data-portal-history-list role="region" aria-labelledby="portal-history-title" tabindex="0">
@@ -79,5 +83,5 @@
 {% endblock %}
 {% block extra_js %}
 <script src="{% static 'courses/js/certificate-layout.js' %}" defer></script>
-<script src="{% static 'courses/js/portal-overview.js' %}?v=3" defer></script>
+<script src="{% static 'courses/js/portal-overview.js' %}?v=4" defer></script>
 {% endblock %}

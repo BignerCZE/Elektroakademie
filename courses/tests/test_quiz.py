@@ -499,6 +499,7 @@ class QuizTests(QuizTestBase):
             ),
             {
                 "leave_test": "1",
+                "choice": str(self.question_1.correct_choice.pk),
             },
         )
 
@@ -518,15 +519,9 @@ class QuizTests(QuizTestBase):
             302,
         )
 
-        self.assertEqual(
-            response.url,
-            reverse(
-                "quiz",
-                kwargs={
-                    "course_id": self.course.id,
-                },
-            ),
-        )
+        self.assertRedirects(response, reverse("dashboard"))
+        question = attempt.attempt_questions.get(order=1)
+        self.assertEqual(question.selected_choice_id, self.question_1.correct_choice.pk)
 
 
 @override_settings(

@@ -26,6 +26,8 @@ class PortalOverviewBrowserTests(StaticLiveServerTestCase):
             QuizAttempt.objects.create(user=fixture.user, course=fixture.course,
                 attempt_number=number, status=QuizAttempt.STATUS_SUBMITTED,
                 passed=False, score_percent=0, submitted_at=fixture.submitted_at)
+        self.quiz_user_id = fixture.user.pk
+        self.quiz_attempt_id = fixture.attempt.pk
         session_key = fixture.client.session.session_key
         from django.conf import settings
         self.cookie_name = settings.SESSION_COOKIE_NAME
@@ -82,6 +84,9 @@ class PortalOverviewBrowserTests(StaticLiveServerTestCase):
             self.assertAlmostEqual(logo['x'] + logo['width']/2, width/2, delta=2)
             history_button.click()
             expect(history_dialog).to_be_visible()
+            bounds = history_dialog.bounding_box()
+            self.assertAlmostEqual(bounds['x'] + bounds['width']/2, width/2, delta=2)
+            self.assertAlmostEqual(bounds['y'] + bounds['height']/2, 500, delta=2)
             history = history_dialog.locator('.portal-test-history')
             self.assertTrue(history.evaluate('(el) => el.scrollHeight > el.clientHeight'))
             before = self.page.evaluate('window.scrollY')
@@ -130,3 +135,40 @@ class PortalOverviewBrowserTests(StaticLiveServerTestCase):
         expect(dialog).not_to_be_visible()
         expect(direct).to_be_focused()
         self.assertEqual(self.page.url, dashboard_url)
+
+    def test_active_quiz_popup_save_resume_submit_and_center(self):
+        from courses.tests import test_portal_navigation_browser as helpers
+        from django.contrib.auth import get_user_model
+        def prepare():
+            get_user_model().objects.filter(pk=self.quiz_user_id).update(passed_quiz=False)
+            QuizAttempt.objects.filter(pk=self.quiz_attempt_id).update(status=QuizAttempt.STATUS_IN_PROGRESS, submitted_at=None)
+            QuizAttemptQuestion.objects.filter(attempt_id=self.quiz_attempt_id).update(selected_choice=None)
+        helpers.PortalNavigationBrowserTests.database_call(prepare)
+        self.page.locator('[data-cookie-choice="none"]').click()
+        self.page.reload()
+        self.page.on('dialog', lambda dialog: dialog.accept())
+        self.page.get_by_role('link', name='Pokračovat v testu', exact=True).click()
+        dialog = self.page.locator('#portal-active-quiz-dialog')
+        expect(dialog).to_be_visible()
+        bounds = dialog.bounding_box()
+        self.assertAlmostEqual(bounds['x'] + bounds['width']/2, 720, delta=2)
+        self.assertAlmostEqual(bounds['y'] + bounds['height']/2, 500, delta=2)
+        frame = self.page.frame_locator('#portal-active-quiz-frame')
+        expect(frame.get_by_role('heading', name='Otázka 1 z 3')).to_be_visible()
+        frame.locator('input[type="radio"]').first.check()
+        frame.get_by_role('button', name='Další otázka', exact=True).click()
+        expect(frame.get_by_role('heading', name='Otázka 2 z 3')).to_be_visible()
+        frame.locator('input[type="radio"]').first.check()
+        dialog.get_by_role('button', name='Opustit rozpracovaný test').click()
+        expect(self.page.get_by_role('link', name='Pokračovat v testu', exact=True)).to_be_visible()
+        expect(dialog).not_to_be_visible()
+        self.page.get_by_role('link', name='Pokračovat v testu', exact=True).click()
+        expect(frame.get_by_role('heading', name='Otázka 3 z 3')).to_be_visible()
+        frame.locator('input[type="radio"]').first.check()
+        with patch('courses.views.process_quiz_completion') as workflow:
+            workflow.return_value.errors = []
+            frame.get_by_role('button', name='Odeslat test', exact=True).click()
+            history = self.page.locator('#portal-history-dialog')
+            expect(history).to_be_visible(timeout=15000)
+            expect(history.get_by_role('heading', name='Otázka 1 z 3', exact=True)).to_be_visible()
+        expect(self.page.locator('#portal-active-quiz-dialog')).not_to_be_visible()

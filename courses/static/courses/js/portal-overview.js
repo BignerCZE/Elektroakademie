@@ -1,5 +1,29 @@
 document.addEventListener("DOMContentLoaded", () => {
     const dialogs = document.querySelectorAll(".portal-dialog");
+    const activeDialog = document.getElementById("portal-active-quiz-dialog");
+    const activeFrame = document.getElementById("portal-active-quiz-frame");
+    let leavingQuiz = false;
+
+    function popupURL(href) {
+        const url = new URL(href, location.href);
+        url.searchParams.set("popup", "1");
+        return url.href;
+    }
+    function leaveActiveQuiz() {
+        if (leavingQuiz) return;
+        if (!confirm("Opravdu chcete opustit test? Rozpracovaný test zůstane uložen a můžete v něm pokračovat později.")) return;
+        const form = activeFrame?.contentDocument?.getElementById("quiz-question-form");
+        if (!form) { activeDialog.close(); location.reload(); return; }
+        leavingQuiz = true;
+        const button = form.ownerDocument.createElement("button");
+        button.type = "submit";
+        button.name = "leave_test";
+        button.value = "1";
+        button.hidden = true;
+        form.append(button);
+        form.requestSubmit(button);
+    }
+
     const historyDialog = document.getElementById("portal-history-dialog");
     const historyList = historyDialog?.querySelector("[data-portal-history-list]");
     const reviewPane = historyDialog?.querySelector("[data-portal-review-pane]");
@@ -31,6 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
         if (dialog === historyDialog) { showHistory(); returnLink = null; }
+        if (dialog === activeDialog) leavingQuiz = false;
         if (frame) {
             const iframe = document.createElement("iframe");
             iframe.src = "https://www.youtube-nocookie.com/embed/J_eSsfNwDVw?autoplay=1&rel=0&modestbranding=1";
@@ -95,6 +120,13 @@ document.addEventListener("DOMContentLoaded", () => {
         trigger.addEventListener("click", () => openDialog(document.getElementById(trigger.dataset.portalOpen), trigger));
     });
     document.addEventListener("click", event => {
+        const activeLink = event.target.closest("a[data-portal-active-quiz]");
+        if (activeLink && activeDialog && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey && event.button === 0) {
+            event.preventDefault();
+            openDialog(activeDialog, activeLink);
+            activeFrame.src = popupURL(activeLink.href);
+            return;
+        }
         const link = event.target.closest("a[data-portal-review]");
         if (link && historyDialog && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey && event.button === 0) {
             event.preventDefault();
@@ -108,11 +140,44 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
     dialogs.forEach(dialog => {
-        dialog.querySelector("[data-portal-close]")?.addEventListener("click", () => dialog.close());
+        dialog.querySelector("[data-portal-close]")?.addEventListener("click", () => {
+            if (dialog === activeDialog) leaveActiveQuiz(); else dialog.close();
+        });
+        dialog.addEventListener("cancel", event => {
+            if (dialog === activeDialog) { event.preventDefault(); leaveActiveQuiz(); }
+        });
         dialog.addEventListener("click", event => {
             if (event.target !== dialog) return;
             const bounds = dialog.getBoundingClientRect();
-            if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) dialog.close();
+            if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) {
+                if (dialog === activeDialog) leaveActiveQuiz(); else dialog.close();
+            }
         });
     });
+    document.addEventListener("submit", event => {
+        const form = event.target.closest("form[data-portal-start-quiz]");
+        if (!form || !activeDialog) return;
+        form.target = activeFrame.name;
+        form.action = popupURL(form.action);
+        openDialog(activeDialog, event.submitter || form.querySelector("button"));
+    });
+    window.addEventListener("message", event => {
+        if (!activeFrame || event.source !== activeFrame.contentWindow || event.origin !== location.origin || !activeDialog?.open) return;
+        if (event.data?.type !== "ea-quiz-left" && event.data?.type !== "ea-quiz-completed") return;
+        if (event.data.type === "ea-quiz-completed" && typeof event.data.review_url === "string") {
+            const url = new URL(event.data.review_url, location.href);
+            if (url.origin === location.origin) {
+                try { sessionStorage.setItem("ea-pending-quiz-review", url.pathname); } catch (_) { /* The overview still refreshes if storage is disabled. */ }
+            }
+        }
+        activeDialog.close();
+        location.reload();
+    });
+    let pending;
+    try { pending = sessionStorage.getItem("ea-pending-quiz-review"); sessionStorage.removeItem("ea-pending-quiz-review"); } catch (_) { /* Optional review reopening. */ }
+    if (pending) {
+        const link = Array.from(document.querySelectorAll("a[data-portal-review]")).find(item => new URL(item.href).pathname === pending);
+        if (link) showReview(link);
+    }
+
 });

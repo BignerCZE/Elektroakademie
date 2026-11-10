@@ -1,0 +1,7 @@
+{% load static %}<!DOCTYPE html>
+<html lang="cs"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Závěrečný test{% endblock %}</title>
+<link rel="stylesheet" href="{% static 'courses/css/base.css' %}?v=8">
+<link rel="stylesheet" href="{% static 'courses/css/dashboard_shell.css' %}?v=6">
+<link rel="stylesheet" href="{% static 'courses/css/quiz-popup.css' %}?v=1">
+</head><body class="quiz-popup-body">{% block dashboard_main %}{% endblock %}{% block extra_js %}{% endblock %}</body></html>
