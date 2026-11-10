@@ -1,6 +1,12 @@
 {% extends "courses/dashboard_base.html" %}
+{% load static %}
 
 {% block title %}Mé údaje | Elektroakademie{% endblock %}
+
+{% block dashboard_extra_css %}
+<link rel="stylesheet" href="{% static 'courses/css/profile-compact.css' %}?v=3">
+{% endblock %}
+{% block dashboard_page_class %} portal-profile-shell{% endblock %}
 
 {% block dashboard_main %}
 <section class="participant-data-card">
@@ -26,6 +32,14 @@
     {% if participant %}
     <div class="participant-data-list">
         <div class="participant-data-row">
+            <span class="participant-data-label">Účastnický kód:</span>
+
+            <strong class="participant-data-value">
+                {{ participant.registration_number|default:"Neuvedeno" }}
+            </strong>
+        </div>
+
+        <div class="participant-data-row">
             <span class="participant-data-label">Jméno:</span>
 
             <strong class="participant-data-value">
@@ -38,22 +52,6 @@
 
             <strong class="participant-data-value">
                 {{ participant.last_name|default:"Neuvedeno" }}
-            </strong>
-        </div>
-
-        <div class="participant-data-row">
-            <span class="participant-data-label">E-mail:</span>
-
-            <strong class="participant-data-value">
-                {{ participant.email|default:"Neuvedeno" }}
-            </strong>
-        </div>
-
-        <div class="participant-data-row">
-            <span class="participant-data-label">Účastnický kód:</span>
-
-            <strong class="participant-data-value">
-                {{ participant.registration_number|default:"Neuvedeno" }}
             </strong>
         </div>
 

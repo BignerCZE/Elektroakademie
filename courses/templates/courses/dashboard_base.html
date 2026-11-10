@@ -1,108 +1,32 @@
 {% extends 'courses/base.html' %}
 {% load static %}
 
+{% block topbar_class %} portal-topbar{% endblock %}
+{% block topbar_controls %}{% endblock %}
+
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'courses/css/dashboard_shell.css' %}?v=6">
+<link rel="stylesheet" href="{% static 'courses/css/portal-shell.css' %}?v=4">
 {% block dashboard_extra_css %}{% endblock %}
 {% endblock %}
 
 {% block content %}
-<main class="page-content dashboard-shell-page">
+<main class="page-content dashboard-shell-page portal-workspace-page{% block dashboard_page_class %}{% endblock %}">
     <div class="container">
-        <section class="dashboard-shell">
-            <aside class="dashboard-shell-sidebar">
-                <div class="dashboard-sidebar-panel">
-
-                    <div class="sidebar-account">
-                        <h2>Účet</h2>
-
-                        <div class="sidebar-account-item">
-                            <span>Email:</span>
-                            <strong>{{ user.email|default:user.username }}</strong>
-                        </div>
-
-                        <div class="sidebar-account-item">
-                            <span>Jméno:</span>
-                            <strong>{{ user.first_name|default:"Neuvedeno" }}</strong>
-                        </div>
-
-                        <div class="sidebar-account-item">
-                            <span>Příjmení:</span>
-                            <strong>{{ user.last_name|default:"Neuvedeno" }}</strong>
-                        </div>
-
-                        <div class="sidebar-account-item">
-                            <span>Účastnický kód:</span>
-
-                            <strong>
-                                {% if participant and participant.registration_number %}
-                                {{ participant.registration_number }}
-                                {% elif is_manual_account %}
-                                Administrativní účet
-                                {% else %}
-                                Neuvedeno
-                                {% endif %}
-                            </strong>
-                        </div>
-                    </div>
-
-                    <hr class="sidebar-divider">
-
-                    <nav class="sidebar-nav">
-                        <a href="{% url 'dashboard' %}" class="{% if sidebar_page == 'dashboard' %}active{% endif %}">
-                            Přehled
-                        </a>
-
-                        <a href="{% url 'profile' %}" class="{% if sidebar_page == 'profile' %}active{% endif %}">
-                            Mé údaje
-                        </a>
-
-                        {% if active_course %}
-                        {% if has_paid %}
-                        <a href="{% url 'video_detail' active_course.id %}"
-                            class="{% if sidebar_page == 'video' %}active{% endif %}">
-                            Video
-                        </a>
-
-                        <a href="{% url 'quiz' active_course.id %}"
-                            class="sidebar-nav-test {% if sidebar_page == 'quiz' %}active{% endif %}">
-                            <span>Test</span>
-
-                            {% if user.passed_quiz %}
-                            <span class="sidebar-status-badge sidebar-status-badge--success">
-                                Splněno
-                            </span>
-                            {% else %}
-                            <span class="sidebar-status-badge sidebar-status-badge--failed">
-                                Nesplněno
-                            </span>
-                            {% endif %}
-                        </a>
-
-                        {% if user.passed_quiz %}
-                        <a href="{% url 'certificate_success' active_course.id %}"
-                            class="{% if sidebar_page == 'certificate' %}active{% endif %}">
-                            Certifikát
-                        </a>
-                        {% else %}
-                        <span class="disabled-link">Certifikát</span>
-                        {% endif %}
-                        {% else %}
-                        <span class="disabled-link">Video</span>
-                        <span class="disabled-link">Test</span>
-                        <span class="disabled-link">Certifikát</span>
-                        {% endif %}
-                        {% else %}
-                        <span class="disabled-link">Video</span>
-                        <span class="disabled-link">Test</span>
-                        <span class="disabled-link">Certifikát</span>
-                        {% endif %}
-                    </nav>
-
-                    {% block sidebar_extra %}{% endblock %}
-                </div>
-            </aside>
-
+        <header class="portal-account-bar">
+            <div class="portal-account-identity">
+                <strong>{% if user.first_name %}{{ user.first_name }} {{ user.last_name }}{% else %}{{ user.username }}{% endif %}</strong>
+                <span>{% if participant and participant.registration_number %}Účastnický kód: {{ participant.registration_number }}{% elif is_manual_account %}Administrativní účet{% else %}Účastnický kód: Neuvedeno{% endif %}</span>
+            </div>
+            <nav class="portal-account-actions" aria-label="Účet účastníka">
+                {% if sidebar_page != 'dashboard' %}<a href="{% url 'dashboard' %}">Přehled kurzu</a>{% endif %}
+                <a href="{% url 'profile' %}" {% if sidebar_page == 'profile' %}aria-current="page"{% endif %}>Mé údaje</a>
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}<button type="submit">Odhlásit se</button>
+                </form>
+            </nav>
+        </header>
+        <section class="dashboard-shell portal-workspace-shell">
             <div class="dashboard-shell-main">
                 {% block dashboard_main %}{% endblock %}
             </div>

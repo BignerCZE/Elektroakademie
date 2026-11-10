@@ -1,214 +1,83 @@
 {% extends "courses/dashboard_base.html" %}
-
+{% load static %}
 {% block title %}Přehled | Elektroakademie{% endblock %}
-
+{% block dashboard_extra_css %}
+<link rel="stylesheet" href="{% static 'courses/css/certificate.css' %}?v=3">
+<link rel="stylesheet" href="{% static 'courses/css/portal-overview.css' %}?v=3">
+<link rel="stylesheet" href="{% static 'courses/css/quiz-review.css' %}">
+<link rel="stylesheet" href="{% static 'courses/css/portal-workspace.css' %}?v=4">
+{% endblock %}
+{% block dashboard_page_class %} portal-compact-shell{% endblock %}
 {% block dashboard_main %}
-<section class="dashboard-summary-card">
-
-    <header class="dashboard-summary-header">
-        <div>
-            <h1>
-                Vítejte, {{ user.first_name|default:user.username }}
-            </h1>
-
-            <p class="dashboard-subtitle">
-                Přehled vašeho kurzu, studijních materiálů a testů.
-            </p>
-        </div>
-
-    </header>
-
-    {% if has_paid %}
-    <div class="dashboard-summary-stats">
-        <article class="dashboard-stat-item">
-            <span class="dashboard-stat-label">
-                Evidenční číslo
-            </span>
-
-            <strong class="dashboard-stat-value">
-                {% if participant and participant.registration_number %}
-                {{ participant.registration_number }}
-                {% elif is_manual_account %}
-                Administrativní účet
+<section class="portal-overview portal-workspace-overview">
+    {% if has_paid and active_course %}
+    <div class="portal-course-grid">
+        <section class="portal-video-card" aria-labelledby="portal-course-title">
+            <p class="portal-eyebrow">Paragraf §4</p>
+            <h1 id="portal-course-title">1. krok - Shlédnout video</h1>
+            <button type="button" class="portal-video-trigger" data-portal-open="portal-video-dialog" aria-label="Přehrát výukové video">
+                <img src="{% static 'courses/img/video-thumbnail.jpg' %}" alt="Náhled výukového videa">
+                <span class="portal-play-icon" aria-hidden="true">▶</span>
+            </button>
+        </section>
+        <section class="portal-test-card" aria-labelledby="portal-test-title">
+            <div class="portal-test-current">
+                <h2 id="portal-test-title">2. krok - Vyplnit test</h2>
+                {% if active_attempt %}
+                <p>Máte rozpracovaný test. Pokračujte tam, kde jste skončili.</p>
+                <a class="button-primary" href="{% url 'quiz_start' active_course.id %}">Pokračovat v testu</a>
+                {% elif user.passed_quiz %}
+                <p class="portal-success">Test úspěšně splněn</p>
+                {% if best_attempt %}<a class="portal-faq-action" data-portal-review href="{% url 'quiz_attempt_detail' best_attempt.id 1 %}"><span>Zobrazit odpovědi</span><span aria-hidden="true">›</span></a>{% endif %}
                 {% else %}
-                Neuvedeno
+                <p>{% if latest_attempt %}Předchozí pokus nebyl úspěšný. Test můžete zopakovat.{% else %}Po prostudování videa můžete spustit závěrečný test.{% endif %}</p>
+                <form method="post" action="{% url 'quiz_start' active_course.id %}">
+                    {% csrf_token %}<button type="submit" class="button-primary">{% if latest_attempt %}Spustit nový test{% else %}Spustit test{% endif %}</button>
+                </form>
                 {% endif %}
-            </strong>
-        </article>
-
-        <article class="dashboard-stat-item">
-            <span class="dashboard-stat-label">
-                Kurz
-            </span>
-
-            <strong class="dashboard-stat-value">
-                {% if course_name %}
-                {{ course_name }}
-                {% elif active_course %}
-                {{ active_course.title }}
-                {% else %}
-                Nepřiřazen
-                {% endif %}
-            </strong>
-        </article>
-
-        <article class="dashboard-stat-item">
-            <span class="dashboard-stat-label">
-                Stav přístupu
-            </span>
-
-            <strong class="dashboard-stat-value dashboard-stat-value--success">
-                Aktivní
-            </strong>
-        </article>
-
-        <article class="dashboard-stat-item">
-            <span class="dashboard-stat-label">
-                Stav testu
-            </span>
-
-            {% if user.passed_quiz %}
-            <strong class="dashboard-stat-value dashboard-stat-value--success">
-                Splněno
-            </strong>
-            {% elif active_attempt %}
-            <strong class="dashboard-stat-value dashboard-stat-value--warning">
-                Rozpracováno
-            </strong>
-            {% else %}
-            <strong class="dashboard-stat-value">
-                Zatím nesplněno
-            </strong>
-            {% endif %}
-        </article>
-    </div>
-
-    <div class="dashboard-summary-content">
-        <article class="dashboard-course-panel">
-            <div class="dashboard-section-heading">
-                <div>
-                    <p class="dashboard-section-eyebrow">
-                        Aktuální kurz
-                    </p>
-
-                    <h2>
-                        {% if course_name %}
-                        {{ course_name }}
-                        {% elif active_course %}
-                        {{ active_course.title }}
-                        {% else %}
-                        Kurz není přiřazen
-                        {% endif %}
-                    </h2>
-                </div>
             </div>
-
-            {% if active_course %}
-            <p class="dashboard-course-description">
-                {{ active_course.description|truncatewords:35 }}
-            </p>
-
-            <div class="dashboard-course-actions">
-                <a href="{% url 'video_detail' active_course.id %}" class="button-primary">
-                    Přejít výukovému videu
-                </a>
-
-                <a href="{% url 'quiz' active_course.id %}" class="button-secondary">
-                    Přejít k testu
-                </a>
-            </div>
-            {% else %}
-            <p class="dashboard-empty-message">
-                K vašemu účtu zatím není přiřazen obsah kurzu.
-            </p>
-            {% endif %}
-        </article>
-
-        <aside class="dashboard-test-panel">
-            <p class="dashboard-section-eyebrow">
-                Test
-            </p>
-
-            <h2>Aktuální stav</h2>
-
-            {% if active_attempt %}
-            <p>
-                Máte rozpracovaný test. Můžete pokračovat tam,
-                kde jste skončili.
-            </p>
-
-            <a href="{% url 'quiz_start' active_course.id %}" class="dashboard-text-link">
-                Pokračovat v testu
-            </a>
-            {% elif user.passed_quiz %}
-            <p>
-                Závěrečný test jste úspěšně splnili.
-            </p>
-
-            {% if latest_attempt %}
-            <a href="{% url 'quiz_attempt_detail' latest_attempt.id 1 %}" class="dashboard-text-link">
-                Zobrazit poslední výsledek
-            </a>
-            {% endif %}
-            {% else %}
-            <p>
-                Po dokončení studia můžete spustit závěrečný test.
-            </p>
-
-            {% if active_course %}
-            <a href="{% url 'quiz' active_course.id %}" class="dashboard-text-link">
-                Spustit test
-            </a>
-            {% endif %}
-            {% endif %}
-        </aside>
+            <button type="button" class="portal-faq-action portal-history-button" data-portal-open="portal-history-dialog">Historie testů <span class="portal-history-count">{{ submitted_attempts_count }}</span></button>
+            <section class="portal-certificate-card" aria-labelledby="portal-certificate-title">
+                <div><h2 id="portal-certificate-title">3. krok - Stáhnout certifikát</h2>
+                {% if certificate %}<p>Číslo: <strong>{{ certificate.certificate_number }}</strong> · Platnost do: <strong>{{ certificate.valid_until|date:"j. n. Y" }}</strong></p>
+                {% elif user.passed_quiz %}<p>Certifikát zatím není k dispozici. Pokud se nezobrazí ani později, kontaktujte nás.</p>
+                {% else %}<p>Certifikát bude dostupný po úspěšném splnění testu.</p>{% endif %}</div>
+                {% if certificate %}<div class="portal-certificate-actions"><button type="button" class="button-secondary" data-portal-open="portal-certificate-dialog">Náhled certifikátu</button><a class="button-primary" href="{% url 'certificate_pdf' active_course.id %}?download=1">Stáhnout PDF</a></div>{% endif %}
+            </section>
+        </section>
     </div>
-
-    <footer class="dashboard-results-bar">
-        <div class="dashboard-result-item">
-            <span>Dokončené pokusy</span>
-            <strong>{{ submitted_attempts_count|default:0 }}</strong>
-        </div>
-
-        <div class="dashboard-result-item">
-            <span>Nejlepší výsledek</span>
-
-            <strong>
-                {% if best_attempt %}
-                {{ best_attempt.score_percent }} %
-                {% else %}
-                —
-                {% endif %}
-            </strong>
-        </div>
-
-        <div class="dashboard-result-item">
-            <span>Poslední výsledek</span>
-
-            <strong>
-                {% if latest_attempt %}
-                {{ latest_attempt.score_percent }} %
-                {% else %}
-                —
-                {% endif %}
-            </strong>
-        </div>
-
-        {% if active_course %}
-        <a href="{% url 'quiz' active_course.id %}" class="dashboard-results-link">
-            Historie testů
-        </a>
-        {% endif %}
-    </footer>
     {% else %}
-    <div class="dashboard-access-inactive">
-        <h2>Přístup ke kurzu není aktivní</h2>
-
-        <p>
-            Tento účet zatím nemá povolený přístup ke studijním
-            materiálům a testům.
-        </p>
-    </div>
+    <div class="dashboard-access-inactive"><h2>{% if has_paid %}Kurz zatím není přiřazen{% else %}Přístup ke kurzu není aktivní{% endif %}</h2><p>Pro zpřístupnění studijních materiálů nás prosím kontaktujte.</p></div>
     {% endif %}
 </section>
+{% if has_paid and active_course %}
+<dialog class="portal-dialog portal-history-dialog" id="portal-history-dialog" aria-labelledby="portal-history-title">
+    <div class="portal-dialog-header"><div><h2 id="portal-history-title">Historie testů</h2><p id="portal-history-subtitle">Dokončené pokusy: {{ submitted_attempts_count }}</p></div><button type="button" data-portal-history-back hidden>Zpět na historii</button><button type="button" data-portal-close aria-label="Zavřít okno testů">Zavřít <span aria-hidden="true">×</span></button></div>
+    <div class="portal-test-history" data-portal-history-list role="region" aria-labelledby="portal-history-title" tabindex="0">
+                {% for attempt in past_attempts %}
+                <article class="portal-history-row">
+                    <div><strong>Pokus {{ attempt.attempt_number }}</strong><time>{{ attempt.submitted_at|date:"j. n. Y H:i" }}</time></div>
+                    <div><strong class="{% if attempt.passed %}portal-success{% else %}portal-failed{% endif %}">{% if attempt.passed %}Splněno{% else %}Nesplněno{% endif %} · {{ attempt.score_percent|floatformat:0 }} %</strong><a data-portal-review href="{% url 'quiz_attempt_detail' attempt.id 1 %}">Zobrazit odpovědi</a></div>
+                </article>
+                {% empty %}<p class="portal-empty">Zatím nemáte žádný dokončený test.</p>{% endfor %}
+    </div>
+    <div class="portal-review-pane" data-portal-review-pane hidden aria-live="polite"></div>
+</dialog>
+<dialog class="portal-dialog portal-video-dialog" id="portal-video-dialog" aria-labelledby="portal-video-title">
+    <div class="portal-dialog-header"><h2 id="portal-video-title">Výukové video</h2><button type="button" data-portal-close aria-label="Zavřít video">×</button></div>
+    <div class="portal-video-frame" data-portal-video-frame></div>
+</dialog>
+{% if certificate %}
+<dialog class="portal-dialog portal-certificate-dialog" id="portal-certificate-dialog" aria-labelledby="portal-preview-title">
+    <div class="portal-dialog-header"><h2 id="portal-preview-title">Náhled certifikátu</h2><button type="button" data-portal-close aria-label="Zavřít náhled certifikátu">×</button></div>
+    <div class="portal-certificate-scroll">
+        {% include 'courses/certificate_document.html' with participant=certificate.participant participant_profile=certificate.participant.profile course=active_course %}
+    </div>
+</dialog>
+{% endif %}
+{% endif %}
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'courses/js/certificate-layout.js' %}" defer></script>
+<script src="{% static 'courses/js/portal-overview.js' %}?v=3" defer></script>
 {% endblock %}

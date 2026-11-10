@@ -89,7 +89,7 @@ class PortalNavigationBrowserTests(StaticLiveServerTestCase):
         self.page.goto(self.live_server_url + activation)
         self.page.wait_for_url(self.live_server_url + reverse('index'))
         self.page.goto(self.live_server_url + reverse('dashboard'))
-        expect(self.page.locator('.sidebar-nav').get_by_role('link', name='Video', exact=True)).to_be_visible()
+        expect(self.page.get_by_role('button', name='Přehrát výukové video')).to_be_visible()
         self.assertEqual(self.database_call(lambda: OrderParticipant.objects.filter(user_id=participant.user_id).count()), 1)
 
     def test_review_buttons_at_desktop_and_mobile_sizes(self):

@@ -1538,6 +1538,13 @@ def quiz_attempt_detail(
         )
     )
 
+    if request.GET.get("fragment") == "1":
+        context["review_popup"] = True
+        response = render(request, "courses/quiz_attempt_content.html", context)
+        response["X-Quiz-Review-Fragment"] = "1"
+        response["Cache-Control"] = "private, no-store"
+        return response
+
     return render(
         request,
         "courses/quiz_attempt_detail.html",
@@ -1686,8 +1693,8 @@ def certificate_pdf(request, course_id):
     )
 
     response["Content-Disposition"] = (
-        "inline; "
-        f'filename="{certificate.certificate_number}.pdf"'
+        ("attachment; " if request.GET.get("download") == "1" else "inline; ")
+        + f'filename="{certificate.certificate_number}.pdf"'
     )
 
     return response
@@ -1758,7 +1765,18 @@ def dashboard(request):
             .first()
         )
 
+    certificate = None
+    if context["has_paid"] and request.user.passed_quiz and active_course:
+        certificate = (
+            Certificate.objects.select_related("participant__profile", "quiz_attempt__course")
+            .filter(Q(participant__user=request.user) | Q(quiz_attempt__user=request.user),
+                    quiz_attempt__course=active_course)
+            .order_by("-issued_at", "-id").first()
+        )
+
     context.update({
+        "certificate": certificate,
+        "past_attempts": submitted_attempts.order_by("-submitted_at", "-id"),
         "active_attempt": active_attempt,
         "latest_attempt": latest_attempt,
         "best_attempt": best_attempt,

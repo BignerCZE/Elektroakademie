@@ -441,6 +441,6 @@ class OrderActivationJourneyTests(TestCase):
         dashboard = self.client.get(reverse('dashboard'))
         self.assertTrue(dashboard.wsgi_request.user.is_authenticated)
         self.assertTrue(participant.user.is_paid)
-        self.assertContains(dashboard, reverse('video_detail', args=[Course.objects.get().pk]))
+        self.assertContains(dashboard, 'Přehrát výukové video')
         self.assertRedirects(self.client.get(activation), reverse('index'))
         self.assertEqual(User.objects.count(), 1)

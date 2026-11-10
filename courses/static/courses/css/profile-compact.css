@@ -1,0 +1,16 @@
+/* One column; fill the available viewport while allowing long content to grow. */
+.portal-profile-shell .participant-data-card { height: auto; min-height: 0; overflow: visible; padding: 0; border-radius: 0; background: transparent; box-shadow: none; }
+.portal-profile-shell .participant-data-list { display: block; }
+@media (min-width: 1101px) {
+    .dashboard-shell-page.portal-profile-shell > .container { display: flex; flex-direction: column; min-height: calc(100dvh - var(--header-height) - 77px); }
+    .portal-profile-shell .portal-account-bar { flex: 0 0 auto; }
+    .dashboard-shell-page.portal-profile-shell .portal-workspace-shell { display: flex; flex: 1 0 auto; }
+    .portal-profile-shell .dashboard-shell-main { flex: 1 0 auto; }
+    .portal-profile-shell .participant-data-card { flex: 1 0 auto; padding: 0; }
+    .portal-profile-shell .participant-data-header { padding-bottom: 8px; }
+    .portal-profile-shell .participant-data-header h1 { font-size: 27px; margin-top: 0; }
+    .portal-profile-shell .participant-certificate-notice { margin-top: 8px; padding: 7px 12px; }
+    .portal-profile-shell .participant-data-list { display: grid; grid-template-columns: minmax(0, 1fr); grid-auto-rows: minmax(26px, auto); flex: 1 0 auto; padding: 0; margin-top: 8px; }
+    .portal-profile-shell .participant-data-row { grid-template-columns: 220px minmax(0, 1fr); gap: 18px; min-height: 26px; padding: 3px 10px; }
+    .portal-profile-shell .participant-data-footer { margin-top: 8px; padding-top: 6px; }
+}

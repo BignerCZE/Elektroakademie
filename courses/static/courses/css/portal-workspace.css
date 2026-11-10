@@ -1,0 +1,28 @@
+/* The workspace changes only the page behind the existing dialogs. */
+.portal-workspace-overview.portal-overview { padding: 0; border-radius: 0; background: transparent; color: #102a4c; }
+.portal-workspace-overview .portal-course-grid { grid-template-columns: minmax(0, 1.65fr) minmax(340px, 1fr); gap: 28px; align-items: start; }
+.portal-workspace-overview .portal-video-card { border: 0; border-radius: 0; padding: 0; background: transparent; }
+.portal-workspace-overview .portal-video-card .portal-eyebrow { color: #526e91 !important; font-size: .75rem; letter-spacing: .08em; margin-bottom: 6px; }
+.portal-workspace-overview #portal-course-title { margin: 0 0 18px; font-size: 1.35rem; font-weight: 700; line-height: 1.1; color: #102a4c; }
+.portal-workspace-overview .portal-video-trigger { border-radius: 12px; max-height: min(46dvh, 480px); box-shadow: 0 12px 36px rgba(0,0,0,.18); }
+.portal-workspace-overview .portal-test-card { padding: 8px 0 8px 26px; border: 0; border-left: 1px solid #dce5ef; border-radius: 0; background: transparent; color: #102a4c; box-shadow: none; }
+.portal-workspace-overview #portal-test-title { font-size: 1.35rem; margin: 0 0 14px; }
+.portal-workspace-overview .portal-test-current p { font-size: .9rem; line-height: 1.5; margin-bottom: 16px; }
+.portal-workspace-overview .portal-test-current .button-primary { width: 100%; box-shadow: none; }
+.portal-workspace-overview .portal-faq-action { padding: 12px 14px; font-size: .9rem; border-radius: 8px; }
+.portal-workspace-overview .portal-history-button { margin-top: 10px; }
+.portal-workspace-overview .portal-certificate-card { margin-top: 24px; padding-top: 20px; }
+.portal-workspace-overview #portal-certificate-title { font-size: 1.35rem; margin-bottom: 10px; }
+.portal-workspace-overview .portal-certificate-card p { font-size: .8rem; line-height: 1.6; }
+.portal-workspace-overview .portal-certificate-actions { gap: 8px; }
+.portal-workspace-overview .portal-certificate-actions > * { flex: 1 1 auto; min-height: 40px; padding: 8px 12px; font-size: .8rem; box-shadow: none; }
+.portal-workspace-overview .portal-certificate-actions .button-primary { background: #174a92; }
+.portal-workspace-overview .portal-certificate-actions .button-primary:hover { background: #103b78; }
+.portal-workspace-overview .dashboard-access-inactive { background: white; padding: 28px; border-radius: 12px; color: #102a4c; }
+@media (max-width: 1000px) { .portal-workspace-overview .portal-course-grid { grid-template-columns: minmax(0, 1.3fr) minmax(300px, 1fr); gap: 20px; } .portal-workspace-overview .portal-test-card { padding: 8px 0 8px 20px; } }
+@media (max-width: 760px) { .portal-workspace-overview .portal-course-grid { grid-template-columns: minmax(0, 1fr); gap: 24px; } .portal-workspace-overview .portal-video-trigger { max-height: none; } .portal-workspace-overview #portal-course-title { font-size: 1.35rem; margin-bottom: 14px; } }
+
+
+@media (max-width: 760px) {
+    .portal-workspace-overview .portal-test-card { padding: 24px 0 0; border-left: 0; border-top: 1px solid #dce5ef; }
+}
