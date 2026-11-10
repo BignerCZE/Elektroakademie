@@ -119,7 +119,7 @@ class Payment(models.Model):
     class Meta:
         ordering = ["-created_at"]
         verbose_name = "Platba"
-        verbose_name_plural = "Platby"
+        verbose_name_plural = "Historické platby (původní workflow)"
 
     def __str__(self):
         return f"{self.user} - {self.course}"
@@ -699,3 +699,13 @@ class Invoice(models.Model):
 
     def __str__(self):
         return self.number
+
+
+class BillingRecord(Order):
+    """Read-only billing overview of the real order workflow; no extra records."""
+
+    class Meta:
+        proxy = True
+        default_permissions = ()
+        verbose_name = "Platba a faktura"
+        verbose_name_plural = "Platby a faktury"

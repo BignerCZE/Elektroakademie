@@ -279,12 +279,7 @@ class ParticipantActivationTests(TestCase):
             self.activation_url
         )
 
-        self.assertEqual(response.status_code, 200)
-
-        self.assertTemplateUsed(
-            response,
-            "registration/participant_activation_used.html",
-        )
+        self.assertRedirects(response, reverse("index"))
 
         self.assertEqual(User.objects.count(), 1)
         self.assertEqual(
@@ -403,3 +398,49 @@ class ParticipantActivationTests(TestCase):
         response = self.client.get(self.activation_url)
         self.assertNotContains(response, 'name="activity_scope"')
         self.assertNotContains(response, 'name="workplace_specification"')
+
+    def test_restored_activation_revalidates_and_other_sessions_cannot_reuse_token(self):
+        response = self.client.get(self.activation_url)
+        self.assertIn("no-store", response["Cache-Control"])
+        self.assertContains(response, "activation-history.js")
+        self.client.post(self.activation_url, self.valid_data)
+        self.assertRedirects(self.client.get(self.activation_url), reverse("index"))
+        self.assertRedirects(self.client.post(self.activation_url, self.valid_data), reverse("index"))
+        self.client.logout()
+        response = self.client.get(self.activation_url)
+        self.assertTemplateUsed(response, "registration/participant_activation_used.html")
+        self.assertEqual(User.objects.count(), 1)
+
+
+class OrderActivationJourneyTests(TestCase):
+    def test_checkout_payment_activation_dashboard_and_return(self):
+        from unittest.mock import patch
+        from courses.models import Course, Invoice
+        from courses.tests.test_registration import RegistrationTests
+        Course.objects.create(title='Elektroakademie', description='Test', video_url='https://example.test/video')
+        response = self.client.post(reverse('register'), RegistrationTests().get_registration_data())
+        self.assertEqual(response.status_code, 302)
+        order = Order.objects.get()
+        simulation = self.client.get(reverse('order_payment_simulation', args=[order.pk]))
+        self.assertContains(simulation, 'payment-countdown')
+        with patch('courses.workflows.invoice_pdf', return_value=b'%PDF-test-only'):
+            self.assertEqual(self.client.get(reverse('order_payment_success', args=[order.pk])).status_code, 200)
+        order.refresh_from_db()
+        self.assertEqual(order.status, 'paid')
+        self.assertEqual(Invoice.objects.count(), 1)
+        participant = OrderParticipant.objects.get(order=order)
+        activation = reverse('participant_activation', args=[participant.activation_token])
+        self.assertEqual(self.client.get(activation).status_code, 200)
+        values = dict(password1='Testheslo1', password2='Testheslo1',
+                      birth_day='15', birth_month='5', birth_year='1990',
+                      birth_place='Praha', permanent_address='Testovací 1, Praha',
+                      employer_name='Testovací firma', employer_ico='00123456',
+                      employer_address='Testovací 1, Praha')
+        self.assertRedirects(self.client.post(activation, values), reverse('dashboard'))
+        participant.refresh_from_db()
+        dashboard = self.client.get(reverse('dashboard'))
+        self.assertTrue(dashboard.wsgi_request.user.is_authenticated)
+        self.assertTrue(participant.user.is_paid)
+        self.assertContains(dashboard, reverse('video_detail', args=[Course.objects.get().pk]))
+        self.assertRedirects(self.client.get(activation), reverse('index'))
+        self.assertEqual(User.objects.count(), 1)

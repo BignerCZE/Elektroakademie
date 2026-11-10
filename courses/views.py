@@ -15,6 +15,7 @@ from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_POST
 
 
@@ -549,6 +550,7 @@ def payment_completed_email_preview(request, order_id):
         content_type="text/html; charset=utf-8",
     )
 
+@never_cache
 def participant_activation(request, token):
     participant = get_object_or_404(
         OrderParticipant.objects.select_related(
@@ -559,6 +561,8 @@ def participant_activation(request, token):
     )
 
     if participant.activation_completed_at:
+        if request.user.is_authenticated and participant.user_id == request.user.pk:
+            return redirect("index")
         return render(
             request,
             "registration/participant_activation_used.html",

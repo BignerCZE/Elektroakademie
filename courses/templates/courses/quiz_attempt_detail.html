@@ -1,6 +1,11 @@
 {% extends "courses/dashboard_base.html" %}
+{% load static %}
 
 {% block title %}Prohlížení testu{% endblock %}
+
+{% block dashboard_extra_css %}
+<link rel="stylesheet" href="{% static 'courses/css/quiz-review.css' %}">
+{% endblock %}
 
 {% block dashboard_main %}
 
@@ -19,7 +24,7 @@
         <div class="quiz-result-summary">
             <div>
                 <span>Kurz</span>
-                <strong>{{ attempt.course.title }}</strong>
+                <strong>Paragraf §4</strong>
             </div>
 
             <div>
@@ -95,14 +100,14 @@
 
         <div class="quiz-actions">
             {% if not is_first %}
-            <a href="{% url 'quiz_attempt_detail' attempt.id order|add:'-1' %}" class="button-secondary">
-                Zpět
+            <a href="{% url 'quiz_attempt_detail' attempt.id order|add:'-1' %}" class="button-primary quiz-review-navigation">
+                Předchozí otázka
             </a>
             {% endif %}
 
             {% if not is_last %}
-            <a href="{% url 'quiz_attempt_detail' attempt.id order|add:'1' %}" class="button-primary">
-                Další
+            <a href="{% url 'quiz_attempt_detail' attempt.id order|add:'1' %}" class="button-primary quiz-review-navigation">
+                Další otázka
             </a>
             {% endif %}
 

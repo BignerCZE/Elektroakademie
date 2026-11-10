@@ -250,3 +250,6 @@
     </div>
 </main>
 {% endblock %}
+{% block extra_js %}
+{% load static %}<script src="{% static 'courses/js/activation-history.js' %}" defer></script>
+{% endblock %}

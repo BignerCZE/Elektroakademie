@@ -60,3 +60,10 @@ class CertificateDocumentTests(CertificateTestBase):
         self.create_certificate()
         response = self.client.get(reverse("certificate_success", args=[self.course.pk]))
         self.assertContains(response, reverse("certificate_pdf", args=[self.course.pk]))
+
+    def test_redundant_course_line_is_removed_but_logo_is_kept(self):
+        self.course.title = "Elektroakademie"
+        self.course.save()
+        html = self.render_document()
+        self.assertNotIn('class="certificate-course"', html)
+        self.assertIn('class="certificate-logo"', html)

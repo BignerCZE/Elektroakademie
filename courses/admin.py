@@ -15,6 +15,7 @@ from django.utils.html import format_html, format_html_join
 from django.utils import timezone
 
 from .models import (
+    BillingRecord,
     Certificate,
     Choice,
     Course,
@@ -5052,4 +5053,51 @@ class InvoiceAdmin(admin.ModelAdmin):
     @admin.display(description="PDF")
     def pdf_link(self, obj):
         return format_html('<a href="{}" target="_blank" rel="noopener">Otevřít PDF</a>',
-                           reverse("invoice_download", args=[obj.order_id]))
+                           reverse("admin_invoice_pdf", args=[obj.order_id]))
+
+
+@admin.register(BillingRecord)
+class BillingRecordAdmin(admin.ModelAdmin):
+    list_display = ("id", "company_name", "total_price", "status", "invoice_number", "invoice_date", "preview_pdf", "download_pdf")
+    list_display_links = None
+    search_fields = ("invoice__number", "company_name")
+    list_filter = ("status",)
+    ordering = ("-pk",)
+
+    def has_module_permission(self, request):
+        return request.user.has_perm("courses.view_invoice")
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.has_perm("courses.view_invoice")
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related("invoice").defer("invoice__pdf_content", "invoice__snapshot")
+
+    @admin.display(description="Číslo faktury", ordering="invoice__number")
+    def invoice_number(self, obj):
+        return obj.invoice.number if hasattr(obj, "invoice") else "Faktura nevystavena"
+
+    @admin.display(description="Datum vystavení faktury", ordering="invoice__issued_on")
+    def invoice_date(self, obj):
+        return obj.invoice.issued_on if hasattr(obj, "invoice") else None
+
+    @admin.display(description="Náhled PDF")
+    def preview_pdf(self, obj):
+        if not hasattr(obj, "invoice"):
+            return "—"
+        return format_html('<a href="{}" target="_blank" rel="noopener">Náhled PDF</a>', reverse("admin_invoice_pdf", args=[obj.pk]))
+
+    @admin.display(description="Stáhnout PDF")
+    def download_pdf(self, obj):
+        if not hasattr(obj, "invoice"):
+            return "—"
+        return format_html('<a href="{}?download=1">Stáhnout PDF</a>', reverse("admin_invoice_pdf", args=[obj.pk]))
