@@ -57,6 +57,7 @@ class RegistrationTests(TestCase):
 
         data = {
             "selected_course": selected_course,
+            "terms_agreement": "on",
             "participants-TOTAL_FORMS": str(len(participants)),
             "participants-INITIAL_FORMS": "0",
             "participants-MIN_NUM_FORMS": "1",

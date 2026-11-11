@@ -29,6 +29,7 @@ from .emails.builders import (
 from .forms import (
     BaseParticipantFormSet,
     BillingForm,
+    OrderConsentForm,
     ParticipantActivationForm,
     ParticipantForm,
 )
@@ -146,19 +147,54 @@ def register(request):
         validate_min=True,
     )
 
+    selected_course = ""
+    validation_errors = {"fields": {}, "global": []}
+    initial_step = 1
+    consent_form = OrderConsentForm()
     if request.method == "POST":
         participant_formset = ParticipantFormSet(
             request.POST,
             prefix="participants",
         )
+        # Every visible row is required, including an added but empty row.
+        for form in participant_formset:
+            form.empty_permitted = False
         billing_form = BillingForm(request.POST)
         selected_course = request.POST.get("selected_course")
 
-        if (
-            selected_course in COURSE_PRICES
-            and participant_formset.is_valid()
-            and billing_form.is_valid()
+        consent_form = OrderConsentForm(request.POST)
+        validation_step = request.POST.get("_validate_step")
+        # Validation-only requests never write orders or start payment/email work.
+        check_participants = validation_step != "4"
+        check_billing = validation_step != "3"
+        check_consent = validation_step not in {"3", "4"}
+        if selected_course != "4":
+            validation_errors["global"].append({"step": 1, "message": "Vyberte dostupný kurz pro online objednávku."})
+        for form_group, step, enabled in (
+            (participant_formset, 3, check_participants),
+            (billing_form, 4, check_billing),
+            (consent_form, 5, check_consent),
         ):
+            if not enabled:
+                continue
+            form_group.is_valid()
+            forms_to_read = form_group.forms if step == 3 else [form_group]
+            for form in forms_to_read:
+                for name, errors in form.errors.items():
+                    if name == "__all__":
+                        validation_errors["global"].extend({"step": step, "message": str(error)} for error in errors)
+                    else:
+                        validation_errors["fields"][form.add_prefix(name)] = list(errors)
+            if step == 3:
+                validation_errors["global"].extend({"step": step, "message": str(error)} for error in form_group.non_form_errors())
+        valid = not any(validation_errors.values())
+        if validation_step:
+            return JsonResponse({"valid": valid, **validation_errors})
+        error_steps = [error["step"] for error in validation_errors["global"]]
+        error_steps.extend(3 if name.startswith("participants-") else 5 if name == "terms_agreement" else 4
+                           for name in validation_errors["fields"])
+        initial_step = min(error_steps, default=5)
+        if valid:
             participants = [
                 form.cleaned_data
                 for form in participant_formset
@@ -241,6 +277,11 @@ def register(request):
         {
             "participant_formset": participant_formset,
             "billing_form": billing_form,
+            "selected_course": selected_course,
+            "registration_bound": request.method == "POST",
+            "validation_errors": validation_errors,
+            "initial_step": initial_step,
+            "consent_form": consent_form,
         },
     )
 

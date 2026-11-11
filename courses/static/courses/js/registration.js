@@ -2,10 +2,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const orderDraftStorage = window.ElektroakademieOrderDraft;
     const ORDER_DRAFT_KEY = orderDraftStorage.currentKey;
     const registrationForm = document.getElementById("registration-form");
-    const hasParticipantServerErrors =
-        registrationForm.dataset.participantServerErrors === "true";
-    const hasBillingServerErrors =
-        registrationForm.dataset.billingServerErrors === "true";
     const courses = {
         "4": {
             title: "Zkouška odborné způsobilosti §4 – osoba poučená",
@@ -122,7 +118,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const participantsErrorMessage = document.getElementById("participants-error-message");
     const billingErrorMessage = document.getElementById("billing-error-message");
     const termsAgreement = document.getElementById("terms-agreement");
-    const termsAgreementLabel = document.querySelector(".terms-agreement-label");
     const icoInput = document.querySelector('[name="ico"]');
     const dicInput = document.querySelector('[name="dic"]');
     const companyNameInput = document.querySelector('[name="company_name"]');
@@ -148,7 +143,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function normalizeIco(value) {
-        return String(value || "").replace(/\D/g, "").slice(0, 8);
+        return String(value || "").trim();
     }
     function dispatchFieldUpdate(input) {
         if (!input) {
@@ -214,10 +209,10 @@ document.addEventListener("DOMContentLoaded", function () {
         }
         const ico = normalizeIco(icoInput.value);
         icoInput.value = ico;
-        icoInput.classList.remove("field-error");
+        clearFieldError(icoInput);
 
-        if (ico.length !== 8) {
-            icoInput.classList.add("field-error");
+        if (!/^[0-9]{8}$/.test(ico)) {
+            showFieldError(icoInput, ["IČO musí obsahovat přesně 8 číslic."]);
             setAresStatus("IČO musí obsahovat přesně 8 číslic.", "error");
             icoInput.focus();
             return;
@@ -283,12 +278,6 @@ document.addEventListener("DOMContentLoaded", function () {
         icoInput.setAttribute("maxlength", "8");
 
         icoInput.addEventListener("input", function () {
-            const normalizedValue = normalizeIco(icoInput.value);
-
-            if (icoInput.value !== normalizedValue) {
-                icoInput.value = normalizedValue;
-            }
-            icoInput.classList.remove("field-error");
             setAresStatus("");
         });
 
@@ -533,10 +522,12 @@ document.addEventListener("DOMContentLoaded", function () {
             input.name = input.name.replace(/participants-\d+-/, "participants-" + formCount + "-");
             input.id = input.id.replace(/participants-\d+-/, "participants-" + formCount + "-");
             input.classList.remove("field-error");
+            input.removeAttribute("aria-invalid");
+            input.removeAttribute("aria-describedby");
             input.value = "";
         });
 
-        newParticipant.querySelectorAll(".errorlist").forEach(function (errorList) {
+        newParticipant.querySelectorAll(".errorlist, .checkout-field-error").forEach(function (errorList) {
             errorList.remove();
         });
         newParticipant.classList.remove("participant-card--error");
@@ -569,16 +560,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         updateCourseView(draft.selected_course);
         if (Array.isArray(draft.participants) && draft.participants.length) {
-            const nonEmptyParticipants = draft.participants.filter(function (participant) {
-                return Boolean(
-                    (participant.first_name || "").trim()
-                    || (participant.last_name || "").trim()
-                    || (participant.email || "").trim()
-                );
-            });
-            const participantsToRestore = nonEmptyParticipants.length
-                ? draft.participants
-                : [draft.participants[0]];
+            const participantsToRestore = draft.participants;
 
             ensureParticipantCount(participantsToRestore.length);
 
@@ -629,6 +611,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (restoredStep >= 1 && restoredStep <= 5) {
             showStep(restoredStep);
+            if (restoredStep >= 4) {
+                (async function () {
+                    if (!(await validateOrder(3))) return;
+                    if (restoredStep === 5) await validateOrder(4);
+                })();
+            }
         } else {
             showStep(3);
         }
@@ -657,266 +645,138 @@ document.addEventListener("DOMContentLoaded", function () {
         container.hidden = true;
         container.innerHTML = "";
     }
-    function clearParticipantEmailErrors() {
-        wrapper.querySelectorAll("[data-participant-email-error]").forEach(function (errorElement) {
-            errorElement.textContent = "";
-            errorElement.hidden = true;
-        });
+    // Every step uses the same Django forms as the final POST. In particular,
+    // HTML email validity and Django EmailValidator need not accept the same input.
+    const orderErrorMessage = document.getElementById("order-error-message");
+    let validationInProgress = false;
+    let validationRevision = 0;
+    let submitted = false;
 
-        wrapper.querySelectorAll('input[name$="-email"]').forEach(function (emailInput) {
-            emailInput.classList.remove("field-error");
-            emailInput.removeAttribute("aria-invalid");
-        });
-        wrapper.querySelectorAll(".participant-card--error").forEach(function (participantCard) {
-            participantCard.classList.remove("participant-card--error");
-        });
+    function fieldStep(name) {
+        return name.startsWith("participants-") ? 3 : name === "terms_agreement" ? 5 : 4;
     }
 
-    function showParticipantEmailError(emailInput, message) {
-        emailInput.classList.add("field-error");
-        emailInput.setAttribute("aria-invalid", "true");
-
-        const participantCard = emailInput.closest(".participant-card");
-        if (participantCard) {
-            participantCard.classList.add("participant-card--error");
-        }
-
-        const participantItem = emailInput.closest(".participant-item");
-
-        if (!participantItem) {
-            return;
-        }
-
-        const errorElement = participantItem.querySelector(
-            "[data-participant-email-error]"
-        );
-
-        if (errorElement) {
-            errorElement.textContent = message;
-            errorElement.hidden = false;
-        }
+    function clearFieldError(input) {
+        if (!input) return;
+        input.classList.remove("field-error");
+        input.removeAttribute("aria-invalid");
+        const errorId = input.id + "-validation-error";
+        document.getElementById(errorId)?.remove();
+        const describedBy = (input.getAttribute("aria-describedby") || "")
+            .split(/\s+/).filter(id => id && id !== errorId);
+        if (describedBy.length) input.setAttribute("aria-describedby", describedBy.join(" "));
+        else input.removeAttribute("aria-describedby");
     }
-    async function checkParticipantEmails() {
-        clearParticipantEmailErrors();
+
+    function showFieldError(input, messages) {
+        clearFieldError(input);
+        input.classList.add("field-error");
+        input.setAttribute("aria-invalid", "true");
+        const error = document.createElement("div");
+        error.id = input.id + "-validation-error";
+        error.className = "checkout-field-error";
+        error.textContent = messages.join(" ");
+        const anchor = input.closest(".ares-input-group") || (input.type === "checkbox" ? input.closest("label") : null) || input;
+        anchor.insertAdjacentElement("afterend", error);
+        input.setAttribute("aria-describedby", [input.getAttribute("aria-describedby"), error.id].filter(Boolean).join(" "));
+    }
+
+    function focusProblem(input, step) {
+        // Reveal before focusing: hidden controls cannot receive browser focus.
+        showStep(step);
+        const target = input || orderErrorMessage;
+        target.focus({ preventScroll: true });
+        target.scrollIntoView({ block: "center", behavior: "smooth" });
+    }
+
+    function displayErrors(result, focus = true) {
+        registrationForm.querySelectorAll(".errorlist, [data-participant-email-error]")
+            .forEach(element => { element.hidden = true; });
+        document.querySelectorAll("#final-order-action-card .errorlist").forEach(element => { element.hidden = true; });
+        Array.from(registrationForm.elements).forEach(clearFieldError);
         clearValidationMessage(participantsErrorMessage);
+        clearValidationMessage(billingErrorMessage);
+        clearValidationMessage(orderErrorMessage);
+        orderErrorMessage.dataset.globalError = (result.global || []).length ? "true" : "";
+        const problems = [];
+        for (const [name, messages] of Object.entries(result.fields || {})) {
+            const input = registrationForm.elements.namedItem(name);
+            if (input && input.type !== "hidden") {
+                showFieldError(input, messages);
+                problems.push({ step: fieldStep(name), input });
+            } else {
+                // Management-form errors have no visible control.
+                result.global = [...(result.global || []), {step: 3, message: messages.join(" ")}];
+            }
+        }
+        for (const error of result.global || []) problems.push({step: error.step, input: null});
+        problems.sort((a, b) => a.step - b.step);
+        if (problems.length) {
+            showValidationMessage(orderErrorMessage, "Objednávku je potřeba opravit.",
+                (result.global || []).length ? result.global.map(error => error.message) : ["Opravte označená pole a pokračujte znovu."]);
+            if (focus) focusProblem(problems[0].input, problems[0].step);
+        }
+        return !problems.length;
+    }
 
-        const emailInputs = Array.from(
-            wrapper.querySelectorAll('input[name$="-email"]')
-        );
-
-        const emails = emailInputs.map(function (emailInput) {
-            return emailInput.value.trim().toLowerCase();
-        });
-        const csrfInput = document.querySelector(
-            '#registration-form input[name="csrfmiddlewaretoken"]'
-        );
+    async function validateOrder(step) {
+        if (validationInProgress || submitted) return false;
+        validationInProgress = true;
+        const revision = validationRevision;
+        const data = new FormData(registrationForm);
+        data.set("_validate_step", String(step));
+        const buttons = [participantsToBillingButton, goToFinalSummaryButton,
+            finalOrderActionCard.querySelector('[type="submit"]')];
+        buttons.forEach(button => { button.disabled = true; });
+        registrationForm.setAttribute("aria-busy", "true");
+        const status = document.getElementById("order-validation-status");
+        status.hidden = false;
+        status.textContent = "Kontroluji údaje…";
+        const controller = new AbortController();
+        const timeout = window.setTimeout(() => controller.abort(), 15000);
         try {
-            const response = await fetch(
-                registrationForm.dataset.checkEmailsUrl,
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRFToken": csrfInput ? csrfInput.value : "",
-                        "X-Requested-With": "XMLHttpRequest"
-                    },
-                    body: JSON.stringify({ emails: emails })
-                }
-            );
-            let result;
-
-            try {
-                result = await response.json();
-            } catch (error) {
-                throw new Error("Server nevrátil platnou odpověď.");
-            }
-
-            if (!response.ok || !result.success) {
-                throw new Error(
-                    result.message || "Kontrolu e-mailů se nepodařilo provést."
-                );
-            }
-            const occupiedEmails = new Set(result.occupied_emails || []);
-            const duplicateEmails = new Set(result.duplicate_emails || []);
-            let firstInvalidInput = null;
-            let hasError = false;
-
-            emailInputs.forEach(function (emailInput) {
-                const normalizedEmail = emailInput.value.trim().toLowerCase();
-                if (occupiedEmails.has(normalizedEmail)) {
-                    showParticipantEmailError(
-                        emailInput,
-                        "Účet s touto e-mailovou adresou již existuje. Zadejte jinou adresu."
-                    );
-                    hasError = true;
-                    firstInvalidInput = firstInvalidInput || emailInput;
-                    return;
-                }
-                if (duplicateEmails.has(normalizedEmail)) {
-                    showParticipantEmailError(
-                        emailInput,
-                        "Tato e-mailová adresa je v objednávce uvedena vícekrát."
-                    );
-                    hasError = true;
-                    firstInvalidInput = firstInvalidInput || emailInput;
-                }
+            const response = await fetch(registrationForm.action || window.location.href, {
+                method: "POST", body: data, signal: controller.signal, headers: {"Accept": "application/json"}
             });
-            if (hasError) {
-                showValidationMessage(
-                    participantsErrorMessage,
-                    "Nelze pokračovat k fakturačním údajům.",
-                    ["Opravte označené e-mailové adresy účastníků."]
-                );
-                if (firstInvalidInput) {
-                    firstInvalidInput.scrollIntoView({
-                        behavior: "smooth",
-                        block: "center"
-                    });
-                    firstInvalidInput.focus();
-                }
-
+            if (!response.ok) throw new Error("Kontrola se nezdařila. Zkuste pokračovat znovu; při vypršení přihlášení obnovte stránku.");
+            const result = await response.json();
+            if (typeof result.valid !== "boolean" || !result.fields || !Array.isArray(result.global)) {
+                throw new Error("Server nevrátil výsledek kontroly.");
+            }
+            if (revision !== validationRevision) {
+                showValidationMessage(orderErrorMessage, "Údaje se během kontroly změnily.", ["Pokračujte znovu pro kontrolu aktuálních hodnot."]);
                 return false;
             }
-
-            return true;
+            displayErrors(result);
+            return result.valid === true;
         } catch (error) {
-            console.error("Chyba při kontrole e-mailů:", error);
-            showValidationMessage(
-                participantsErrorMessage,
-                "Kontrolu e-mailů nelze dokončit.",
-                [
-                    error.message ||
-                    "Zkuste akci opakovat. Bez ověření e-mailů nelze pokračovat."
-                ]
-            );
-
+            showValidationMessage(orderErrorMessage, "Kontrolu objednávky nelze dokončit.",
+                [error.name === "AbortError" ? "Kontrola trvá příliš dlouho. Zkuste pokračovat znovu." : "Zkontrolujte připojení a zkuste pokračovat znovu."]);
+            orderErrorMessage.focus();
+            orderErrorMessage.scrollIntoView({block: "center"});
             return false;
+        } finally {
+            window.clearTimeout(timeout);
+            status.hidden = true;
+            validationInProgress = false;
+            buttons.forEach(button => { button.disabled = false; });
+            registrationForm.removeAttribute("aria-busy");
         }
     }
-    function validateParticipants() {
-        const participants = wrapper.querySelectorAll(".participant-item");
-        let isValid = true;
-        let firstInvalidInput = null;
-        const messages = [];
 
-        clearValidationMessage(participantsErrorMessage);
-        participants.forEach(function (participant, index) {
-            const participantNumber = index + 1;
-            const fields = [
-                [participant.querySelector("input[name$='first_name']"), "jméno"],
-                [participant.querySelector("input[name$='last_name']"), "příjmení"],
-                [participant.querySelector("input[name$='email']"), "e-mail"]
-            ];
-
-            const filledFields = [];
-            const missingFields = [];
-            fields.forEach(function ([input, label]) {
-                if (!input) {
-                    return;
-                }
-
-                if (!input.value.trim()) {
-                    input.classList.add("field-error");
-                    missingFields.push(label);
-                    isValid = false;
-                    if (!firstInvalidInput) {
-                        firstInvalidInput = input;
-                    }
-                } else {
-                    input.classList.remove("field-error");
-                    filledFields.push(label);
-                }
-            });
-            if (missingFields.length) {
-                messages.push(
-                    `Účastník č. ${participantNumber}: vyplněno ${filledFields.length ? filledFields.join(", ") : "nic"}; chybí ${missingFields.join(", ")}.`
-                );
-            }
-        });
-
-        if (!isValid) {
-            showValidationMessage(
-                participantsErrorMessage,
-                "Nelze pokračovat. Chybí údaje u účastníků.",
-                messages
-            );
-            if (firstInvalidInput) {
-                firstInvalidInput.scrollIntoView({ behavior: "smooth", block: "center" });
-                firstInvalidInput.focus();
-            }
-        }
-
-        return isValid;
+    // Editing invalid values removes the obsolete server message. The next
+    // Continue/Submit always revalidates; unrelated field errors stay visible.
+    function onOrderEdit(event) {
+        if (!event.target.matches("input, select, textarea")) return;
+        validationRevision += 1;
+        clearFieldError(event.target);
+        if (!document.querySelector(".checkout-field-error") && !orderErrorMessage.dataset.globalError) clearValidationMessage(orderErrorMessage);
+        saveOrderDraft();
     }
+    registrationForm.addEventListener("input", onOrderEdit);
+    registrationForm.addEventListener("change", onOrderEdit);
+    termsAgreement.addEventListener("change", onOrderEdit);
 
-    function validateBilling() {
-        let isValid = true;
-        let firstInvalidInput = null;
-        const messages = [];
-
-        clearValidationMessage(billingErrorMessage);
-        const requiredBillingFields = [
-            ["company_name", "název firmy / jméno objednatele"],
-            ["street", "ulice"],
-            ["city", "město"],
-            ["zip_code", "PSČ"],
-            ["country", "země"],
-            ["contact_first_name", "jméno kontaktní osoby"],
-            ["contact_last_name", "příjmení kontaktní osoby"],
-            ["contact_phone_prefix", "telefonní předvolba"],
-            ["contact_phone", "telefonní číslo"],
-            ["contact_email", "e-mail kontaktní osoby"]
-        ];
-        requiredBillingFields.forEach(function ([name, label]) {
-            const input = document.querySelector(`[name="${name}"]`);
-
-            if (!input) {
-                return;
-            }
-
-            if (!input.value.trim()) {
-                input.classList.add("field-error");
-                messages.push(`Chybí ${label}.`);
-                isValid = false;
-                if (!firstInvalidInput) {
-                    firstInvalidInput = input;
-                }
-            } else {
-                input.classList.remove("field-error");
-            }
-        });
-
-        const contactEmailInput = document.querySelector(
-            '[name="contact_email"]'
-        );
-        if (
-            contactEmailInput &&
-            contactEmailInput.value.trim() &&
-            !contactEmailInput.validity.valid
-        ) {
-            contactEmailInput.classList.add("field-error");
-            messages.push("E-mail kontaktní osoby nemá platný formát.");
-            isValid = false;
-
-            if (!firstInvalidInput) {
-                firstInvalidInput = contactEmailInput;
-            }
-        }
-        if (!isValid) {
-            showValidationMessage(
-                billingErrorMessage,
-                "Nelze pokračovat. Chybí fakturační údaje.",
-                messages
-            );
-
-            if (firstInvalidInput) {
-                firstInvalidInput.scrollIntoView({ behavior: "smooth", block: "center" });
-                firstInvalidInput.focus();
-            }
-        }
-
-        return isValid;
-    }
     function renderFinalSummary() {
         const course = getActiveCourse();
         const participantCount = getParticipantCount();
@@ -1124,6 +984,8 @@ document.addEventListener("DOMContentLoaded", function () {
         button.addEventListener("click", function () {
             const courseId = button.dataset.courseSelect;
 
+            if (validationInProgress) return;
+            validationRevision += 1;
             updateCourseView(courseId);
             saveOrderDraft();
             showStep(2);
@@ -1149,51 +1011,18 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    let participantEmailCheckInProgress = false;
-
-    if (participantsToBillingButton) {
-        participantsToBillingButton.addEventListener("click", async function () {
-            if (participantEmailCheckInProgress) {
-                return;
-            }
-            if (!validateParticipants()) {
-                return;
-            }
-
-            participantEmailCheckInProgress = true;
-            participantsToBillingButton.disabled = true;
-
-            const originalButtonText = participantsToBillingButton.textContent;
-            participantsToBillingButton.textContent = "Kontroluji e-maily…";
-
-            try {
-                const emailsAreAvailable = await checkParticipantEmails();
-                if (!emailsAreAvailable) {
-                    return;
-                }
-
-                saveOrderDraft();
-                showStep(4);
-                window.scrollTo({ top: 0, behavior: "smooth" });
-            } finally {
-                participantEmailCheckInProgress = false;
-                participantsToBillingButton.disabled = false;
-                participantsToBillingButton.textContent = originalButtonText;
-            }
-        });
-    }
-    if (goToFinalSummaryButton) {
-        goToFinalSummaryButton.addEventListener("click", function () {
-            if (!validateBilling()) {
-                return;
-            }
-
-            saveOrderDraft();
-            renderFinalSummary();
-            showStep(5);
-            window.scrollTo({ top: 0, behavior: "smooth" });
-        });
-    }
+    participantsToBillingButton.addEventListener("click", async function () {
+        if (!(await validateOrder(3))) return;
+        saveOrderDraft();
+        showStep(4);
+        window.scrollTo({top: 0, behavior: "smooth"});
+    });
+    goToFinalSummaryButton.addEventListener("click", async function () {
+        if (!(await validateOrder(4))) return;
+        saveOrderDraft();
+        showStep(5);
+        window.scrollTo({top: 0, behavior: "smooth"});
+    });
     [
         goToParticipantsButton,
         participantsToBillingButton,
@@ -1220,6 +1049,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (addButton) {
         addButton.addEventListener("click", function () {
+            validationRevision += 1;
             const newParticipant = cloneParticipant();
 
             refreshParticipants();
@@ -1245,24 +1075,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 showStep(2);
                 return;
             }
-            if (step >= 4) {
-                if (!validateParticipants()) {
-                    showStep(3);
-                    return;
-                }
-
-                const emailsAreAvailable = await checkParticipantEmails();
-
-                if (!emailsAreAvailable) {
-                    showStep(3);
-                    return;
-                }
-            }
-
-            if (step === 5 && !validateBilling()) {
-                showStep(4);
-                return;
-            }
+            if (validationInProgress) return;
+            if (step >= 4 && !(await validateOrder(3))) return;
+            if (step === 5 && !(await validateOrder(4))) return;
             saveOrderDraft();
             showStep(step);
             window.scrollTo({ top: 0, behavior: "smooth" });
@@ -1270,6 +1085,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     checkoutBackButton.addEventListener("click", function () {
+        if (validationInProgress) return;
         const activePanel = document.querySelector(".checkout-step-panel:not([hidden])");
         const activeStep = activePanel ? Number(activePanel.dataset.stepPanel) : 1;
         saveOrderDraft();
@@ -1289,70 +1105,34 @@ document.addEventListener("DOMContentLoaded", function () {
         if (participants.length <= 1) {
             return;
         }
+        validationRevision += 1;
         removeButton.closest(".participant-item").remove();
         refreshParticipants();
         saveOrderDraft();
-    });
-
-    wrapper.addEventListener("input", function (event) {
-        if (!event.target.matches("input")) {
-            return;
-        }
-
-        event.target.classList.remove("field-error");
-        event.target.removeAttribute("aria-invalid");
-
-        const participantItem = event.target.closest(".participant-item");
-        if (participantItem) {
-            participantItem.classList.remove("participant-card--error");
-        }
-
-        if (event.target.matches('input[name$="-email"]')) {
-            const emailError = participantItem
-                ? participantItem.querySelector("[data-participant-email-error]")
-                : null;
-
-            if (emailError) {
-                emailError.textContent = "";
-                emailError.hidden = true;
-            }
-        }
-        clearValidationMessage(participantsErrorMessage);
-        saveOrderDraft();
-    });
-
-    document.querySelectorAll(".billing-grid input, .billing-grid textarea, .billing-grid select").forEach(function (input) {
-        input.addEventListener("input", function () {
-            input.classList.remove("field-error");
-            clearValidationMessage(billingErrorMessage);
-            saveOrderDraft();
-        });
-        input.addEventListener("change", function () {
-            saveOrderDraft();
-        });
     });
 
     refreshParticipants();
 
     const existingDraft = getOrderDraft();
     const requestedCourseId = getRequestedCourseId();
-
-    if (existingDraft && existingDraft.selected_course && courses[existingDraft.selected_course]) {
+    if (registrationForm.dataset.bound === "true") {
+        // A rejected POST is authoritative; never overwrite it with localStorage.
+        if (courses[selectedCourseInput.value]) updateCourseView(selectedCourseInput.value);
+        showStep(Number(registrationForm.dataset.initialStep));
+        displayErrors(JSON.parse(document.getElementById("registration-errors").textContent));
+        saveOrderDraft();
+    } else if (existingDraft && existingDraft.selected_course && courses[existingDraft.selected_course]
+        && (!requestedCourseId || requestedCourseId === existingDraft.selected_course)) {
         restoreOrderDraft();
-    } else {
-        showStep(1);
-    }
-
-    if (hasParticipantServerErrors) {
-        showStep(3);
-    } else if (hasBillingServerErrors) {
-        showStep(4);
     } else if (requestedCourseId) {
         updateCourseView(requestedCourseId);
         showStep(2);
         saveOrderDraft();
+    } else {
+        showStep(1);
     }
     function returnToOrderStart() {
+        if (validationInProgress) return;
         showStep(1);
         saveOrderDraft();
 
@@ -1365,35 +1145,18 @@ document.addEventListener("DOMContentLoaded", function () {
     document.querySelectorAll(".restart-order-button").forEach(function (button) {
         button.addEventListener("click", returnToOrderStart);
     });
-    if (registrationForm && termsAgreement && termsAgreementLabel) {
-        registrationForm.addEventListener("submit", function (event) {
-            if (isContactCourse(selectedCourseInput.value)) {
-                event.preventDefault();
-                window.location.href = registrationForm.dataset.contactUrl;
-                return;
-            }
-
-            if (!termsAgreement.checked) {
-                event.preventDefault();
-
-                termsAgreementLabel.classList.add("error");
-
-                termsAgreement.scrollIntoView({
-                    behavior: "smooth",
-                    block: "center"
-                });
-
-                termsAgreement.focus();
-                return;
-            }
-            termsAgreementLabel.classList.remove("error");
-        });
-
-        termsAgreement.addEventListener("change", function () {
-            if (termsAgreement.checked) {
-                termsAgreementLabel.classList.remove("error");
-            }
-        });
-    }
+    registrationForm.addEventListener("submit", async function (event) {
+        event.preventDefault();
+        if (isContactCourse(selectedCourseInput.value)) {
+            window.location.href = registrationForm.dataset.contactUrl;
+            return;
+        }
+        if (!(await validateOrder("all"))) return;
+        saveOrderDraft();
+        submitted = true;
+        // Bypass native constraint validation only after every server-backed
+        // check passed. The final POST independently validates everything again.
+        HTMLFormElement.prototype.submit.call(registrationForm);
+    });
 
 });

@@ -9,13 +9,14 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.forms import BaseFormSet
+from django.db.models import Q
 
 User = get_user_model()
 
 class ParticipantForm(forms.Form):
     first_name = forms.CharField(
         label="Jméno",
-        max_length=150,
+        max_length=100,
         widget=forms.TextInput(
             attrs={
                 "placeholder": "Jméno",
@@ -26,7 +27,7 @@ class ParticipantForm(forms.Form):
 
     last_name = forms.CharField(
         label="Příjmení",
-        max_length=150,
+        max_length=100,
         widget=forms.TextInput(
             attrs={
                 "placeholder": "Příjmení",
@@ -36,6 +37,7 @@ class ParticipantForm(forms.Form):
     )
 
     email = forms.EmailField(
+        max_length=254,
         label="E-mail",
         widget=forms.EmailInput(
             attrs={
@@ -48,9 +50,6 @@ class ParticipantForm(forms.Form):
 class BaseParticipantFormSet(BaseFormSet):
     def clean(self):
         super().clean()
-
-        if any(self.errors):
-            return
 
         # Reject stale or tampered formset indices instead of silently dropping
         # participants whose index falls outside TOTAL_FORMS.
@@ -67,6 +66,9 @@ class BaseParticipantFormSet(BaseFormSet):
                 "Seznam účastníků se nepodařilo ověřit. "
                 "Obnovte formulář a zkontrolujte všechny účastníky."
             )
+
+        if any(self.errors):
+            return
 
         used_emails = set()
 
@@ -94,7 +96,7 @@ class BaseParticipantFormSet(BaseFormSet):
             used_emails.add(normalized_email)
 
             if User.objects.filter(
-                email__iexact=normalized_email
+                Q(email__iexact=normalized_email) | Q(username__iexact=normalized_email)
             ).exists():
                 form.add_error(
                     "email",
@@ -231,6 +233,7 @@ class BillingForm(forms.Form):
     )
 
     contact_email = forms.EmailField(
+        max_length=254,
         label="E-mail kontaktní osoby",
         widget=forms.EmailInput(
             attrs={
@@ -256,9 +259,9 @@ class BillingForm(forms.Form):
         if not ico:
             return ""
 
-        normalized_ico = "".join(character for character in ico if character.isdigit())
+        normalized_ico = ico
 
-        if len(normalized_ico) != 8:
+        if not re.fullmatch(r"[0-9]{8}", normalized_ico):
             raise forms.ValidationError("IČO musí obsahovat přesně 8 číslic.")
 
         return normalized_ico
@@ -274,7 +277,7 @@ class BillingForm(forms.Form):
         if not normalized_prefix.startswith("+"):
             normalized_prefix = f"+{normalized_prefix}"
 
-        if not normalized_prefix[1:].isdigit():
+        if not re.fullmatch(r"\+[0-9]{1,7}", normalized_prefix):
             raise forms.ValidationError("Telefonní předvolba není platná.")
 
         return normalized_prefix
@@ -288,7 +291,7 @@ class BillingForm(forms.Form):
             .replace("/", "")
         )
 
-        if not normalized_phone.isdigit():
+        if not re.fullmatch(r"[0-9]+", normalized_phone):
             raise forms.ValidationError("Telefonní číslo může obsahovat pouze číslice.")
 
         if len(normalized_phone) < 7:
@@ -296,6 +299,12 @@ class BillingForm(forms.Form):
 
         return normalized_phone
     
+
+class OrderConsentForm(forms.Form):
+    terms_agreement = forms.BooleanField(
+        error_messages={"required": "Potvrďte souhlas s obchodními podmínkami a zásadami ochrany osobních údajů."},
+    )
+
 
 class ParticipantActivationForm(forms.Form):
     employer_ico = forms.RegexField(

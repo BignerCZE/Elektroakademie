@@ -42,8 +42,8 @@ class FrontendStaticAssetTests(TestCase):
         response = self.client.get(reverse("register"))
         contact_url = f'{reverse("index")}#contact'
 
-        self.assertContains(response, "/static/courses/css/registration.css?v=4")
-        self.assertContains(response, "/static/courses/js/registration.js?v=5")
+        self.assertContains(response, "/static/courses/css/registration.css?v=5")
+        self.assertContains(response, "/static/courses/js/registration.js?v=6")
         self.assertContains(
             response,
             f'data-check-emails-url="{reverse("check_participant_emails")}"',
@@ -61,7 +61,7 @@ class FrontendStaticAssetTests(TestCase):
 
         storage_asset = "/static/courses/js/order-draft-storage.js?v=1"
         base_asset = "/static/courses/js/base.js?v=2"
-        registration_asset = "/static/courses/js/registration.js?v=5"
+        registration_asset = "/static/courses/js/registration.js?v=6"
         self.assertContains(response, storage_asset)
         self.assertLess(content.index(storage_asset), content.index(base_asset))
         self.assertLess(content.index(storage_asset), content.index(registration_asset))

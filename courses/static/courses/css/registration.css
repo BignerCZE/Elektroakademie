@@ -568,3 +568,13 @@
         box-sizing: border-box;
     }
 }
+
+/* Text and aria-describedby accompany the border, including on mobile. */
+.register-page .checkout-field-error {
+    color: #b42318;
+    font-size: .875rem;
+    line-height: 1.4;
+    margin: .4rem 0 .6rem;
+    overflow-wrap: anywhere;
+}
+.register-page .field-error { border: 2px solid #d92d20 !important; }

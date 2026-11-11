@@ -9,7 +9,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'courses/css/course-selector.css' %}?v=4">
-<link rel="stylesheet" href="{% static 'courses/css/registration.css' %}?v=4">
+<link rel="stylesheet" href="{% static 'courses/css/registration.css' %}?v=5">
 
 {% endblock %}
 
@@ -48,13 +48,17 @@
                     </button>
                 </div>
                 <div class="checkout-layout" id="checkout-layout">
-                    <form method="post" class="register-form" id="registration-form"
+                    <form method="post" class="register-form" id="registration-form" novalidate
+                        data-bound="{{ registration_bound|yesno:'true,false' }}" data-initial-step="{{ initial_step }}"
                         data-participant-server-errors="{{ participant_formset.total_error_count|yesno:'true,false' }}"
                         data-billing-server-errors="{{ billing_form.errors|yesno:'true,false' }}"
                         data-check-emails-url="{% url 'check_participant_emails' %}" data-index-url="{% url 'index' %}"
                         data-contact-url="{% url 'index' %}#contact">
                         {% csrf_token %}
-                        <input type="hidden" name="selected_course" id="selected-course-input" value="">
+                        {{ validation_errors|json_script:"registration-errors" }}
+                        <p id="order-validation-status" role="status" aria-live="polite" hidden></p>
+                        <div id="order-error-message" class="checkout-error-message" role="alert" tabindex="-1" hidden></div>
+                        <input type="hidden" name="selected_course" id="selected-course-input" value="{{ selected_course }}">
 
                         {{ participant_formset.management_form }}
                         <section class="checkout-step-panel" data-step-panel="1">
@@ -148,6 +152,7 @@
                                             </span>
                                         </button>
                                     </div>
+                                    {{ form.non_field_errors }}
                                     <div class="participant-grid">
                                         <div class="register-field">
                                             {{ form.first_name }}
@@ -190,6 +195,7 @@
 
                                 <div class="checkout-error-message" id="billing-error-message" hidden></div>
 
+                                {{ billing_form.non_field_errors }}
                                 <div class="billing-grid">
                                     <div class="register-field ares-field">
                                         <div class="ares-input-group">
@@ -378,7 +384,7 @@
                             Zkontrolujte prosím shrnutí objednávky a potvrďte souhlas s obchodními podmínkami.
                         </p>
                         <label for="terms-agreement" class="terms-agreement-label final-action-consent">
-                            <input type="checkbox" id="terms-agreement" name="terms_agreement" form="registration-form" required>
+                            <input type="checkbox" id="terms-agreement" name="terms_agreement" form="registration-form" required{% if consent_form.terms_agreement.value %} checked{% endif %}>
                             <span>
                                 Souhlasím s
                                 <a href="#" class="terms-link" data-legal-modal-open="terms-modal">obchodními
@@ -389,6 +395,7 @@
                                 *
                             </span>
                         </label>
+                        {{ consent_form.terms_agreement.errors }}
                         <button type="submit" class="summary-submit-button" form="registration-form">
                             Dokončit objednávku
                         </button>
@@ -434,5 +441,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'courses/js/registration.js' %}?v=5" defer></script>
+<script src="{% static 'courses/js/registration.js' %}?v=6" defer></script>
 {% endblock %}

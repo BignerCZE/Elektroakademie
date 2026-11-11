@@ -11,6 +11,7 @@ class RegistrationOrderControlsTests(TestCase):
     def get_registration_data(self, selected_course="4"):
         return {
             "selected_course": selected_course,
+            "terms_agreement": "on",
             "participants-TOTAL_FORMS": "1",
             "participants-INITIAL_FORMS": "0",
             "participants-MIN_NUM_FORMS": "1",
@@ -44,11 +45,11 @@ class RegistrationOrderControlsTests(TestCase):
         )
         self.assertContains(
             response,
-            'courses/css/registration.css?v=4',
+            'courses/css/registration.css?v=5',
         )
         self.assertContains(
             response,
-            'courses/js/registration.js?v=5',
+            'courses/js/registration.js?v=6',
         )
         self.assertContains(
             response,
