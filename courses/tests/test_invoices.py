@@ -49,8 +49,16 @@ class InvoiceTests(TestCase):
         self.assertContains(preview, data["company_name"])
         simulation = self.client.get(reverse("order_payment_simulation", args=[order.pk]))
         self.assertContains(simulation, 'id="payment-countdown">30')
-        self.assertContains(simulation, reverse("invoice_preview", args=[order.pk]))
+        self.assertNotContains(simulation, reverse("invoice_preview", args=[order.pk]))
+        self.assertContains(simulation, 'id="skip-payment-countdown"')
+        self.assertContains(simulation, reverse("order_payment_success", args=[order.pk]))
         self.assertFalse(Invoice.objects.exists())
+        with patch("courses.workflows.invoice_pdf", return_value=b"%PDF-test"):
+            success = self.client.get(reverse("order_payment_success", args=[order.pk]))
+        self.assertContains(success, "Aktivační odkazy účastníků")
+        order.refresh_from_db()
+        self.assertEqual(order.status, "paid")
+        self.assertEqual(Invoice.objects.filter(order=order).count(), 1)
 
     def test_email_failure_does_not_duplicate_invoice_on_retry(self):
         order = make_order()
