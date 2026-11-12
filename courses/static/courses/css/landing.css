@@ -824,8 +824,8 @@ body.faq-modal-open {
 
 .faq-answer p {
     margin: 0;
-    color: var(--color-card-muted);
-    font-size: 15px;
+    color: #3d4b60;
+    font-size: 16px;
     line-height: 1.65;
 }
 
