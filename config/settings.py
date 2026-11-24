@@ -54,6 +54,9 @@ DEBUG = os.getenv("DJANGO_DEBUG", "True").lower() in {
     "on",
 }
 
+COMGATE_TEST = os.getenv("COMGATE_TEST", "").strip().lower() == "true"
+COMGATE_CHECKOUT = os.getenv("COMGATE_CHECKOUT", "").strip().lower() == "true"
+
 ALLOWED_HOSTS = [
     "127.0.0.1",
     "localhost",

@@ -709,3 +709,17 @@ class BillingRecord(Order):
         default_permissions = ()
         verbose_name = "Platba a faktura"
         verbose_name_plural = "Platby a faktury"
+
+
+class ComgatePayment(models.Model):
+    class Status(models.TextChoices):
+        CREATING = "CREATING", "Zakládá se"
+        FAILED = "FAILED", "Založení se nepodařilo ověřit"
+        PENDING = "PENDING", "Čeká na platbu"
+        PAID = "PAID", "Zaplaceno"
+        CANCELLED = "CANCELLED", "Zrušeno"
+
+    order = models.OneToOneField(Order, on_delete=models.PROTECT, related_name="comgate_payment")
+    transaction_id = models.CharField(max_length=64, unique=True, null=True, editable=False)
+    redirect_url = models.URLField(max_length=1024, blank=True, editable=False)
+    status = models.CharField(max_length=12, choices=Status.choices, default=Status.CREATING)

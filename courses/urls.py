@@ -1,3 +1,4 @@
+from . import comgate_views
 from .invoice_views import invoice_preview, invoice_download, admin_invoice_pdf
 from django.contrib.auth import views as auth_views
 from django.urls import path
@@ -109,6 +110,8 @@ urlpatterns = [
         views.order_payment_success,
         name="order_payment_success",
     ),
+    path("platba/comgate/webhook/", comgate_views.webhook, name="comgate_webhook"),
+    path("platba/<int:order_id>/stav/", comgate_views.checkout_result, name="comgate_result"),
     # Aktivace účastníka
     path(
         "aktivace/<uuid:token>/",

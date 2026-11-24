@@ -36,6 +36,7 @@ from .forms import (
 
 from .models import (
     Certificate,
+    ComgatePayment,
     Choice,
     Course,
     EmailLog,
@@ -57,6 +58,7 @@ from .workflows import (
     process_quiz_completion,
 )
 
+from .comgate_views import start_checkout
 from .invoice_views import can_view_invoice
 from .quiz_state import serialized_quiz_attempt
 
@@ -260,6 +262,8 @@ def register(request):
                 request.session.get("invoice_order_ids", []) + [order.pk]
             )[-50:]
             request.session["analytics_order_created"] = True
+            if settings.COMGATE_CHECKOUT and order.course_type == "4":
+                return start_checkout(order)
             return redirect(
                 "order_payment_simulation",
                 order_id=order.id,
@@ -460,6 +464,18 @@ def check_participant_emails(request):
 
 
 def order_payment_simulation(request, order_id):
+    if settings.COMGATE_CHECKOUT or ComgatePayment.objects.filter(order_id=order_id).exists():
+        return redirect("comgate_result", order_id=order_id)
+    if settings.COMGATE_TEST:
+        if not settings.DEBUG or order_id not in request.session.get("invoice_order_ids", []):
+            raise Http404
+        order = get_object_or_404(Order, pk=order_id, course_type="4")
+        return HttpResponse(
+            f"Test platby Comgate. ID objednávky: {order.pk}. "
+            "Pokračujte příkazem comgate_test v PowerShellu.",
+            content_type="text/plain; charset=utf-8",
+        )
+
     order = get_object_or_404(
         Order,
         id=order_id,
@@ -476,6 +492,10 @@ def order_payment_simulation(request, order_id):
 
 
 def order_payment_success(request, order_id):
+    if (settings.COMGATE_TEST or settings.COMGATE_CHECKOUT
+            or ComgatePayment.objects.filter(order_id=order_id).exists()):
+        raise Http404
+
     workflow_result = process_order_payment(
         order_id
     )

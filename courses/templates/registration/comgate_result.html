@@ -1,0 +1,36 @@
+{% extends 'courses/base.html' %}
+{% load static %}
+
+{% block title %}Stav platby | Elektroakademie{% endblock %}
+
+{% block content %}
+<main class="page-shell page-shell--centered">
+    <div class="container">
+        <section class="content-card content-card--narrow">
+            <h1>Stav platby</h1>
+            <p>Objednávka č. {{ order.pk }} · {{ order.total_price }} Kč</p>
+            {% if order.status == 'paid' %}
+                <p>Objednávka je zaplacená.</p>
+                {% if invoice_ready %}
+                    <a class="button-primary" href="{% url 'invoice_download' order.pk %}">Stáhnout fakturu</a>
+                {% endif %}
+            {% elif payment.status == 'CANCELLED' %}
+                <p>Platba byla zrušena.</p>
+            {% elif payment.status == 'PENDING' %}
+                <p>Čekáme na potvrzení platby.</p>
+                <a class="button-primary" href="{{ payment.redirect_url }}">Otevřít platební bránu</a>
+                <a href="{% url 'comgate_result' order.pk %}">Obnovit stav</a>
+            {% elif payment.status == 'CREATING' %}
+                <p>Platbu zakládáme.</p>
+                <a href="{% url 'comgate_result' order.pk %}">Obnovit stav</a>
+            {% else %}
+                <p>Založení platby se nepodařilo ověřit. Kontaktujte nás a uveďte číslo objednávky.</p>
+            {% endif %}
+        </section>
+    </div>
+</main>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'courses/js/comgate-result.js' %}" defer></script>
+{% endblock %}
