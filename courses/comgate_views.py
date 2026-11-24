@@ -2,7 +2,7 @@ import json
 import logging
 
 from django.conf import settings
-from django.db import DatabaseError, transaction
+from django.db import DatabaseError
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -11,14 +11,24 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
 
-from .comgate import ComgateError, apply_test_payment, create_payment, credentials, payment_status
+from .comgate import (
+    ComgateError, create_payment, credentials, fulfill_payment, matches_payment_mode, payment_status,
+)
 from .models import ComgatePayment, Order
 
 logger = logging.getLogger(__name__)
 
 
 def checkout_available():
-    return settings.COMGATE_CHECKOUT and settings.COMGATE_TEST and settings.EMAIL_TRANSPORT == "preview"
+    if not settings.COMGATE_CHECKOUT:
+        return False
+    if settings.COMGATE_TEST:
+        return not settings.COMGATE_LIVE and settings.EMAIL_TRANSPORT == "preview"
+    return (
+        settings.COMGATE_LIVE and not settings.DEBUG
+        and settings.EMAIL_TRANSPORT == "smtp"
+        and settings.SITE_URL.startswith("https://")
+    )
 
 
 def start_checkout(order):
@@ -26,12 +36,12 @@ def start_checkout(order):
     if not checkout_available():
         return redirect(result_url)
 
-    payment, created = ComgatePayment.objects.get_or_create(order=order)
+    payment, created = ComgatePayment.objects.get_or_create(order=order, defaults={"is_test": settings.COMGATE_TEST})
     if created:
         # A lost create response may still have created a remote transaction.
         # Keep the reservation and allow reconciliation through Comgate logs.
         try:
-            transaction_id, redirect_url = create_payment(order, settings.SITE_URL + result_url)
+            transaction_id, redirect_url = create_payment(order, settings.SITE_URL + result_url, is_test=payment.is_test)
             payment.transaction_id = transaction_id
             payment.redirect_url = redirect_url
             payment.status = ComgatePayment.Status.PENDING
@@ -41,7 +51,7 @@ def start_checkout(order):
             payment.save(update_fields=["status"])
             logger.warning("Comgate create: objednávka %s, %s", order.pk, type(exc).__name__)
 
-    if payment.status == ComgatePayment.Status.PENDING and payment.redirect_url:
+    if payment.is_test == settings.COMGATE_TEST and payment.status == ComgatePayment.Status.PENDING and payment.redirect_url:
         return redirect(payment.redirect_url)
     return redirect(result_url)
 
@@ -84,7 +94,7 @@ def webhook(request):
         payload.get("merchant") != merchant
         or not isinstance(payload.get("secret"), str)
         or not constant_time_compare(payload["secret"], secret)
-        or payload.get("test") not in (True, "true")
+        or not matches_payment_mode(payload.get("test"), settings.COMGATE_TEST)
     ):
         return HttpResponse(status=403)
     transaction_id = payload.get("transId")
@@ -96,16 +106,16 @@ def webhook(request):
     ).first()
     if payment is None:
         return HttpResponse(status=404)
+    if payment.is_test != settings.COMGATE_TEST:
+        return HttpResponse(status=403)
 
     try:
-        state = payment_status(payment.order, transaction_id)
+        state = payment_status(payment.order, transaction_id, is_test=payment.is_test)
         if state == ComgatePayment.Status.PENDING:
             # Ask Comgate to retry if the final notification arrived before the status API caught up.
             return HttpResponse(status=503)
         if state == ComgatePayment.Status.PAID:
-            with transaction.atomic():
-                apply_test_payment(payment.order)
-                ComgatePayment.objects.filter(pk=payment.pk).update(status=state)
+            fulfill_payment(payment)
         else:
             ComgatePayment.objects.filter(pk=payment.pk, status=ComgatePayment.Status.PENDING).update(status=state)
     except (ComgateError, DatabaseError) as exc:

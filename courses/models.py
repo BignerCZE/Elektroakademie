@@ -723,3 +723,6 @@ class ComgatePayment(models.Model):
     transaction_id = models.CharField(max_length=64, unique=True, null=True, editable=False)
     redirect_url = models.URLField(max_length=1024, blank=True, editable=False)
     status = models.CharField(max_length=12, choices=Status.choices, default=Status.CREATING)
+    is_test = models.BooleanField(default=True, editable=False)
+    processing_until = models.DateTimeField(null=True, editable=False)
+    fulfilled_at = models.DateTimeField(null=True, editable=False)

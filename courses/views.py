@@ -463,6 +463,15 @@ def check_participant_emails(request):
     )
 
 
+def simulation_available(request):
+    return (
+        settings.PAYMENT_SIMULATION and not settings.COMGATE_CHECKOUT
+        and not settings.COMGATE_TEST and not settings.COMGATE_LIVE
+        and request.META.get("REMOTE_ADDR") in {"127.0.0.1", "::1"}
+        and request.get_host().split(":")[0] in {"127.0.0.1", "localhost", "testserver"}
+    )
+
+
 def order_payment_simulation(request, order_id):
     if settings.COMGATE_CHECKOUT or ComgatePayment.objects.filter(order_id=order_id).exists():
         return redirect("comgate_result", order_id=order_id)
@@ -476,6 +485,8 @@ def order_payment_simulation(request, order_id):
             content_type="text/plain; charset=utf-8",
         )
 
+    if not simulation_available(request):
+        raise Http404
     order = get_object_or_404(
         Order,
         id=order_id,
@@ -492,7 +503,7 @@ def order_payment_simulation(request, order_id):
 
 
 def order_payment_success(request, order_id):
-    if (settings.COMGATE_TEST or settings.COMGATE_CHECKOUT
+    if (not simulation_available(request)
             or ComgatePayment.objects.filter(order_id=order_id).exists()):
         raise Http404
 
@@ -838,6 +849,8 @@ def profile(request):
 
 @login_required
 def buy_course(request, course_id):
+    if not simulation_available(request):
+        raise Http404
     course = get_object_or_404(
         Course,
         id=course_id,
@@ -878,6 +891,8 @@ def buy_course(request, course_id):
 
 @login_required
 def payment_success(request, course_id):
+    if not simulation_available(request):
+        raise Http404
     course = get_object_or_404(
         Course,
         id=course_id,

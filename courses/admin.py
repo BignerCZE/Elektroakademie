@@ -1203,6 +1203,9 @@ class OrderAdmin(admin.ModelAdmin):
         email_error_count = 0
 
         for order in queryset.order_by("id"):
+            if hasattr(order, "comgate_payment"):
+                error_count += 1
+                continue
             try:
                 workflow_result = process_order_payment(
                     order.pk

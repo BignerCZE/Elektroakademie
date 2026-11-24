@@ -7,6 +7,7 @@ Django 6.0.4
 import os
 import re
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
@@ -55,6 +56,8 @@ DEBUG = os.getenv("DJANGO_DEBUG", "True").lower() in {
 }
 
 COMGATE_TEST = os.getenv("COMGATE_TEST", "").strip().lower() == "true"
+COMGATE_LIVE = os.getenv("COMGATE_LIVE", "").strip().lower() == "true"
+PAYMENT_SIMULATION = DEBUG
 COMGATE_CHECKOUT = os.getenv("COMGATE_CHECKOUT", "").strip().lower() == "true"
 
 ALLOWED_HOSTS = [
@@ -71,6 +74,11 @@ SITE_URL = os.getenv(
     "SITE_URL",
     "http://127.0.0.1:8000",
 ).rstrip("/")
+
+_site_origin = urlsplit(SITE_URL)
+if _site_origin.scheme == "https" and _site_origin.hostname and _site_origin.username is None:
+    ALLOWED_HOSTS.append(_site_origin.hostname)
+    CSRF_TRUSTED_ORIGINS.append(f"https://{_site_origin.netloc}")
 
 SECURE_PROXY_SSL_HEADER = (
     "HTTP_X_FORWARDED_PROTO",

@@ -1,13 +1,15 @@
 import os
 import re
+from datetime import timedelta
 from urllib.parse import urlsplit
 
 import requests
 from django.conf import settings
 from django.db import transaction
-from django.db.models import F
+from django.db.models import F, Q
+from django.utils import timezone
 
-from .models import Order
+from .models import ComgatePayment, Order
 from .workflows import process_order_payment
 
 API_URL = "https://payments.comgate.cz/v2.0/payment"
@@ -60,12 +62,12 @@ def validate_transaction_id(transaction_id):
     return transaction_id
 
 
-def create_payment(order, return_url):
+def create_payment(order, return_url, *, is_test=True):
     auth = credentials()
     data = request_comgate(
         "POST", f"{API_URL}.json", auth, 201,
         json={
-            "test": True,
+            "test": is_test,
             "price": order.total_price * 100,
             "curr": "CZK",
             "label": "Elektro §4",
@@ -95,11 +97,15 @@ def create_payment(order, return_url):
     return transaction_id, redirect_url
 
 
-def payment_status(order, transaction_id):
+def matches_payment_mode(value, is_test):
+    return value is is_test or value == ("true" if is_test else "false")
+
+
+def payment_status(order, transaction_id, *, is_test=True):
     auth = credentials()
     transaction_id = validate_transaction_id(transaction_id)
     data = request_comgate("GET", f"{API_URL}/transId/{transaction_id}.json", auth, 200)
-    if data.get("test") not in (True, "true") or any(
+    if not matches_payment_mode(data.get("test"), is_test) or any(
         data.get(field) != expected
         for field, expected in {
             "transId": transaction_id, "refId": order_reference(order), "curr": "CZK",
@@ -137,3 +143,36 @@ def apply_test_payment(order):
         invoice_number = result.order.invoice.number
 
     return result.status_changed, invoice_number
+
+
+def fulfill_payment(payment):
+    now = timezone.now()
+    deadline = now + timedelta(minutes=30)
+    payments = ComgatePayment.objects.filter(pk=payment.pk)
+    claimed = payments.filter(fulfilled_at__isnull=True).filter(
+        Q(processing_until__isnull=True) | Q(processing_until__lte=now)
+    ).update(processing_until=deadline)
+    if not claimed:
+        if payments.filter(fulfilled_at__isnull=False).exists():
+            return
+        raise ComgateError("Zpracování platby právě probíhá.")
+
+    try:
+        matched = Order.objects.filter(
+            pk=payment.order_id,
+            course_type="4",
+            total_price=payment.order.total_price,
+            status__in=("pending_payment", "paid"),
+        ).exists()
+        if not matched:
+            raise ComgateError("Objednávka se během ověření změnila.")
+
+        payments.update(status=ComgatePayment.Status.PAID)
+        # The workflow persists each completed step. Keep these writes on
+        # partial failure so another webhook can continue without resending.
+        result = process_order_payment(payment.order_id)
+        if result.errors:
+            raise ComgateError("Zpracování platby zatím není dokončené.")
+        payments.update(fulfilled_at=timezone.now())
+    finally:
+        payments.filter(processing_until=deadline).update(processing_until=None)
