@@ -151,7 +151,7 @@ def main():
     print("=" * 70)
     print(
         "Pokud SMTP vrátí 'sent', zkontroluj fyzické doručení "
-        "do stejné schránky jako u sendmail.py."
+        "ve schránce uvedené jako Recipient."
     )
 
 
