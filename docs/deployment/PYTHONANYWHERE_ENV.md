@@ -11,6 +11,8 @@ Vygenerování nového Django SECRET_KEY:
 
     python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
 
+1. Pokud soubor `.env` ještě nemáte, vytvořte ho v kořeni projektu vedle `manage.py`.
+
 ## Produkce na PythonAnywhere
 
 Doporučený produkční soubor:
