@@ -2,7 +2,7 @@
 
 ## Lokální vývoj
 
-1. Zkopírujte `.env.example` jako `.env`.
+1. Pokud soubor `.env` ještě nemáte, vytvořte ho v kořeni projektu vedle `manage.py`.
 2. Do `.env` vložte skutečný `DJANGO_SECRET_KEY`.
 3. Pro současný vývoj ponechte `EMAIL_TRANSPORT=preview`.
 4. `.env` se nesmí commitovat.
@@ -11,7 +11,6 @@ Vygenerování nového Django SECRET_KEY:
 
     python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
 
-1. Pokud soubor `.env` ještě nemáte, vytvořte ho v kořeni projektu vedle `manage.py`.
 
 ## Produkce na PythonAnywhere
 
