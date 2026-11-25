@@ -24,3 +24,4 @@ Thumbs.db
 db.sqlite3
 
 backup/
+db/
