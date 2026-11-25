@@ -37,6 +37,6 @@ class IndexContactSectionTests(TestCase):
         self.assertContains(response, "O Elektroakademii")
         self.assertContains(response, "více než 40 lety praxe")
         self.assertContains(response, "REVITEC.cz")
-        self.assertContains(response, "HlídáníRevizí.cz")
+        self.assertContains(response, "komplexní elektro služby, revize a odbornou činnost")
         self.assertContains(response, "Fakturační údaje")
         self.assertContains(response, "CZ249 44 769")

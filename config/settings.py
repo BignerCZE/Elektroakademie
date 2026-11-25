@@ -146,12 +146,32 @@ TEMPLATES = [
 # Databáze
 # -----------------------------------------------------------------------------
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+db_engine = os.getenv("DB_ENGINE", "sqlite").strip().lower()
+if db_engine == "sqlite":
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": os.getenv("SQLITE_PATH") or BASE_DIR / "db.sqlite3",
+        }
     }
-}
+elif db_engine == "postgresql":
+    required_db_keys = ("POSTGRES_DB", "POSTGRES_USER", "POSTGRES_PASSWORD", "POSTGRES_HOST")
+    missing_db_keys = [key for key in required_db_keys if not os.getenv(key)]
+    if missing_db_keys:
+        raise ImproperlyConfigured("Chybí proměnné pro PostgreSQL: " + ", ".join(missing_db_keys))
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.environ["POSTGRES_DB"],
+            "USER": os.environ["POSTGRES_USER"],
+            "PASSWORD": os.environ["POSTGRES_PASSWORD"],
+            "HOST": os.environ["POSTGRES_HOST"],
+            "PORT": os.getenv("POSTGRES_PORT", "5432"),
+            "OPTIONS": {"sslmode": os.getenv("POSTGRES_SSLMODE", "prefer")},
+        }
+    }
+else:
+    raise ImproperlyConfigured("DB_ENGINE musí být sqlite nebo postgresql.")
 
 
 # -----------------------------------------------------------------------------

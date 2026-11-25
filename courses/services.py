@@ -147,7 +147,7 @@ def generate_certificate(quiz_attempt):
 
     participant = (
         OrderParticipant.objects
-        .select_for_update()
+        .select_for_update(of=("self",))
         .select_related("order", "profile")
         .filter(
             user=quiz_attempt.user,

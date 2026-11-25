@@ -2,6 +2,7 @@
 
 Run with Playwright Chromium installed (python -m playwright install chromium).
 """
+import os
 from concurrent.futures import ThreadPoolExecutor
 from django.db import close_old_connections
 
@@ -17,7 +18,9 @@ class ParticipantRemovalBrowserTests(StaticLiveServerTestCase):
     def setUp(self):
         self.playwright = sync_playwright().start()
         try:
-            self.browser = self.playwright.chromium.launch()
+            self.browser = self.playwright.chromium.launch(
+                executable_path=os.getenv("CHROMIUM_EXECUTABLE_PATH"),
+            )
         except Error as error:
             self.playwright.stop()
             if "Executable doesn't exist" in str(error):

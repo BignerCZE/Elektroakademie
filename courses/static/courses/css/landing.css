@@ -148,7 +148,7 @@
 
 .hero-grid {
     display: grid;
-    grid-template-columns: 1.05fr 0.95fr;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
     align-items: center;
     gap: 30px;
     min-height: 340px;
@@ -274,7 +274,7 @@
     z-index: 10;
     display: flex;
     align-items: flex-end;
-    width: 600px;
+    width: min(600px, calc(100% - 20px));
 }
 
 .video-trigger {
@@ -1062,7 +1062,9 @@ body.faq-modal-open {
 }
 
 .video-modal.is-open {
-    display: block;
+    display: grid;
+    place-items: center;
+    padding: 48px 0 16px;
 }
 
 .video-modal-backdrop {
@@ -1074,8 +1076,7 @@ body.faq-modal-open {
 .video-modal-content {
     position: relative;
     z-index: 1;
-    width: min(1100px, 92vw);
-    margin: 5vh auto 0;
+    width: min(1100px, 92vw, calc((100dvh - 64px) * 16 / 9));
 }
 
 .video-modal-close {

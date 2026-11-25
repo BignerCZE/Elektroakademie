@@ -702,7 +702,7 @@ def participant_activation(request, token):
             with transaction.atomic():
                 participant = (
                     OrderParticipant.objects
-                    .select_for_update()
+                    .select_for_update(of=("self",))
                     .select_related("order", "user")
                     .get(pk=participant.pk)
                 )
