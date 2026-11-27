@@ -314,8 +314,5 @@ class ActivationEmailFlowTests(TestCase):
 
         self.assertEqual(
             log.subject,
-            (
-                "Platba přijata – "
-                "účastníci mohou zahájit studium"
-            ),
+            "Platba přijata – Elektroakademie",
         )

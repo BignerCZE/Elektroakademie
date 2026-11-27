@@ -26,3 +26,40 @@
 @media (max-width: 760px) {
     .portal-workspace-overview .portal-test-card { padding: 24px 0 0; border-left: 0; border-top: 1px solid #dce5ef; }
 }
+
+
+.portal-workspace-overview .portal-completion-card {
+    max-width: 32rem;
+    margin-inline: auto;
+    padding: clamp(18px, 4vw, 30px);
+    text-align: center;
+}
+
+.portal-workspace-overview .portal-completion-card #portal-certificate-title {
+    color: #174a92;
+    font-size: clamp(1.55rem, 4vw, 1.9rem);
+    margin-bottom: 6px;
+}
+
+.portal-workspace-overview .portal-completion-card .portal-completion-status {
+    color: #102a4c;
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.portal-workspace-overview .portal-completion-card .portal-certificate-actions {
+    justify-content: center;
+    align-items: center;
+}
+
+.portal-workspace-overview .portal-completion-card .button-primary {
+    flex: 0 1 auto;
+    width: min(100%, 15rem);
+}
+
+.portal-workspace-overview .portal-completion-card .portal-history-button {
+    width: fit-content;
+    max-width: 100%;
+    margin-inline: auto;
+}

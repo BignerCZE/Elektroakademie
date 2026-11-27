@@ -82,11 +82,12 @@ class PortalNavigationBrowserTests(StaticLiveServerTestCase):
         self.assertTrue(participant.user.is_paid)
         return participant, activation
 
-    def test_browser_back_after_activation_goes_home(self):
+    def test_browser_back_after_activation_shows_used_link_and_return_home(self):
         participant, activation = self.activate_through_checkout()
         self.page.go_back()
-        self.page.wait_for_url(self.live_server_url + reverse('index'))
+        expect(self.page.get_by_role('heading', name='Aktivační odkaz již byl použit')).to_be_visible()
         self.page.goto(self.live_server_url + activation)
+        self.page.get_by_role('link', name='Zpět na úvodní stránku').click()
         self.page.wait_for_url(self.live_server_url + reverse('index'))
         self.page.goto(self.live_server_url + reverse('dashboard'))
         expect(self.page.get_by_role('button', name='Přehrát výukové video')).to_be_visible()

@@ -7,6 +7,7 @@ from courses.services import (
     generate_quiz_result_pdf,
 )
 
+from .activation_status import activation_email_status
 from .renderer import render_email
 from .types import EmailAttachment
 
@@ -162,20 +163,47 @@ def build_course_completed_email(
     )
 
 
+ORDER_CONTACT_COURSE_COMPLETED_SUBJECT = "Účastník dokončil kurz – osvědčení"
+
+
+def build_order_contact_course_completed_email(certificate, order, certificate_pdf=None):
+    return render_email(
+        subject=ORDER_CONTACT_COURSE_COMPLETED_SUBJECT,
+        recipient=order.contact_email.strip(),
+        html_template="emails/order_contact_course_completed.html",
+        text_template="emails/order_contact_course_completed.txt",
+        context={
+            "certificate": certificate,
+            "participant": certificate.participant,
+            "course": certificate.quiz_attempt.course,
+            "order": order,
+        },
+        attachments=(
+            EmailAttachment(
+                filename=f"certifikat-{certificate.certificate_number}.pdf",
+                content=certificate_pdf,
+                mimetype="application/pdf",
+            ),
+        ) if certificate_pdf is not None else (),
+        from_email=settings.EMAIL_FROM_CERTIFICATES,
+        reply_to=_reply_to(),
+    )
+
+
 def build_payment_completed_email(
     order,
     participants,
 ):
+    participants = tuple(participants)
     context = {
         "order": order,
         "participants": participants,
+        "activation_status": activation_email_status(order, (p.email for p in participants)),
         "course_name": order.get_course_type_display(),
     }
 
     return render_email(
-        subject=(
-            "Platba přijata – účastníci mohou zahájit studium"
-        ),
+        subject="Platba přijata – Elektroakademie",
         recipient=order.contact_email,
         html_template="emails/payment_completed.html",
         text_template="emails/payment_completed.txt",

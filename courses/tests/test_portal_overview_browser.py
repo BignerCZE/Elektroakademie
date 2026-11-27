@@ -17,6 +17,8 @@ class PortalOverviewBrowserTests(StaticLiveServerTestCase):
         fixture.client = Client()
         fixture.setUp()
         self.certificate, _ = fixture.create_certificate()
+        fixture.user.passed_quiz = False
+        fixture.user.save(update_fields=['passed_quiz'])
         for number in range(1, 4):
             question = Question.objects.create(course=fixture.course, text=f'Kontrolní otázka {number}')
             choice = Choice.objects.create(question=question, text='Správná odpověď', is_correct=True)
@@ -67,7 +69,7 @@ class PortalOverviewBrowserTests(StaticLiveServerTestCase):
         self.page.goto(self.live_server_url + reverse('dashboard'))
         self.page.wait_for_url('**/prihlaseni/**')
 
-    def test_responsive_history_logo_and_certificate(self):
+    def test_responsive_history_and_logo(self):
         expect(self.page.locator('.portal-account-bar')).to_be_visible()
         self.assertEqual(self.page.locator('.dashboard-shell-sidebar').count(), 0)
         self.page.locator('[data-cookie-choice="none"]').click()
@@ -96,23 +98,14 @@ class PortalOverviewBrowserTests(StaticLiveServerTestCase):
             self.page.keyboard.press('Escape')
             expect(history_dialog).not_to_be_visible()
             expect(history_button).to_be_focused()
-        self.page.get_by_role('button', name='Náhled certifikátu', exact=True).click()
-        dialog = self.page.locator('#portal-certificate-dialog')
-        expect(dialog).to_be_visible()
-        expect(dialog.locator('.certificate-document')).to_contain_text(self.certificate.certificate_number)
-        self.page.keyboard.press('Escape')
-        expect(dialog).not_to_be_visible()
-        with patch('courses.views.generate_certificate_pdf', return_value=b'%PDF-browser-download'):
-            with self.page.expect_download() as download:
-                self.page.get_by_role('link', name='Stáhnout PDF', exact=True).click()
-            self.assertTrue(download.value.suggested_filename.endswith('.pdf'))
-
     def test_review_stays_in_the_history_popup_with_question_navigation(self):
         self.page.locator('[data-cookie-choice="none"]').click()
         dashboard_url = self.page.url
-        direct = self.page.get_by_role('link', name='Zobrazit odpovědi', exact=True)
-        direct.click()
+        history_button = self.page.get_by_role('button', name='Historie testů')
+        history_button.click()
         dialog = self.page.locator('#portal-history-dialog')
+        row = dialog.locator('.portal-history-row').filter(has=self.page.get_by_text('Pokus 1', exact=True))
+        row.get_by_role('link', name='Zobrazit odpovědi').click()
         expect(dialog).to_be_visible()
         expect(dialog.get_by_role('heading', name='Otázka 1 z 3', exact=True)).to_be_visible()
         self.assertEqual(self.page.url, dashboard_url)
@@ -133,7 +126,7 @@ class PortalOverviewBrowserTests(StaticLiveServerTestCase):
         expect(dialog.get_by_role('heading', name='Otázka 1 z 3', exact=True)).to_be_visible()
         self.page.keyboard.press('Escape')
         expect(dialog).not_to_be_visible()
-        expect(direct).to_be_focused()
+        expect(history_button).to_be_focused()
         self.assertEqual(self.page.url, dashboard_url)
 
     def test_active_quiz_popup_save_resume_submit_and_center(self):
@@ -171,7 +164,27 @@ class PortalOverviewBrowserTests(StaticLiveServerTestCase):
         with patch('courses.views.process_quiz_completion') as workflow:
             workflow.return_value.errors = []
             frame.get_by_role('button', name='Odeslat test', exact=True).click()
-            history = self.page.locator('#portal-history-dialog')
-            expect(history).to_be_visible(timeout=15000)
-            expect(history.get_by_role('heading', name='Otázka 1 z 3', exact=True)).to_be_visible()
-        expect(self.page.locator('#portal-active-quiz-dialog')).not_to_be_visible()
+            download_link = self.page.get_by_role('link', name='Stáhnout certifikát', exact=True)
+            expect(download_link).to_be_visible(timeout=15000)
+        expect(dialog).to_have_count(0)
+        history = self.page.locator('#portal-history-dialog')
+        expect(history).not_to_be_visible()
+        expect(self.page.get_by_role('heading', name='Gratulujeme!')).to_be_visible()
+        self.page.wait_for_load_state("load")
+        card = self.page.locator('.portal-completion-card')
+        bounds = card.bounding_box()
+        self.assertLess(bounds['width'], 600)
+        self.assertAlmostEqual(bounds['x'] + bounds['width'] / 2, 720, delta=2)
+        self.page.get_by_role('button', name='Historie testů').click()
+        expect(history).to_be_visible()
+        history.locator('.portal-history-row').filter(has=self.page.get_by_text('Pokus 1', exact=True)).get_by_role('link', name='Zobrazit odpovědi').click()
+        expect(history.get_by_role('heading', name='Otázka 1 z 3')).to_be_visible()
+        self.page.keyboard.press('Escape')
+        expect(self.page.locator('#portal-video-dialog')).to_have_count(0)
+        self.page.wait_for_load_state('load')
+        self.page.set_viewport_size({'width': 320, 'height': 740})
+        self.page.wait_for_function('window.innerWidth === 320 && document.documentElement.scrollWidth <= 320')
+        with patch('courses.views.generate_certificate_pdf', return_value=b'%PDF-browser-download'):
+            with self.page.expect_download() as download:
+                download_link.click()
+            self.assertTrue(download.value.suggested_filename.endswith('.pdf'))

@@ -4831,6 +4831,12 @@ class EmailLogAdmin(admin.ModelAdmin):
             )
 
         elif (
+            obj.email_type == EmailLog.TYPE_ORDER_CONTACT_COURSE_COMPLETED
+            and obj.order_id and obj.quiz_attempt_id
+        ):
+            url = reverse("order_contact_course_completed_email_preview", kwargs={"log_id": obj.pk})
+
+        elif (
             obj.email_type == EmailLog.TYPE_COURSE_COMPLETED
             and obj.quiz_attempt_id
         ):
@@ -4963,6 +4969,12 @@ class EmailLogAdmin(admin.ModelAdmin):
                     "order_id": obj.order_id,
                 },
             )
+
+        elif (
+            obj.email_type == EmailLog.TYPE_ORDER_CONTACT_COURSE_COMPLETED
+            and obj.order_id and obj.quiz_attempt_id
+        ):
+            url = reverse("order_contact_course_completed_email_preview", kwargs={"log_id": obj.pk})
 
         elif (
             obj.email_type

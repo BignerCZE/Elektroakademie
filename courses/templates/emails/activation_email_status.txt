@@ -1,0 +1,5 @@
+Každý účastník dostává aktivační pokyny na vlastní e-mail.
+{% if activation_status.sent %}Počet zpráv předaných poštovnímu serveru (SMTP): {{ activation_status.sent }}. Doručení do schránky tím není potvrzeno.
+{% endif %}{% if activation_status.preview %}Počet zpráv uložených pouze jako testovací náhled: {{ activation_status.preview }}.
+{% endif %}{% if activation_status.pending %}U některých účastníků zatím odeslání není dokončeno. Počet zbývajících zpráv: {{ activation_status.pending }}.
+{% endif %}

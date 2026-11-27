@@ -14,8 +14,9 @@ from django.views.decorators.http import require_GET, require_POST
 from .comgate import (
     ComgateError, create_payment, credentials, fulfill_payment, matches_payment_mode, payment_status,
 )
+from .emails.activation_status import activation_email_status
 from .emails.transport import test_smtp_enabled
-from .models import ComgatePayment, Order
+from .models import ComgatePayment, Invoice, Order
 
 logger = logging.getLogger(__name__)
 
@@ -67,10 +68,26 @@ def checkout_result(request, order_id):
         raise Http404
     order = get_object_or_404(Order, pk=order_id, course_type="4")
     payment = ComgatePayment.objects.filter(order=order).first()
-    return render(request, "registration/comgate_result.html", {
+    paid = order.status == "paid" or (
+        payment is not None and payment.status == ComgatePayment.Status.PAID
+    )
+    participant_emails = list(order.participants.values_list("email", flat=True))
+    invoice_ready = paid and Invoice.objects.filter(order=order).exclude(pdf_content=b"").exists()
+    refresh_status = payment is not None and (
+        (paid and payment.fulfilled_at is None)
+        or payment.status in (ComgatePayment.Status.PENDING, ComgatePayment.Status.CREATING)
+    )
+    template = "registration/comgate_result.html"
+    if request.GET.get("fragment") == "1":
+        template = "registration/comgate_status.html"
+    return render(request, template, {
         "order": order,
         "payment": payment,
-        "invoice_ready": hasattr(order, "invoice"),
+        "paid": paid,
+        "participant_count": len(participant_emails),
+        "invoice_ready": invoice_ready,
+        "activation_status": activation_email_status(order, participant_emails) if paid else None,
+        "refresh_status": refresh_status,
     })
 
 

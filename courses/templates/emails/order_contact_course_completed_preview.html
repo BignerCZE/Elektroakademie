@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="cs">
+<head>
+    <meta charset="utf-8">
+    <title>Náhled e-mailu pro objednatele</title>
+</head>
+<body>
+    <h1>Náhled e-mailu pro objednatele</h1>
+    <p>Příjemce podle záznamu: {{ log.recipient }}</p>
+    <p>Předmět: {{ log.subject }}</p>
+    <p><a href="?format=pdf">Stáhnout certifikat-{{ certificate.certificate_number }}.pdf</a></p>
+    <p>Příloha se pro náhled generuje z aktuálního osvědčení.</p>
+    <iframe title="HTML e-mailu" sandbox srcdoc="{{ email.html_body }}" width="100%" height="560"></iframe>
+    <details>
+        <summary>Textová verze</summary>
+        <pre>{{ email.text_body }}</pre>
+    </details>
+</body>
+</html>

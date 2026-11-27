@@ -2,15 +2,28 @@
 {% load static %}
 {% block title %}Přehled | Elektroakademie{% endblock %}
 {% block dashboard_extra_css %}
-<link rel="stylesheet" href="{% static 'courses/css/certificate.css' %}?v=4">
 <link rel="stylesheet" href="{% static 'courses/css/portal-overview.css' %}?v=4">
 <link rel="stylesheet" href="{% static 'courses/css/quiz-review.css' %}">
-<link rel="stylesheet" href="{% static 'courses/css/portal-workspace.css' %}?v=4">
+<link rel="stylesheet" href="{% static 'courses/css/portal-workspace.css' %}?v=5">
 {% endblock %}
 {% block dashboard_page_class %} portal-compact-shell{% endblock %}
 {% block dashboard_main %}
 <section class="portal-overview portal-workspace-overview">
-    {% if has_paid and active_course %}
+    {% if has_paid and active_course and user.passed_quiz %}
+    <section class="portal-certificate-card portal-completion-card" aria-labelledby="portal-certificate-title">
+        <h1 id="portal-certificate-title">Gratulujeme!</h1>
+        <p class="portal-completion-status">Test úspěšně splněn</p>
+        {% if certificate %}
+        <p>Číslo osvědčení <strong>{{ certificate.certificate_number }}</strong> · Platnost do <strong>{{ certificate.valid_until|date:"j. n. Y" }}</strong></p>
+        <div class="portal-certificate-actions">
+            <a class="button-primary" href="{% url 'certificate_pdf' active_course.id %}?download=1">Stáhnout certifikát</a>
+        </div>
+        {% else %}
+        <p>Certifikát zatím není k dispozici. Pokud se nezobrazí ani později, kontaktujte nás.</p>
+        {% endif %}
+        <button type="button" class="portal-faq-action portal-history-button" data-portal-open="portal-history-dialog">Historie testů <span class="portal-history-count">{{ submitted_attempts_count }}</span></button>
+    </section>
+    {% elif has_paid and active_course %}
     <div class="portal-course-grid">
         <section class="portal-video-card" aria-labelledby="portal-course-title">
             <p class="portal-eyebrow">Paragraf §4</p>
@@ -26,9 +39,6 @@
                 {% if active_attempt %}
                 <p>Máte rozpracovaný test. Pokračujte tam, kde jste skončili.</p>
                 <a class="button-primary" data-portal-active-quiz href="{% url 'quiz_start' active_course.id %}">Pokračovat v testu</a>
-                {% elif user.passed_quiz %}
-                <p class="portal-success">Test úspěšně splněn</p>
-                {% if best_attempt %}<a class="portal-faq-action" data-portal-review href="{% url 'quiz_attempt_detail' best_attempt.id 1 %}"><span>Zobrazit odpovědi</span><span aria-hidden="true">›</span></a>{% endif %}
                 {% else %}
                 <p>{% if latest_attempt %}Předchozí pokus nebyl úspěšný. Test můžete zopakovat.{% else %}Po prostudování videa můžete spustit závěrečný test.{% endif %}</p>
                 <form method="post" data-portal-start-quiz action="{% url 'quiz_start' active_course.id %}">
@@ -38,11 +48,8 @@
             </div>
             <button type="button" class="portal-faq-action portal-history-button" data-portal-open="portal-history-dialog">Historie testů <span class="portal-history-count">{{ submitted_attempts_count }}</span></button>
             <section class="portal-certificate-card" aria-labelledby="portal-certificate-title">
-                <div><h2 id="portal-certificate-title">3. krok - Stáhnout certifikát</h2>
-                {% if certificate %}<p>Číslo: <strong>{{ certificate.certificate_number }}</strong> · Platnost do: <strong>{{ certificate.valid_until|date:"j. n. Y" }}</strong></p>
-                {% elif user.passed_quiz %}<p>Certifikát zatím není k dispozici. Pokud se nezobrazí ani později, kontaktujte nás.</p>
-                {% else %}<p>Certifikát bude dostupný po úspěšném splnění testu.</p>{% endif %}</div>
-                {% if certificate %}<div class="portal-certificate-actions"><button type="button" class="button-secondary" data-portal-open="portal-certificate-dialog">Náhled certifikátu</button><a class="button-primary" href="{% url 'certificate_pdf' active_course.id %}?download=1">Stáhnout PDF</a></div>{% endif %}
+                <h2 id="portal-certificate-title">3. krok - Stáhnout certifikát</h2>
+                <p>Certifikát bude dostupný po úspěšném splnění testu.</p>
             </section>
         </section>
     </div>
@@ -51,10 +58,12 @@
     {% endif %}
 </section>
 {% if has_paid and active_course %}
+{% if not user.passed_quiz %}
 <dialog class="portal-dialog portal-active-quiz-dialog" id="portal-active-quiz-dialog" aria-labelledby="portal-active-quiz-title">
     <div class="portal-dialog-header"><h2 id="portal-active-quiz-title">Závěrečný test</h2><button type="button" data-portal-close aria-label="Opustit rozpracovaný test">Opustit test <span aria-hidden="true">×</span></button></div>
     <iframe name="portal-active-quiz-frame" id="portal-active-quiz-frame" class="portal-active-quiz-frame" title="Vyplnění závěrečného testu"></iframe>
 </dialog>
+{% endif %}
 <dialog class="portal-dialog portal-history-dialog" id="portal-history-dialog" aria-labelledby="portal-history-title">
     <div class="portal-dialog-header"><div><h2 id="portal-history-title">Historie testů</h2><p id="portal-history-subtitle">Dokončené pokusy: {{ submitted_attempts_count }}</p></div><button type="button" data-portal-history-back hidden>Zpět na historii</button><button type="button" data-portal-close aria-label="Zavřít okno testů">Zavřít <span aria-hidden="true">×</span></button></div>
     <div class="portal-test-history" data-portal-history-list role="region" aria-labelledby="portal-history-title" tabindex="0">
@@ -67,21 +76,14 @@
     </div>
     <div class="portal-review-pane" data-portal-review-pane hidden aria-live="polite"></div>
 </dialog>
+{% if not user.passed_quiz %}
 <dialog class="portal-dialog portal-video-dialog" id="portal-video-dialog" aria-labelledby="portal-video-title">
     <div class="portal-dialog-header"><h2 id="portal-video-title">Výukové video</h2><button type="button" data-portal-close aria-label="Zavřít video">×</button></div>
     <div class="portal-video-frame" data-portal-video-frame></div>
-</dialog>
-{% if certificate %}
-<dialog class="portal-dialog portal-certificate-dialog" id="portal-certificate-dialog" aria-labelledby="portal-preview-title">
-    <div class="portal-dialog-header"><h2 id="portal-preview-title">Náhled certifikátu</h2><button type="button" data-portal-close aria-label="Zavřít náhled certifikátu">×</button></div>
-    <div class="portal-certificate-scroll">
-        {% include 'courses/certificate_document.html' with participant=certificate.participant participant_profile=certificate.participant.profile course=active_course %}
-    </div>
 </dialog>
 {% endif %}
 {% endif %}
 {% endblock %}
 {% block extra_js %}
-<script src="{% static 'courses/js/certificate-layout.js' %}" defer></script>
-<script src="{% static 'courses/js/portal-overview.js' %}?v=4" defer></script>
+<script src="{% static 'courses/js/portal-overview.js' %}?v=5" defer></script>
 {% endblock %}

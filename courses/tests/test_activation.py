@@ -279,7 +279,8 @@ class ParticipantActivationTests(TestCase):
             self.activation_url
         )
 
-        self.assertRedirects(response, reverse("index"))
+        self.assertContains(response, "Aktivační odkaz již byl použit")
+        self.assertContains(response, f'href="{reverse("index")}">Zpět na úvodní stránku')
 
         self.assertEqual(User.objects.count(), 1)
         self.assertEqual(
@@ -404,11 +405,17 @@ class ParticipantActivationTests(TestCase):
         self.assertIn("no-store", response["Cache-Control"])
         self.assertContains(response, "activation-history.js")
         self.client.post(self.activation_url, self.valid_data)
-        self.assertRedirects(self.client.get(self.activation_url), reverse("index"))
-        self.assertRedirects(self.client.post(self.activation_url, self.valid_data), reverse("index"))
+        for response in (
+            self.client.get(self.activation_url),
+            self.client.post(self.activation_url, self.valid_data),
+        ):
+            self.assertTemplateUsed(response, "registration/participant_activation_used.html")
+            self.assertIn("no-store", response["Cache-Control"])
+            self.assertNotContains(response, "jan.novak@example.com")
         self.client.logout()
         response = self.client.get(self.activation_url)
         self.assertTemplateUsed(response, "registration/participant_activation_used.html")
+        self.assertContains(response, f'href="{reverse("login")}">Přihlásit se')
         self.assertEqual(User.objects.count(), 1)
 
 
@@ -442,5 +449,5 @@ class OrderActivationJourneyTests(TestCase):
         self.assertTrue(dashboard.wsgi_request.user.is_authenticated)
         self.assertTrue(participant.user.is_paid)
         self.assertContains(dashboard, 'Přehrát výukové video')
-        self.assertRedirects(self.client.get(activation), reverse('index'))
+        self.assertContains(self.client.get(activation), 'Aktivační odkaz již byl použit')
         self.assertEqual(User.objects.count(), 1)

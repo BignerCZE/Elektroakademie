@@ -8,23 +8,31 @@
     <div class="container">
         <section class="content-card content-card--narrow">
             <h1>Stav platby</h1>
-            <p>Objednávka č. {{ order.pk }} · {{ order.total_price }} Kč</p>
-            {% if order.status == 'paid' %}
-                <p>Objednávka je zaplacená.</p>
-                {% if invoice_ready %}
-                    <a class="button-primary" href="{% url 'invoice_download' order.pk %}">Stáhnout fakturu</a>
-                {% endif %}
-            {% elif payment.status == 'CANCELLED' %}
-                <p>Platba byla zrušena.</p>
-            {% elif payment.status == 'PENDING' %}
-                <p>Čekáme na potvrzení platby.</p>
-                <a class="button-primary" href="{{ payment.redirect_url }}">Otevřít platební bránu</a>
-                <a href="{% url 'comgate_result' order.pk %}">Obnovit stav</a>
-            {% elif payment.status == 'CREATING' %}
-                <p>Platbu zakládáme.</p>
-                <a href="{% url 'comgate_result' order.pk %}">Obnovit stav</a>
-            {% else %}
-                <p>Založení platby se nepodařilo ověřit. Kontaktujte nás a uveďte číslo objednávky.</p>
+            <dl class="info-grid">
+                <div class="info-item">
+                    <dt class="info-label">Objednávka</dt>
+                    <dd class="info-value">č. {{ order.pk }}</dd>
+                </div>
+                <div class="info-item">
+                    <dt class="info-label">Kurz</dt>
+                    <dd class="info-value">{{ order.get_course_type_display }}</dd>
+                </div>
+                <div class="info-item">
+                    <dt class="info-label">Částka</dt>
+                    <dd class="info-value">{{ order.total_price }} Kč</dd>
+                </div>
+                <div class="info-item">
+                    <dt class="info-label">Počet účastníků</dt>
+                    <dd class="info-value">{{ participant_count }}</dd>
+                </div>
+            </dl>
+            <div id="comgate-status" aria-live="polite">
+                {% include "registration/comgate_status.html" %}
+            </div>
+            {% if refresh_status %}
+                <div class="button-row">
+                    <a class="button-link" href="{% url 'comgate_result' order.pk %}" id="comgate-refresh">Obnovit stav</a>
+                </div>
             {% endif %}
         </section>
     </div>
@@ -32,5 +40,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'courses/js/comgate-result.js' %}" defer></script>
+<script src="{% static 'courses/js/comgate-result.js' %}?v=2" defer></script>
 {% endblock %}

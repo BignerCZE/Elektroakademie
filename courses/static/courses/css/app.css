@@ -91,6 +91,18 @@
     margin-top: 28px;
 }
 
+.content-card--centered {
+    text-align: center;
+}
+
+.activation-return-countdown {
+    margin-top: 16px;
+}
+
+.button-row--centered {
+    justify-content: center;
+}
+
 .button-primary,
 .button-secondary,
 .button-link {

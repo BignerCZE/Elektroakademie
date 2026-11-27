@@ -5,7 +5,7 @@ Platba přijata
 {% endblock %}
 
 {% block preheader %}
-Platba za objednávku č. {{ order.id }} byla přijata a účastníci mohou zahájit aktivaci.
+Platba za objednávku č. {{ order.id }} byla přijata.
 {% endblock %}
 
 {% block content %}
@@ -159,9 +159,8 @@ Platba za objednávku č. {{ order.id }} byla přijata a účastníci mohou zah�
                 line-height: 21px;
                 color: #315d43;
             ">
-            Účastníkům byly připraveny přístupy do Elektroakademie
-            a na jejich e-mailové adresy byly zpracovány aktivační e-maily.
-            Po aktivaci účtu mohou zahájit studium.
+            {% include "emails/activation_email_status.txt" %}
+            Po aktivaci účtu mohou účastníci zahájit studium.
         </td>
     </tr>
 </table>

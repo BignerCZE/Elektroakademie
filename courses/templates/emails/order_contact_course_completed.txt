@@ -1,0 +1,7 @@
+Dobrý den,
+
+účastník {{ participant.first_name }} {{ participant.last_name }} úspěšně dokončil test kurzu {{ course.title }} z objednávky č. {{ order.pk }}.
+
+V příloze najdete osvědčení č. {{ certificate.certificate_number }}.
+
+Elektroakademie

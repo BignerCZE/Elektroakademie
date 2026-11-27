@@ -3,8 +3,10 @@ from unittest.mock import patch
 from django.contrib.auth import get_user_model
 from django.core import mail
 from django.test import TestCase, override_settings
+from django.urls import reverse
 from django.utils import timezone
 
+from courses.emails.transport import send_email
 from courses.models import (
     Course,
     EmailLog,
@@ -90,7 +92,12 @@ class QuizCompletionArtifactWorkflowTests(TestCase):
             [(attachment.content, attachment.mimetype) for attachment in message.attachments],
             [(b"%PDF certificate", "application/pdf"), (b"%PDF quiz", "application/pdf")],
         )
-        self.assertEqual(EmailLog.objects.get(quiz_attempt=self.attempt).status, EmailLog.STATUS_SENT)
+        logs = EmailLog.objects.filter(quiz_attempt=self.attempt)
+        self.assertEqual(logs.get(email_type=EmailLog.TYPE_COURSE_COMPLETED).status, EmailLog.STATUS_SENT)
+        self.assertEqual(
+            logs.get(email_type=EmailLog.TYPE_ORDER_CONTACT_COURSE_COMPLETED).status,
+            EmailLog.STATUS_PREVIEW,
+        )
 
     @patch(
         "courses.workflows.generate_quiz_result_pdf",
@@ -196,6 +203,12 @@ class QuizCompletionArtifactWorkflowTests(TestCase):
             "ReportLab chyba",
             log.error_message,
         )
+        self.assertTrue(EmailLog.objects.filter(
+            quiz_attempt=self.attempt,
+            order=self.order,
+            email_type=EmailLog.TYPE_ORDER_CONTACT_COURSE_COMPLETED,
+            status=EmailLog.STATUS_PREVIEW,
+        ).exists())
 
     @patch(
         "courses.workflows.generate_quiz_result_pdf",
@@ -311,3 +324,76 @@ class QuizCompletionArtifactWorkflowTests(TestCase):
             ).count(),
             1,
         )
+
+
+    @override_settings(
+        EMAIL_TRANSPORT="smtp_test", COMGATE_TEST=True, COMGATE_LIVE=False,
+        EMAIL_TEST_RECIPIENTS=("artifact@example.com", "kontakt@example.com"),
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+        EMAIL_HOST="smtp.example.com",
+    )
+    @patch("courses.workflows.generate_quiz_result_pdf", return_value=b"%PDF quiz")
+    @patch("courses.workflows.generate_certificate_pdf", return_value=b"%PDF certificate")
+    def test_contact_retry_sends_only_certificate_without_resending_participant(self, _certificate, quiz):
+        def reject_contact(email):
+            if email.recipient == self.order.contact_email:
+                raise ConnectionError("SMTP nedostupné")
+            return send_email(email)
+
+        with patch("courses.emails.delivery.send_email", side_effect=reject_contact):
+            self.assertTrue(process_quiz_completion(self.attempt).errors)
+        participant_message, = mail.outbox
+        self.assertEqual(participant_message.to, [self.user.email])
+
+        for _ in range(2):
+            self.assertEqual(process_quiz_completion(self.attempt).errors, ())
+
+        self.assertEqual(len(mail.outbox), 2)
+        contact_message = mail.outbox[1]
+        self.assertEqual(contact_message.to, [self.order.contact_email])
+        attachment, = contact_message.attachments
+        self.assertEqual(attachment.content, b"%PDF certificate")
+        parts = contact_message.message().get_payload()
+        pdf_parts = [part for part in parts if part.get_content_type() == "application/pdf"]
+        pdf_part, = pdf_parts
+        self.assertEqual(pdf_part.get_content_disposition(), "attachment")
+        self.assertTrue(pdf_part.get_filename().endswith(".pdf"))
+        self.assertEqual(pdf_part.get_payload(decode=True), b"%PDF certificate")
+        self.assertIn(f"objednávky č. {self.order.pk}", contact_message.body)
+        self.assertIn("Jan Novák", contact_message.body)
+        quiz.assert_called_once()
+
+    @patch("courses.workflows.generate_quiz_result_pdf", return_value=b"%PDF quiz")
+    @patch("courses.workflows.generate_certificate_pdf", return_value=b"%PDF certificate")
+    def test_shared_contact_address_receives_only_participant_email(self, _certificate, _quiz):
+        self.order.contact_email = self.user.email.upper()
+        self.order.save(update_fields=["contact_email"])
+        self.assertEqual(process_quiz_completion(self.attempt).errors, ())
+        log = EmailLog.objects.get(quiz_attempt=self.attempt)
+        self.assertEqual(log.email_type, EmailLog.TYPE_COURSE_COMPLETED)
+
+    @patch("courses.workflows.generate_quiz_result_pdf", return_value=b"%PDF quiz")
+    @patch("courses.workflows.generate_certificate_pdf", return_value=b"%PDF certificate")
+    def test_contact_email_admin_preview_and_download(self, _certificate, _quiz):
+        self.assertEqual(process_quiz_completion(self.attempt).errors, ())
+        log = EmailLog.objects.get(email_type=EmailLog.TYPE_ORDER_CONTACT_COURSE_COMPLETED)
+        url = reverse("order_contact_course_completed_email_preview", args=[log.pk])
+        self.assertEqual(self.client.get(url + "?format=pdf").status_code, 302)
+        self.user.is_staff = True
+        self.user.save(update_fields=["is_staff"])
+        self.client.force_login(self.user)
+        self.assertEqual(self.client.get(url + "?format=pdf").status_code, 403)
+        self.user.is_superuser = True
+        self.user.save(update_fields=["is_superuser"])
+        for admin_url in (
+            reverse("admin:courses_emaillog_changelist"),
+            reverse("admin:courses_emaillog_change", args=[log.pk]),
+        ):
+            self.assertContains(self.client.get(admin_url), url)
+        self.assertContains(self.client.get(url), log.recipient)
+        self.assertContains(self.client.get(url), "?format=pdf")
+        with patch("courses.views.generate_certificate_pdf", return_value=b"%PDF certificate"):
+            response = self.client.get(url + "?format=pdf")
+        self.assertEqual(response.content, b"%PDF certificate")
+        self.assertEqual(response["Content-Type"], "application/pdf")
+        self.assertIn("attachment;", response["Content-Disposition"])

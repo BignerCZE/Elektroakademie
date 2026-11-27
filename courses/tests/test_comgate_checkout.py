@@ -65,7 +65,18 @@ class ComgateCheckoutTests(TestCase):
         self.assertEqual(payment.status, "PENDING")
         result_url = reverse("comgate_result", args=[order.pk])
         self.assertContains(self.client.get(result_url + "?status=PAID"), "Čekáme na potvrzení platby.")
+        invoice_url = reverse("invoice_download", args=[order.pk])
+        fragment_url = result_url + "?fragment=1"
+        waiting = self.client.get(fragment_url)
+        self.assertContains(waiting, "Čekáme na potvrzení platby.")
+        self.assertContains(waiting, "data-refresh")
+        self.assertIn("no-store", waiting["Cache-Control"])
+        self.assertEqual(request_api.call_count, 1)
+        self.assertFalse(EmailLog.objects.exists())
         self.assertEqual(Client().get(result_url).status_code, 404)
+        self.assertEqual(Client().get(fragment_url).status_code, 404)
+        self.assertEqual(self.client.get(invoice_url).status_code, 404)
+        self.assertEqual(self.client.post(fragment_url).status_code, 405)
         self.assertEqual(self.client.get(reverse("order_payment_success", args=[order.pk])).status_code, 404)
         self.assertEqual(self.notify(payment, "PAID", secret="invalid").status_code, 403)
 
@@ -85,7 +96,41 @@ class ComgateCheckoutTests(TestCase):
         self.assertEqual(Invoice.objects.filter(order=order).count(), 1)
         self.assertEqual(EmailLog.objects.filter(order=order, status="preview").count(), 3)
         self.assertEqual(self.pdf.call_count, 1)
-        self.assertContains(self.client.get(result_url), "Objednávka je zaplacená.")
+        result = self.client.get(result_url)
+        self.assertContains(result, "Objednávka je zaplacená.")
+        self.assertContains(result, f"č. {order.pk}")
+        self.assertContains(result, order.get_course_type_display())
+        self.assertContains(result, "Počet účastníků")
+        self.assertEqual(result.context["participant_count"], 2)
+        self.assertContains(result, "Stáhnout fakturu")
+        self.assertNotContains(result, "data-refresh")
+        self.assertNotContains(result, "Obnovit stav")
+        self.assertContains(result, "Počet zpráv uložených pouze jako testovací náhled: 2.")
+        self.assertEqual(Client().get(invoice_url).status_code, 404)
+        self.assertEqual(self.client.get(invoice_url).content, b"%PDF-test")
+
+    def test_confirmed_payment_waits_for_saved_pdf(self):
+        order, payment = self.create_order()
+        result_url = reverse("comgate_result", args=[order.pk])
+        self.api_status(order, payment, "PAID")
+        self.pdf.side_effect = RuntimeError("Test PDF failure")
+        with self.assertLogs("courses.workflows", level="ERROR"):
+            self.assertEqual(self.notify(payment, "PAID").status_code, 503)
+        invoice = Invoice.objects.get(order=order)
+        self.assertFalse(invoice.pdf_content)
+        result = self.client.get(result_url)
+        self.assertContains(result, "Platbu neopakujte.")
+        self.assertContains(result, "Fakturu připravujeme.")
+        self.assertContains(result, "Obnovit stav")
+        self.assertNotContains(result, "Stáhnout fakturu")
+        self.assertNotContains(result, "Otevřít platební bránu")
+        self.assertEqual(self.pdf.call_count, 1)
+
+        self.pdf.side_effect = None
+        self.assertEqual(self.notify(payment, "PAID").status_code, 200)
+        self.assertEqual(Invoice.objects.get(order=order).pk, invoice.pk)
+        self.assertContains(self.client.get(result_url + "?fragment=1"), "Stáhnout fakturu")
+        self.assertEqual(EmailLog.objects.filter(order=order, status="preview").count(), 3)
 
     @override_settings(
         COMGATE_TEST=True, COMGATE_LIVE=False, EMAIL_TRANSPORT="smtp_test",
@@ -141,7 +186,11 @@ class ComgateCheckoutTests(TestCase):
         self.assertEqual(order.status, "pending_payment")
         self.assertFalse(Invoice.objects.exists())
         self.assertFalse(EmailLog.objects.exists())
-
+        result = self.client.get(reverse("comgate_result", args=[order.pk]))
+        self.assertContains(result, "Platba byla zrušena.")
+        self.assertNotContains(result, "data-refresh")
+        self.assertNotContains(result, "Stáhnout fakturu")
+        self.assertNotContains(result, "Otevřít platební bránu")
 
     @override_settings(
         DEBUG=False, COMGATE_TEST=False, COMGATE_LIVE=True,
@@ -178,12 +227,27 @@ class ComgateCheckoutTests(TestCase):
                 self.assertEqual(self.notify(payment, "PAID", secure=True, test="false").status_code, 503)
             invoice = Invoice.objects.get(order=order)
             self.assertEqual(len(mail.outbox), 2)
+            result = self.client.get(result_url + "?fragment=1", secure=True)
+            self.assertContains(result, "Platbu neopakujte.")
+            self.assertContains(result, "Stáhnout fakturu")
+            self.assertContains(result, "Počet zbývajících zpráv: 1.")
+            self.assertContains(result, "data-refresh")
+
+            confirmation = next(message for message in mail.outbox if message.to == [order.contact_email])
+            for body in (confirmation.body, confirmation.alternatives[0].content):
+                self.assertIn("Počet zpráv předaných poštovnímu serveru (SMTP): 1.", body)
+                self.assertIn("Doručení do schránky tím není potvrzeno.", body)
+                self.assertIn("Počet zbývajících zpráv: 1.", body)
             for _ in range(2):
                 self.assertEqual(self.notify(payment, "PAID", secure=True, test="false").status_code, 200)
 
         payment.refresh_from_db()
         self.assertIsNotNone(payment.fulfilled_at)
         self.assertEqual(Invoice.objects.get(order=order).pk, invoice.pk)
+        result = self.client.get(result_url + "?fragment=1", secure=True)
+        self.assertContains(result, "Počet zpráv předaných poštovnímu serveru (SMTP): 2.")
+        self.assertNotContains(result, "Počet zbývajících zpráv")
+        self.assertNotContains(result, "data-refresh")
         self.assertCountEqual(
             [message.to[0] for message in mail.outbox],
             ["druhy@example.com", "jan.novak@example.com", "kontakt@example.com"],

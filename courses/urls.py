@@ -191,6 +191,11 @@ urlpatterns = [
     ),
 
     path(
+        "email-preview/order-contact-course-completed/<int:log_id>/",
+        views.order_contact_course_completed_email_preview,
+        name="order_contact_course_completed_email_preview",
+    ),
+    path(
         "email-preview/course-completed/<int:attempt_id>/",
         views.course_completed_email_preview,
         name="course_completed_email_preview",

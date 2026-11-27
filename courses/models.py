@@ -595,6 +595,7 @@ class EmailLog(models.Model):
     TYPE_PARTICIPANT_ACTIVATION = "participant_activation"
     TYPE_COURSE_COMPLETED = "course_completed"
     TYPE_PAYMENT_COMPLETED = "payment_completed"
+    TYPE_ORDER_CONTACT_COURSE_COMPLETED = "order_contact_course_completed"
 
     TYPE_CHOICES = [
         (
@@ -609,6 +610,7 @@ class EmailLog(models.Model):
             TYPE_PAYMENT_COMPLETED,
             "Platba přijata",
         ),
+        (TYPE_ORDER_CONTACT_COURSE_COMPLETED, "Dokončení kurzu – objednatel"),
     ]
 
     email_type = models.CharField(

@@ -6,7 +6,12 @@ from courses.tests.test_certificates import CertificateTestBase
 
 
 class PortalOverviewTests(CertificateTestBase):
+    def mark_test_incomplete(self):
+        self.user.passed_quiz = False
+        self.user.save(update_fields=['passed_quiz'])
+
     def test_account_bar_and_video_stay_in_overview(self):
+        self.mark_test_incomplete()
         response = self.client.get(reverse('dashboard'))
         self.assertContains(response, 'portal-topbar')
         self.assertContains(response, 'Přehrát výukové video')
@@ -25,10 +30,16 @@ class PortalOverviewTests(CertificateTestBase):
         for name in ('video_detail', 'quiz', 'certificate_success'):
             self.assertNotIn(reverse(name, args=[self.course.pk]), account)
 
-    def test_certificate_preview_uses_existing_document_and_download(self):
+    def test_successful_participant_gets_certificate_download_and_history(self):
         certificate, _ = self.create_certificate()
         response = self.client.get(reverse('dashboard'))
-        self.assertContains(response, 'portal-certificate-dialog')
+        self.assertContains(response, 'Gratulujeme!')
+        self.assertContains(response, 'Test úspěšně splněn')
+        self.assertContains(response, 'portal-history-dialog')
+        self.assertContains(response, 'Zobrazit odpovědi')
+        self.assertContains(response, 'Stáhnout certifikát')
+        for hidden in ('portal-certificate-dialog', 'portal-video-dialog', 'portal-active-quiz-dialog'):
+            self.assertNotContains(response, hidden)
         self.assertContains(response, certificate.certificate_number)
         self.assertContains(response, 'Jan Novák')
         self.assertContains(response, reverse('certificate_pdf', args=[self.course.pk]) + '?download=1')
@@ -62,6 +73,7 @@ class PortalOverviewTests(CertificateTestBase):
         self.assertContains(self.client.get(reverse('dashboard')), 'Spustit nový test')
 
     def test_history_does_not_include_other_users(self):
+        self.mark_test_incomplete()
         other = get_user_model().objects.create_user(username='other', is_paid=True)
         hidden = QuizAttempt.objects.create(user=other, course=self.course, attempt_number=999,
                                            status=QuizAttempt.STATUS_SUBMITTED, passed=False)
@@ -85,7 +97,7 @@ class PortalOverviewTests(CertificateTestBase):
         self.assertNotIn('_auth_user_id', self.client.session)
 
     def test_history_is_a_dialog_and_certificate_is_inside_test_panel(self):
-        self.create_certificate()
+        self.mark_test_incomplete()
         response = self.client.get(reverse('dashboard'))
         html = response.content.decode()
         panel = html.split('<section class="portal-test-card"', 1)[1].split('</section>', 1)[0]

@@ -1,6 +1,8 @@
+from io import BytesIO
 from unittest.mock import patch
 
 from django.urls import reverse
+from pypdf import PdfReader
 
 from courses.services import generate_certificate_pdf, load_static_data_uri
 from courses.tests.test_certificates import CertificateTestBase
@@ -69,3 +71,24 @@ class CertificateDocumentTests(CertificateTestBase):
         html = self.render_document()
         self.assertNotIn('class="certificate-course"', html)
         self.assertIn('class="certificate-logo"', html)
+
+    def test_pdf_keeps_long_profile_and_footer_on_one_page(self):
+        for field, marker in (
+            ("birth_place", "Rodiste"),
+            ("permanent_address", "Bydliste"),
+            ("employer_name", "Zamestnavatel"),
+            ("employer_address", "Sidlo"),
+        ):
+            width = self.profile._meta.get_field(field).max_length
+            setattr(self.profile, field, "W" * (width - len(marker) - 1) + " " + marker)
+        self.profile.save()
+
+        certificate, _ = self.create_certificate()
+        pdf = PdfReader(BytesIO(generate_certificate_pdf(certificate)))
+        self.assertEqual(len(pdf.pages), 1)
+        page = pdf.pages[0]
+        self.assertAlmostEqual(float(page.mediabox.width), 595.28, delta=1)
+        self.assertAlmostEqual(float(page.mediabox.height), 841.89, delta=1)
+        text = page.extract_text()
+        for marker in ("Rodiste", "Bydliste", "Zamestnavatel", "Sidlo", "www.elektroakademie.cz"):
+            self.assertIn(marker, text)

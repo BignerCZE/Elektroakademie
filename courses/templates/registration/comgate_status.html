@@ -1,0 +1,26 @@
+<div data-comgate-status{% if refresh_status %} data-refresh{% endif %}>
+    {% if paid %}
+        <p><strong>Objednávka je zaplacená.</strong> Platbu neopakujte.</p>
+        <h2>Faktura</h2>
+        {% if invoice_ready %}
+            <a class="button-primary" href="{% url 'invoice_download' order.pk %}" download>Stáhnout fakturu</a>
+        {% else %}
+            <p>Fakturu připravujeme.</p>
+        {% endif %}
+        <h2>Aktivační e-maily</h2>
+        <p>{% include "emails/activation_email_status.txt" %}</p>
+    {% elif payment.status == 'CANCELLED' %}
+        <p>Platba byla zrušena.</p>
+    {% elif payment.status == 'PENDING' %}
+        <p>Čekáme na potvrzení platby.</p>
+        {% if payment.redirect_url %}
+            <div class="button-row">
+                <a class="button-primary" href="{{ payment.redirect_url }}">Otevřít platební bránu</a>
+            </div>
+        {% endif %}
+    {% elif payment.status == 'CREATING' %}
+        <p>Platbu zakládáme.</p>
+    {% else %}
+        <p>Založení platby se nepodařilo ověřit. Kontaktujte nás a uveďte číslo objednávky.</p>
+    {% endif %}
+</div>

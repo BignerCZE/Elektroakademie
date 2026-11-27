@@ -175,7 +175,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     let pending;
     try { pending = sessionStorage.getItem("ea-pending-quiz-review"); sessionStorage.removeItem("ea-pending-quiz-review"); } catch (_) { /* Optional review reopening. */ }
-    if (pending) {
+    if (pending && activeFrame) {
         const link = Array.from(document.querySelectorAll("a[data-portal-review]")).find(item => new URL(item.href).pathname === pending);
         if (link) showReview(link);
     }

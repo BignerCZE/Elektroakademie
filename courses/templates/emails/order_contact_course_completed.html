@@ -1,0 +1,12 @@
+{% extends "emails/base.html" %}
+
+{% block title %}Účastník dokončil kurz{% endblock %}
+{% block preheader %}Osvědčení účastníka z objednávky č. {{ order.pk }}{% endblock %}
+
+{% block content %}
+<h1>Účastník dokončil kurz</h1>
+<p>Dobrý den,</p>
+<p>Účastník <strong>{{ participant.first_name }} {{ participant.last_name }}</strong>
+    úspěšně dokončil test kurzu {{ course.title }} z objednávky č. {{ order.pk }}.</p>
+<p>V příloze najdete osvědčení č. <strong>{{ certificate.certificate_number }}</strong>.</p>
+{% endblock %}

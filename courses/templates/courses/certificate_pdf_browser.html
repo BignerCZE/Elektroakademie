@@ -10,7 +10,6 @@
                 margin: 0;
                 padding: 0;
                 width: 210mm;
-                min-height: 297mm;
                 background: #ffffff;
             }
 
@@ -18,10 +17,18 @@
                 overflow: visible;
             }
 
-            .certificate-document {
+            body.certificate-pdf .certificate-document {
+                display: grid;
+                align-content: space-between;
                 width: 210mm;
-                min-height: 297mm;
+                min-height: 0;
+                margin-inline: auto;
                 box-shadow: none;
+            }
+
+            body.certificate-pdf .certificate-document:not(.certificate-document--compact) {
+                font-size: 10pt;
+                line-height: 1.35;
             }
 
             @page {
@@ -31,7 +38,7 @@
         </style>
     </head>
 
-    <body>
+    <body class="certificate-pdf">
         {% include "courses/certificate_document.html" %}
     </body>
 

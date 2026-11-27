@@ -21,10 +21,9 @@ Počet účastníků:
 {% for participant in participants %}- {{ participant.first_name }} {{ participant.last_name }}
   {{ participant.email }}
 
-{% endfor %}Účastníkům byly připraveny přístupy do Elektroakademie
-a na jejich e-mailové adresy byly zpracovány aktivační e-maily.
+{% endfor %}{% include "emails/activation_email_status.txt" %}
 
-Po aktivaci účtu mohou zahájit studium.
+Po aktivaci účtu mohou účastníci zahájit studium.
 
 
 Elektroakademie

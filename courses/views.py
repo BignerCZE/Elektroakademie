@@ -24,6 +24,7 @@ from .emails.builders import (
     build_course_completed_email,
     build_participant_activation_email,
     build_payment_completed_email,
+    build_order_contact_course_completed_email,
 )
 
 from .forms import (
@@ -657,15 +658,7 @@ def participant_activation(request, token):
     )
 
     if participant.activation_completed_at:
-        if request.user.is_authenticated and participant.user_id == request.user.pk:
-            return redirect("index")
-        return render(
-            request,
-            "registration/participant_activation_used.html",
-            {
-                "participant": participant,
-            },
-        )
+        return render(request, "registration/participant_activation_used.html")
 
     if participant.order.status != "paid":
         return render(
@@ -2019,6 +2012,41 @@ def course_completed_email_preview(request, attempt_id):
             "attachments": attachments,
         },
     )
+
+@staff_member_required
+@permission_required((
+    "courses.view_emaillog", "courses.view_order",
+    "courses.view_quizattempt", "courses.view_certificate",
+), raise_exception=True)
+@never_cache
+@require_GET
+def order_contact_course_completed_email_preview(request, log_id):
+    log = get_object_or_404(
+        EmailLog, pk=log_id, email_type=EmailLog.TYPE_ORDER_CONTACT_COURSE_COMPLETED,
+        order__isnull=False, quiz_attempt__isnull=False,
+    )
+    certificate = get_object_or_404(
+        Certificate.objects.select_related("participant", "participant__order", "quiz_attempt__course"),
+        quiz_attempt_id=log.quiz_attempt_id,
+        participant__order_id=log.order_id,
+    )
+    preview_format = request.GET.get("format", "preview")
+    if preview_format not in {"preview", "pdf"}:
+        return HttpResponse(status=400)
+
+    if preview_format == "pdf":
+        pdf = generate_certificate_pdf(certificate)
+        response = HttpResponse(pdf, content_type="application/pdf")
+        response["Content-Disposition"] = f'attachment; filename="certifikat-{certificate.certificate_number}.pdf"'
+        return response
+
+    email = build_order_contact_course_completed_email(certificate, certificate.participant.order)
+    return render(request, "emails/order_contact_course_completed_preview.html", {
+        "email": email,
+        "log": log,
+        "certificate": certificate,
+    })
+
 
 @staff_member_required
 @permission_required(('courses.view_quizattempt', 'courses.view_certificate'), raise_exception=True)
