@@ -371,3 +371,13 @@ EMAIL_REPLY_TO = os.getenv(
 GA4_MEASUREMENT_ID = os.getenv("GA4_MEASUREMENT_ID", "").strip()
 if GA4_MEASUREMENT_ID and not re.fullmatch(r"G-[A-Z0-9]+", GA4_MEASUREMENT_ID):
     raise ImproperlyConfigured("Neplatné GA4_MEASUREMENT_ID.")
+
+# Kontaktní formulář a řízené testovací doručování.
+CONTACT_EMAIL_RECIPIENT = os.getenv("CONTACT_EMAIL_RECIPIENT", "").strip()
+CONTACT_FROM_EMAIL = os.getenv("CONTACT_FROM_EMAIL", "").strip() or DEFAULT_FROM_EMAIL
+TURNSTILE_SITE_KEY = os.getenv("TURNSTILE_SITE_KEY", "").strip()
+TURNSTILE_SECRET_KEY = os.getenv("TURNSTILE_SECRET_KEY", "").strip()
+EMAIL_TEST_RECIPIENTS = tuple(
+    address.strip() for address in os.getenv("EMAIL_TEST_RECIPIENTS", "").split(",")
+    if address.strip()
+)

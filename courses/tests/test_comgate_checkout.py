@@ -7,6 +7,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from courses.comgate import order_reference
+from courses.comgate_views import checkout_available
 from courses.emails.transport import send_email
 from courses.models import ComgatePayment, EmailLog, Invoice, Order
 
@@ -85,6 +86,50 @@ class ComgateCheckoutTests(TestCase):
         self.assertEqual(EmailLog.objects.filter(order=order, status="preview").count(), 3)
         self.assertEqual(self.pdf.call_count, 1)
         self.assertContains(self.client.get(result_url), "Objednávka je zaplacená.")
+
+    @override_settings(
+        COMGATE_TEST=True, COMGATE_LIVE=False, EMAIL_TRANSPORT="smtp_test",
+        EMAIL_TEST_RECIPIENTS=("jan.novak@example.com", "kontakt@example.com"),
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+        EMAIL_HOST="smtp.example.com",
+        SITE_URL="https://elektroakademie.cz",
+        EMAIL_FROM_ACTIVATION="aktivace@elektroakademie.cz",
+        EMAIL_FROM_INVOICES="faktury@elektroakademie.cz",
+    )
+    def test_test_payment_webhook_sends_only_allowlisted_application_mail(self):
+        order, payment = self.create_order()
+        self.assertIs(self.api_request.call_args.kwargs["json"]["test"], True)
+        self.api_status(order, payment, "PAID")
+        for _ in range(2):
+            self.assertEqual(self.notify(payment, "PAID").status_code, 200)
+        payment.refresh_from_db()
+        self.assertIsNotNone(payment.fulfilled_at)
+        self.assertEqual(EmailLog.objects.get(order=order, status="preview").recipient, "druhy@example.com")
+        messages = {message.to[0]: message for message in mail.outbox}
+        self.assertEqual(len(mail.outbox), 2)
+        self.assertEqual(set(messages), {"jan.novak@example.com", "kontakt@example.com"})
+        activation = messages["jan.novak@example.com"]
+        self.assertEqual(activation.from_email, "aktivace@elektroakademie.cz")
+        self.assertIn("https://elektroakademie.cz/", activation.body)
+        invoice = messages["kontakt@example.com"]
+        self.assertEqual(invoice.from_email, "faktury@elektroakademie.cz")
+        attachment, = invoice.attachments
+        self.assertTrue(attachment.filename.startswith("faktura-"))
+        self.assertEqual(attachment.mimetype, "application/pdf")
+        self.assertEqual(attachment.content, b"%PDF-test")
+
+    def test_test_checkout_requires_a_safe_email_mode(self):
+        for settings_override in (
+            {"EMAIL_TRANSPORT": "smtp"},
+            {"EMAIL_TRANSPORT": "smtp_test", "EMAIL_TEST_RECIPIENTS": ()},
+            {
+                "EMAIL_TRANSPORT": "smtp_test",
+                "EMAIL_TEST_RECIPIENTS": ("jan.novak@example.com",),
+                "COMGATE_LIVE": True,
+            },
+        ):
+            with self.subTest(**settings_override), self.settings(**settings_override):
+                self.assertFalse(checkout_available())
 
     def test_cancelled_payment_does_not_fulfill_order(self):
         order, payment = self.create_order()

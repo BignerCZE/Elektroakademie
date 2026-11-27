@@ -4,7 +4,7 @@
 {% block title %}Elektroakademie{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'courses/css/landing.css' %}?v=27">
+<link rel="stylesheet" href="{% static 'courses/css/landing.css' %}?v=28">
 {% endblock %}
 
 {% block content %}
@@ -487,43 +487,47 @@
                             <a href="#faq">často kladených otázkách</a>.
                         </p>
 
-                        <form class="contact-form" action="#" method="post">
+                        {% if contact_sent %}
+                            <p class="contact-feedback" role="status">Děkujeme, vaše zpráva byla odeslána.</p>
+                        {% endif %}
+                        <form class="contact-form" action="{% url 'index' %}#contact" method="post">
+                            {% csrf_token %}
+                            {% if contact_error %}
+                                <p class="contact-feedback contact-error" role="alert">{{ contact_error }}</p>
+                            {% elif not contact_available %}
+                                <p class="contact-feedback">Kontaktní formulář je dočasně nedostupný.</p>
+                            {% endif %}
                             <div class="contact-form-grid">
-                                <label>
-                                    Jméno
-                                    <input type="text" name="name" placeholder="Vaše jméno">
-                                </label>
-
-                                <label>
-                                    E-mail
-                                    <input type="email" name="email" placeholder="vas@email.cz">
-                                </label>
-
-                                <label>
-                                    Telefon
-                                    <input type="tel" name="phone" placeholder="+420 123 456 789">
-                                </label>
-
-                                <label>
-                                    Předmět
-                                    <select name="topic">
-                                        <option value="obecne-informace">Obecné informace</option>
-                                        <option value="paragraf-4">§4 – osoba poučená</option>
-                                        <option value="paragraf-6">§6 – elektrotechnik</option>
-                                        <option value="paragraf-7">§7 – vedoucí elektrotechnik</option>
-                                        <option value="individualni-skoleni">Individuální školení</option>
-                                        <option value="firemni-skoleni">Firemní školení</option>
-                                    </select>
-                                </label>
+                                {% for field in contact_form %}
+                                    {% if field.name != "message" %}
+                                        <div>
+                                            <label for="{{ field.id_for_label }}">
+                                                {{ field.label }}
+                                                {{ field }}
+                                            </label>
+                                            {{ field.errors }}
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
                             </div>
 
-                            <label class="contact-message-field">
-                                Zpráva
-                                <textarea name="message" rows="5" placeholder="Napište nám zprávu"></textarea>
+                            <label class="contact-message-field" for="{{ contact_form.message.id_for_label }}">
+                                {{ contact_form.message.label }}
+                                {{ contact_form.message }}
                             </label>
+                            {{ contact_form.message.errors }}
 
+                            {% if contact_available %}
+                                <div class="cf-turnstile"
+                                     data-sitekey="{{ turnstile_site_key }}"
+                                     data-action="{{ turnstile_action }}"
+                                     data-language="cs"
+                                     data-size="compact"
+                                     data-appearance="interaction-only"></div>
+                                <noscript><p>Pro ověření CAPTCHA povolte JavaScript.</p></noscript>
+                            {% endif %}
                             <div class="contact-form-actions">
-                                <button type="button" class="cta-button primary">
+                                <button type="submit" class="cta-button primary"{% if not contact_available %} disabled{% endif %}>
                                     Odeslat
                                 </button>
                             </div>
@@ -837,6 +841,9 @@
 {% endblock %}
 
 {% block extra_js %}
+{% if contact_available %}
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+{% endif %}
 <script src="{% static 'courses/js/landing.js' %}?v=cookies1-3" defer></script>
 {% endblock %}
 

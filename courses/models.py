@@ -726,3 +726,9 @@ class ComgatePayment(models.Model):
     is_test = models.BooleanField(default=True, editable=False)
     processing_until = models.DateTimeField(null=True, editable=False)
     fulfilled_at = models.DateTimeField(null=True, editable=False)
+
+
+class ContactRateLimit(models.Model):
+    bucket = models.CharField(max_length=64, primary_key=True)
+    expires_at = models.DateTimeField(db_index=True)
+    attempts = models.PositiveSmallIntegerField(default=1)

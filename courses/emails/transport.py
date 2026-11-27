@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.core.mail import EmailMultiAlternatives
+from django.core.validators import validate_email
 
 from .types import RenderedEmail
 
@@ -105,7 +106,26 @@ class SMTPEmailTransport:
         )
 
 
-def get_email_transport():
+def test_smtp_enabled():
+    return (
+        settings.COMGATE_TEST
+        and not settings.COMGATE_LIVE
+        and bool(settings.EMAIL_TEST_RECIPIENTS)
+    )
+
+
+def smtp_enabled_for(recipient):
+    mode = settings.EMAIL_TRANSPORT
+    if mode == "smtp":
+        return True
+    return (
+        mode == "smtp_test"
+        and test_smtp_enabled()
+        and recipient in settings.EMAIL_TEST_RECIPIENTS
+    )
+
+
+def get_email_transport(recipient=""):
     transport_name = getattr(
         settings,
         "EMAIL_TRANSPORT",
@@ -118,6 +138,12 @@ def get_email_transport():
     if transport_name == "smtp":
         return SMTPEmailTransport()
 
+    if transport_name == "smtp_test":
+        if smtp_enabled_for(recipient):
+            validate_email(recipient)
+            return SMTPEmailTransport()
+        return PreviewEmailTransport()
+
     raise ValueError(
         f"Neznámý e-mailový transport: {transport_name}"
     )
@@ -126,6 +152,6 @@ def get_email_transport():
 def send_email(
     email: RenderedEmail,
 ) -> EmailDeliveryResult:
-    transport = get_email_transport()
+    transport = get_email_transport(email.recipient)
 
     return transport.send(email)

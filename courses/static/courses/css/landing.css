@@ -1052,6 +1052,33 @@ body.faq-modal-open {
     min-width: 220px;
 }
 
+.contact-feedback {
+    margin: 0;
+}
+
+.contact-form-box > .contact-feedback {
+    margin-bottom: 16px;
+}
+
+.contact-error,
+.contact-form .errorlist {
+    color: #991b1b;
+}
+
+.contact-form .errorlist {
+    margin: 4px 0 0;
+    padding-left: 20px;
+}
+
+.contact-form .cta-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.contact-form .cf-turnstile {
+    align-self: center;
+}
+
 /* Video modal */
 
 .video-modal {

@@ -17,7 +17,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.cache import never_cache
-from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.http import require_GET, require_POST, require_http_methods
 
 
 from .emails.builders import (
@@ -59,6 +59,9 @@ from .workflows import (
 )
 
 from .comgate_views import start_checkout
+from .contact import (
+    SUCCESS_SESSION_KEY, TURNSTILE_ACTION, ContactForm, contact_available, submit_contact,
+)
 from .invoice_views import can_view_invoice
 from .quiz_state import serialized_quiz_attempt
 
@@ -131,9 +134,29 @@ def get_dashboard_context(
         "has_paid": has_paid,
         "sidebar_page": sidebar_page,
     }
+@never_cache
+@require_http_methods(["GET", "HEAD", "POST"])
 def index(request):
-    courses = Course.objects.all()
-    return render(request, "courses/index.html", {"courses": courses})
+    form = ContactForm(request.POST if request.method == "POST" else None)
+    error, status = "", 200
+    sent = False
+    if request.method == "POST":
+        error, status = submit_contact(request, form)
+        if not error:
+            request.session[SUCCESS_SESSION_KEY] = True
+            return redirect(reverse("index") + "#contact")
+    elif request.method == "GET":
+        sent = request.session.pop(SUCCESS_SESSION_KEY, False)
+
+    return render(request, "courses/index.html", {
+        "courses": Course.objects.all(),
+        "contact_form": form,
+        "contact_error": error,
+        "contact_sent": sent,
+        "contact_available": contact_available(),
+        "turnstile_site_key": settings.TURNSTILE_SITE_KEY,
+        "turnstile_action": TURNSTILE_ACTION,
+    }, status=status)
 
 
 def landing(request):

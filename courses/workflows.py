@@ -19,6 +19,7 @@ from .emails.delivery import (
 from .models import EmailLog, Order, QuizAttempt
 from .invoices import issue_invoice, invoice_pdf
 from .emails.types import EmailAttachment
+from .emails.transport import smtp_enabled_for
 from .services import (
     generate_certificate,
     generate_certificate_pdf,
@@ -47,35 +48,11 @@ class QuizCompletionWorkflowResult:
     errors: tuple
 
 
-def _completed_email_statuses():
-    """
-    V preview režimu je náhled považovaný za dokončené zpracování,
-    aby opakované spuštění workflow nevytvářelo duplicitní logy.
-
-    Po budoucím přepnutí na skutečný transport se PREVIEW log
-    nepovažuje za odeslaný. Staré náhledy tak nebudou blokovat
-    první skutečné odeslání přes SMTP.
-    """
-    transport_name = getattr(
-        settings,
-        "EMAIL_TRANSPORT",
-        "preview",
-    )
-
-    if transport_name == "preview":
-        return (
-            EmailLog.STATUS_PREVIEW,
-            EmailLog.STATUS_SENT,
-        )
-
-    return (EmailLog.STATUS_SENT,)
-
-
 def _email_already_completed(**filters):
-    return EmailLog.objects.filter(
-        status__in=_completed_email_statuses(),
-        **filters,
-    ).exists()
+    statuses = [EmailLog.STATUS_SENT]
+    if settings.EMAIL_TRANSPORT in {"preview", "smtp_test"} and not smtp_enabled_for(filters["recipient"]):
+        statuses.append(EmailLog.STATUS_PREVIEW)
+    return EmailLog.objects.filter(status__in=statuses, **filters).exists()
 
 
 def _mark_order_paid_serialized(order_id):

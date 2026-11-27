@@ -29,7 +29,7 @@ class FrontendStaticAssetTests(TestCase):
 
     def test_index_loads_assets_and_keeps_contact_and_faq_modal(self):
         response = self.client.get(reverse("index"))
-        self.assertContains(response, "/static/courses/css/landing.css?v=27")
+        self.assertContains(response, "/static/courses/css/landing.css?v=28")
         self.assertContains(response, "/static/courses/js/landing.js?v=cookies1-3")
         self.assertContains(response, 'id="contact"')
         self.assertContains(response, 'class="faq-modal-overlay" id="faq"')

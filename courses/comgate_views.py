@@ -14,6 +14,7 @@ from django.views.decorators.http import require_GET, require_POST
 from .comgate import (
     ComgateError, create_payment, credentials, fulfill_payment, matches_payment_mode, payment_status,
 )
+from .emails.transport import test_smtp_enabled
 from .models import ComgatePayment, Order
 
 logger = logging.getLogger(__name__)
@@ -23,7 +24,10 @@ def checkout_available():
     if not settings.COMGATE_CHECKOUT:
         return False
     if settings.COMGATE_TEST:
-        return not settings.COMGATE_LIVE and settings.EMAIL_TRANSPORT == "preview"
+        return not settings.COMGATE_LIVE and (
+            settings.EMAIL_TRANSPORT == "preview"
+            or (settings.EMAIL_TRANSPORT == "smtp_test" and test_smtp_enabled())
+        )
     return (
         settings.COMGATE_LIVE and not settings.DEBUG
         and settings.EMAIL_TRANSPORT == "smtp"

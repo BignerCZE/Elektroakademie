@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
+from django.core import mail
 from django.test import TestCase, override_settings
 from django.utils import timezone
 
@@ -68,6 +69,28 @@ class QuizCompletionArtifactWorkflowTests(TestCase):
             passed=True,
             submitted_at=timezone.now(),
         )
+
+    @override_settings(
+        EMAIL_TRANSPORT="smtp_test", COMGATE_TEST=True, COMGATE_LIVE=False,
+        EMAIL_TEST_RECIPIENTS=("artifact@example.com",),
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+        EMAIL_HOST="smtp.example.com",
+        EMAIL_FROM_CERTIFICATES="osvedceni@elektroakademie.cz",
+        SITE_URL="https://elektroakademie.cz",
+    )
+    @patch("courses.workflows.generate_quiz_result_pdf", return_value=b"%PDF quiz")
+    @patch("courses.workflows.generate_certificate_pdf", return_value=b"%PDF certificate")
+    def test_allowlisted_quiz_completion_delivers_certificate_and_result(self, _certificate, _quiz):
+        for _ in range(2):
+            self.assertEqual(process_quiz_completion(self.attempt).errors, ())
+        message, = mail.outbox
+        self.assertEqual(message.from_email, "osvedceni@elektroakademie.cz")
+        self.assertEqual(message.to, [self.user.email])
+        self.assertCountEqual(
+            [(attachment.content, attachment.mimetype) for attachment in message.attachments],
+            [(b"%PDF certificate", "application/pdf"), (b"%PDF quiz", "application/pdf")],
+        )
+        self.assertEqual(EmailLog.objects.get(quiz_attempt=self.attempt).status, EmailLog.STATUS_SENT)
 
     @patch(
         "courses.workflows.generate_quiz_result_pdf",
